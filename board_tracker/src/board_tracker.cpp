@@ -88,17 +88,43 @@
        for(int i=0;i<n;i++){   
          vp.push_back(Point(symbol->get_location_x(i),symbol->get_location_y(i)));   
        }   
-       cout << "found Qr at: x  " << vp[0] << " y " << vp[1] << '"' <<" "<< endl;   
+       cout << "found Qr at: p0  " << vp[0] << " p1 " << vp[1]  << " p2 " << vp[2] << " p3 " << vp[3] <<'"' <<" "<< endl;   
        cout << "vp size  " << vp.size() << endl;   
      
        RotatedRect r = minAreaRect(vp);   
        //get new rect for game area
-       if(vp.size()>3){
+       if(vp.size()==4){
+
+        //calculate board position
+        double rboard_width = 100; //real board width in mm
+        double rboard_height = 100; // real board height in mm
+        double rqrcode_width = 20; // real QR-code width in mm
+        double rqrcode_height = 20; // real QR-code height in mm
+        double rqrboard_offset_x = -20; // offset in x direction between qr code and board
+        double rqrboard_offset_y = 30; // offset in y direction between qr code and board
+
+        //read out image qr-code width and height
+        double iqrcode_width = vp[3].x- vp[0].x; // read out qrcode width from points
+        double iqrcode_height= vp[1].y-vp[0].y; // read out qrcode height from points
+
+        
+        //calc image qrcode to board offsets
+        double iqrboard_offset_x = (iqrcode_width*rqrboard_offset_x)/rqrcode_width;
+        double iqrboard_offset_y = (iqrcode_height*rqrboard_offset_y)/rqrcode_height;
+
+        // calc image board width and héight
+        double iboard_width=(rboard_width*iqrcode_height)/rqrcode_width;
+        double iboard_height=(rboard_height*iqrcode_height)/rqrcode_height;
+
+        //set 4 points to cut out the image
+
+       vpgame.push_back(vp[0]+Point(iqrboard_offset_x,iqrboard_offset_x));
+       vpgame.push_back(vpgame[0]+Point(iboard_width,0));
+       vpgame.push_back(vpgame[0]+Point(iboard_width,-iboard_height));
+       vpgame.push_back(vpgame[0]+Point(0,-iboard_height));
        
-       vpgame.push_back(vp[0]+Point(0,0));
-       vpgame.push_back(vp[1]+Point(0,0));
-       vpgame.push_back(vp[2]+Point(20,20));
-       vpgame.push_back(vp[3]+Point(20,20));
+
+
       
        RotatedRect rgame = minAreaRect(vpgame);  
        // rect is the RotatedRect (I got it from a contour...)
