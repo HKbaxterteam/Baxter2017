@@ -68,9 +68,24 @@
      }  
      Mat grey;  
      Mat game;
+     Mat org=frame;
      cvtColor(frame,grey,CV_BGR2GRAY);  
      int width = frame.cols;   
      int height = frame.rows;   
+     //vars for cutting out board
+        double rboard_width; //real board width in mm
+        double rboard_height; // real board height in mm
+        double rqrcode_width; // real QR-code width in mm
+        double rqrcode_height; // real QR-code height in mm
+        double rqrboard_offset_x; // offset in x direction between qr code and board
+        double rqrboard_offset_y; // offset in y direction between qr code and board
+        double iqrcode_width; // read out qrcode width from points
+        double iqrcode_height;// read out qrcode height from points
+        double iqrboard_offset_x;
+        double iqrboard_offset_y;
+        double iboard_width;
+        double iboard_height;
+
      uchar *raw = (uchar *)grey.data;   
      // wrap image data   
      Image image(width, height, "Y800", raw, width * height);   
@@ -96,25 +111,25 @@
        if(vp.size()==4){
 
         //calculate board position
-        double rboard_width = 100; //real board width in mm
-        double rboard_height = 100; // real board height in mm
-        double rqrcode_width = 20; // real QR-code width in mm
-        double rqrcode_height = 20; // real QR-code height in mm
-        double rqrboard_offset_x = -20; // offset in x direction between qr code and board
-        double rqrboard_offset_y = 30; // offset in y direction between qr code and board
+        rboard_width = 100; //real board width in mm
+        rboard_height = 100; // real board height in mm
+        rqrcode_width = 20; // real QR-code width in mm
+        rqrcode_height = 20; // real QR-code height in mm
+        rqrboard_offset_x = -20; // offset in x direction between qr code and board
+        rqrboard_offset_y = 30; // offset in y direction between qr code and board
 
         //read out image qr-code width and height
-        double iqrcode_width = vp[3].x- vp[0].x; // read out qrcode width from points
-        double iqrcode_height= vp[1].y-vp[0].y; // read out qrcode height from points
+        iqrcode_width = vp[3].x- vp[0].x; // read out qrcode width from points
+        iqrcode_height= vp[1].y-vp[0].y; // read out qrcode height from points
 
         
         //calc image qrcode to board offsets
-        double iqrboard_offset_x = (iqrcode_width*rqrboard_offset_x)/rqrcode_width;
-        double iqrboard_offset_y = (iqrcode_height*rqrboard_offset_y)/rqrcode_height;
+        iqrboard_offset_x = (iqrcode_width*rqrboard_offset_x)/rqrcode_width;
+        iqrboard_offset_y = (iqrcode_height*rqrboard_offset_y)/rqrcode_height;
 
         // calc image board width and héight
-        double iboard_width=(rboard_width*iqrcode_height)/rqrcode_width;
-        double iboard_height=(rboard_height*iqrcode_height)/rqrcode_height;
+        iboard_width=(rboard_width*iqrcode_height)/rqrcode_width;
+        iboard_height=(rboard_height*iqrcode_height)/rqrcode_height;
 
         //set 4 points to cut out the image
 
@@ -127,8 +142,6 @@
 
       
        RotatedRect rgame = minAreaRect(vpgame);  
-       // rect is the RotatedRect (I got it from a contour...)
-        RotatedRect rect;
         // matrices we'll use
         Mat M, rotated, cropped;
         // get angle and size from the bounding box
@@ -142,7 +155,7 @@
         // get the rotation matrix
         M = getRotationMatrix2D(rgame.center, angle, 1.0);
         // perform the affine transformation
-        warpAffine(grey, rotated, M, grey.size(), INTER_CUBIC);
+        warpAffine(org, rotated, M, org.size(), INTER_CUBIC);
         // crop the resulting image
         getRectSubPix(rotated, rect_size, rgame.center, cropped);
        waitKey(10);
