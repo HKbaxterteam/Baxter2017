@@ -9,6 +9,7 @@ project(board_tracker)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   std_msgs roscpp
+  sensor_msgs
   OpenCV
   cv_bridge
   image_transport
