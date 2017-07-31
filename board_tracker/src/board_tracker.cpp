@@ -194,6 +194,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "board_tracker");
   board_cutout bc;
+  ROS_INFO("board tracker initilized");
   ros::spin();
   return 0;
 }
