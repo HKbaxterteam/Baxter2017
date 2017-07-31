@@ -1493,6 +1493,7 @@ CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /opt/ros/indigo/include/ros/types.h
 CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /opt/ros/indigo/include/ros/wall_timer.h
 CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /opt/ros/indigo/include/ros/wall_timer_options.h
 CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /opt/ros/indigo/include/rosconsole/macros_generated.h
+CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /opt/ros/indigo/include/std_msgs/Float64.h
 CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /opt/ros/indigo/include/std_msgs/String.h
 CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /usr/include/qt4/Qt3Support/q3cstring.h
 CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /usr/include/qt4/Qt3Support/q3valuelist.h

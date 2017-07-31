@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <iostream>
 #include "../include/baxter_gui/main_window.hpp"
+#include "../include/baxter_gui/qnode.hpp"
 
 /*****************************************************************************
 ** Namespaces
@@ -169,7 +170,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void baxter_gui::MainWindow::on_start_button_clicked()
 {
+
+
+
     cout<<"STTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAART"<<endl;
+
+    qnode.publish();
+
 }
 
 }  // namespace baxter_gui

@@ -16,6 +16,7 @@
 #include <std_msgs/String.h>
 #include <sstream>
 #include "../include/baxter_gui/qnode.hpp"
+#include <std_msgs/Float64.h>
 
 /*****************************************************************************
 ** Namespaces
@@ -70,7 +71,7 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 }
 
 void QNode::run() {
-	ros::Rate loop_rate(1);
+    ros::Rate loop_rate(10);
 	int count = 0;
 	while ( ros::ok() ) {
 
@@ -122,6 +123,27 @@ void QNode::log( const LogLevel &level, const std::string &msg) {
 	QVariant new_row(QString(logging_model_msg.str().c_str()));
 	logging_model.setData(logging_model.index(logging_model.rowCount()-1),new_row);
 	Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
+
+void QNode::publish() {
+
+    std::cout<<"ok"<<std::endl;
+    ros::Rate loop_rate(10);
+        int count = 0;
+        while ( ros::ok() ) {
+
+            std_msgs::String msg;
+            std::stringstream ss;
+            ss << "hello world ssssssssssssss" << count;
+            msg.data = ss.str();
+            chatter_publisher.publish(msg);
+            log(Info,std::string("I sent: ")+msg.data);
+            ros::spinOnce();
+            loop_rate.sleep();
+            ++count;
+        }
+        std::cout << "Ros shutdown, proceeding to close the gui." << std::endl;
+        Q_EMIT rosShutdown(); // used to signal the gui for a shutdown (useful to roslaunch)
 }
 
 }  // namespace baxter_gui

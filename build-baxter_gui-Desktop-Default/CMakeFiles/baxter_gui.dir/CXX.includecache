@@ -41,6 +41,8 @@ iostream
 -
 ../include/baxter_gui/main_window.hpp
 /home/n/catkin_ws/src/Baxter2017/baxter_gui/include/baxter_gui/main_window.hpp
+../include/baxter_gui/qnode.hpp
+/home/n/catkin_ws/src/Baxter2017/baxter_gui/include/baxter_gui/qnode.hpp
 
 /home/n/catkin_ws/src/Baxter2017/baxter_gui/src/qnode.cpp
 ros/ros.h
@@ -55,6 +57,8 @@ sstream
 -
 ../include/baxter_gui/qnode.hpp
 /home/n/catkin_ws/src/Baxter2017/baxter_gui/include/baxter_gui/qnode.hpp
+std_msgs/Float64.h
+-
 
 /home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/include/baxter_gui/moc_main_window.cxx
 ../../../baxter_gui/include/baxter_gui/main_window.hpp
@@ -719,6 +723,22 @@ ros/forwards.h
 /opt/ros/indigo/include/ros/ros/forwards.h
 
 /opt/ros/indigo/include/rosconsole/macros_generated.h
+
+/opt/ros/indigo/include/std_msgs/Float64.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
 
 /opt/ros/indigo/include/std_msgs/String.h
 string
