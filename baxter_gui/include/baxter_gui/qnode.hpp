@@ -64,6 +64,7 @@ private:
 	int init_argc;
 	char** init_argv;
 	ros::Publisher chatter_publisher;
+    ros::ServiceClient client;
     QStringListModel logging_model;
 };
 

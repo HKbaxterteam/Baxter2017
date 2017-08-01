@@ -1,3 +1,4 @@
+-I/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel/include
 -I/opt/ros/indigo/include
 -I/usr/include
 -I/usr/include/qt4

@@ -17,6 +17,7 @@
 #include <sstream>
 #include "../include/baxter_gui/qnode.hpp"
 #include <std_msgs/Float64.h>
+#include "baxter_gui/send_command.h"
 
 /*****************************************************************************
 ** Namespaces
@@ -50,6 +51,8 @@ bool QNode::init() {
 	ros::NodeHandle n;
 	// Add your ros communications here.
 	chatter_publisher = n.advertise<std_msgs::String>("chatter", 1000);
+    client = n.serviceClient<baxter_gui::send_command>("send_command");
+
 	start();
 	return true;
 }
@@ -66,6 +69,7 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 	ros::NodeHandle n;
 	// Add your ros communications here.
 	chatter_publisher = n.advertise<std_msgs::String>("chatter", 1000);
+    client = n.serviceClient<baxter_gui::send_command>("send_command");
 	start();
 	return true;
 }
@@ -127,7 +131,20 @@ void QNode::log( const LogLevel &level, const std::string &msg) {
 
 void QNode::publish() {
 
-    std::cout<<"ok"<<std::endl;
+
+      baxter_gui::send_command srv;
+      srv.request.start = atoll("start");
+
+      if (client.call(srv))
+      {
+        ROS_INFO("antwort : %s", srv.response.answ.c_str());
+      }
+      else
+      {
+        ROS_ERROR("failed to send_command");
+      }
+
+    /*std::cout<<"ok"<<std::endl;
     ros::Rate loop_rate(10);
         int count = 0;
         while ( ros::ok() ) {
@@ -144,6 +161,7 @@ void QNode::publish() {
         }
         std::cout << "Ros shutdown, proceeding to close the gui." << std::endl;
         Q_EMIT rosShutdown(); // used to signal the gui for a shutdown (useful to roslaunch)
+        */
 }
 
 }  // namespace baxter_gui

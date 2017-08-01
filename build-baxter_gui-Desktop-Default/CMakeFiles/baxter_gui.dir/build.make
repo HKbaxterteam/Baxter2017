@@ -240,10 +240,10 @@ devel/lib/baxter_gui/baxter_gui: /opt/ros/indigo/lib/librosconsole_log4cxx.so
 devel/lib/baxter_gui/baxter_gui: /opt/ros/indigo/lib/librosconsole_backend_interface.so
 devel/lib/baxter_gui/baxter_gui: /usr/lib/liblog4cxx.so
 devel/lib/baxter_gui/baxter_gui: /usr/lib/x86_64-linux-gnu/libboost_regex.so
+devel/lib/baxter_gui/baxter_gui: /opt/ros/indigo/lib/libxmlrpcpp.so
 devel/lib/baxter_gui/baxter_gui: /opt/ros/indigo/lib/libroscpp_serialization.so
 devel/lib/baxter_gui/baxter_gui: /opt/ros/indigo/lib/librostime.so
 devel/lib/baxter_gui/baxter_gui: /usr/lib/x86_64-linux-gnu/libboost_date_time.so
-devel/lib/baxter_gui/baxter_gui: /opt/ros/indigo/lib/libxmlrpcpp.so
 devel/lib/baxter_gui/baxter_gui: /opt/ros/indigo/lib/libcpp_common.so
 devel/lib/baxter_gui/baxter_gui: /usr/lib/x86_64-linux-gnu/libboost_system.so
 devel/lib/baxter_gui/baxter_gui: /usr/lib/x86_64-linux-gnu/libboost_thread.so

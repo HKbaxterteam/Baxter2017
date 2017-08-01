@@ -1617,4 +1617,7 @@ CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /usr/include/qt4/QtGui/qwidget.h
 CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /usr/include/qt4/QtGui/qwindowdefs.h
 CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /usr/include/qt4/QtGui/qwindowdefs_win.h
 CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: /usr/include/qt4/QtGui/qwmatrix.h
+CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: devel/include/baxter_gui/send_command.h
+CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: devel/include/baxter_gui/send_commandRequest.h
+CMakeFiles/baxter_gui.dir/src/qnode.cpp.o: devel/include/baxter_gui/send_commandResponse.h
 

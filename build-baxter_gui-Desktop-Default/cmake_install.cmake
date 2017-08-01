@@ -115,7 +115,35 @@ file(INSTALL DESTINATION "/usr/local" TYPE FILE FILES "/home/n/catkin_ws/src/Bax
 endif()
 
 if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/baxter_gui/srv" TYPE FILE FILES "/home/n/catkin_ws/src/Baxter2017/baxter_gui/srv/send_command.srv")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/baxter_gui/cmake" TYPE FILE FILES "/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/catkin_generated/installspace/baxter_gui-msg-paths.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel/include/baxter_gui")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel/share/common-lisp/ros/baxter_gui")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  execute_process(COMMAND "/usr/bin/python" -m compileall "/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel/lib/python2.7/dist-packages/baxter_gui")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python2.7/dist-packages" TYPE DIRECTORY FILES "/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel/lib/python2.7/dist-packages/baxter_gui")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/catkin_generated/installspace/baxter_gui.pc")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/baxter_gui/cmake" TYPE FILE FILES "/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/catkin_generated/installspace/baxter_gui-msg-extras.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")

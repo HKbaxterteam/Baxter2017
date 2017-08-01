@@ -5,7 +5,7 @@
       <Option title="baxter_gui" />
       <Option makefile_is_custom="1" />
       <Option compiler="gcc" />
-      <Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\opt\;CMake Files\..\..\..\..\..\..\opt\ros\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\platform\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\test\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\tools\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\templates\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\em\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\qt_build\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\qt_build\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\cpp_common\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\cpp_common\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\message_runtime\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\message_runtime\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp_serialization\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp_serialization\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp_traits\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp_traits\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rostime\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rostime\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rosconsole\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rosconsole\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rosgraph_msgs\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rosgraph_msgs\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\std_msgs\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\std_msgs\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\xmlrpcpp\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\xmlrpcpp\cmake\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\src\;CMake Files\..\..\..\..\..\..\usr\src\gtest\;CMake Files\..\..\..\..\..\..\usr\src\gtest\cmake\;CMake Files\..\build-baxter_gui-Desktop-Default\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin\catkin_generated\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin\catkin_generated\version\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin_generated\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin_generated\installspace\;CMake Files\resources\;" />
+      <Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\opt\;CMake Files\..\..\..\..\..\..\opt\ros\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\platform\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\test\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\tools\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\templates\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\em\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\qt_build\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\qt_build\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\cpp_common\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\cpp_common\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\message_runtime\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\message_runtime\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp_serialization\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp_serialization\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp_traits\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\roscpp_traits\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rostime\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rostime\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rosconsole\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rosconsole\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rosgraph_msgs\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\rosgraph_msgs\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\std_msgs\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\std_msgs\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\xmlrpcpp\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\xmlrpcpp\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\gencpp\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\gencpp\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genlisp\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genlisp\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genpy\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genpy\cmake\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\message_generation\;CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\message_generation\cmake\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\src\;CMake Files\..\..\..\..\..\..\usr\src\gtest\;CMake Files\..\..\..\..\..\..\usr\src\gtest\cmake\;CMake Files\..\build-baxter_gui-Desktop-Default\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin\catkin_generated\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin\catkin_generated\version\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin_generated\;CMake Files\..\build-baxter_gui-Desktop-Default\catkin_generated\installspace\;CMake Files\..\build-baxter_gui-Desktop-Default\devel\;CMake Files\..\build-baxter_gui-Desktop-Default\devel\share\;CMake Files\..\build-baxter_gui-Desktop-Default\devel\share\baxter_gui\;CMake Files\..\build-baxter_gui-Desktop-Default\devel\share\baxter_gui\cmake\;CMake Files\..\build-baxter_gui-Desktop-Default\cmake\;CMake Files\resources\;" />
       <Build>
       <Target title="all">
          <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
@@ -32,6 +32,7 @@
             <Add option="-DQT_NO_KEYWORDS" />
             <Add directory="/home/n/catkin_ws/devel/include" />
             <Add directory="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+            <Add directory="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel/include" />
             <Add directory="/opt/ros/indigo/include" />
             <Add directory="/usr/include" />
             <Add directory="/usr/include/c++/4.8" />
@@ -67,6 +68,7 @@
             <Add option="-DQT_NO_KEYWORDS" />
             <Add directory="/home/n/catkin_ws/devel/include" />
             <Add directory="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+            <Add directory="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel/include" />
             <Add directory="/opt/ros/indigo/include" />
             <Add directory="/usr/include" />
             <Add directory="/usr/include/c++/4.8" />
@@ -82,6 +84,16 @@
          </Compiler>
          <MakeCommands>
             <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 baxter_gui/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="baxter_gui_gencpp">
+         <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 baxter_gui_gencpp" />
             <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
             <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
             <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
@@ -137,11 +149,41 @@
             <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
          </MakeCommands>
       </Target>
+      <Target title="baxter_gui_generate_messages">
+         <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 baxter_gui_generate_messages" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
       <Target title="install">
          <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
          <Option type="4" />
          <MakeCommands>
             <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 install" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="_baxter_gui_generate_messages_check_deps_send_command">
+         <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 _baxter_gui_generate_messages_check_deps_send_command" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="baxter_gui_generate_messages_py">
+         <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 baxter_gui_generate_messages_py" />
             <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
             <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
             <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
@@ -197,11 +239,31 @@
             <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
          </MakeCommands>
       </Target>
+      <Target title="baxter_gui_generate_messages_cpp">
+         <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 baxter_gui_generate_messages_cpp" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
       <Target title="doxygen">
          <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
          <Option type="4" />
          <MakeCommands>
             <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 doxygen" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="baxter_gui_genlisp">
+         <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 baxter_gui_genlisp" />
             <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
             <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
             <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
@@ -247,11 +309,31 @@
             <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
          </MakeCommands>
       </Target>
+      <Target title="baxter_gui_generate_messages_lisp">
+         <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 baxter_gui_generate_messages_lisp" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
       <Target title="rosgraph_msgs_generate_messages_cpp">
          <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
          <Option type="4" />
          <MakeCommands>
             <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 rosgraph_msgs_generate_messages_cpp" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="baxter_gui_genpy">
+         <Option working_dir="/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 baxter_gui_genpy" />
             <CompileFile command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
             <Clean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
             <DistClean command="/usr/bin/make -f &quot;/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
@@ -426,6 +508,8 @@
       </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/resources/images.qrc">
       </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/srv/send_command.srv">
+      </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/ui/main_window.ui">
       </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/CMakeLists.txt">
@@ -522,6 +606,12 @@
           <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\" />
       </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/catkin/cmake/interrogate_setup_dot_py.py">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/catkin/cmake/catkinConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/catkin/cmake/catkinConfig.cmake">
           <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\catkin\cmake\" />
       </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/catkin/cmake/platform/lsb.cmake">
@@ -695,11 +785,101 @@
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/std_msgs/cmake/std_msgs-msg-extras.cmake">
           <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\std_msgs\cmake\" />
       </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/std_msgs/cmake/std_msgsConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\std_msgs\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/std_msgs/cmake/std_msgsConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\std_msgs\cmake\" />
+      </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/xmlrpcpp/cmake/xmlrpcppConfig-version.cmake">
           <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\xmlrpcpp\cmake\" />
       </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/xmlrpcpp/cmake/xmlrpcppConfig.cmake">
           <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\xmlrpcpp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/genmsgConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/genmsgConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/genmsg-extras.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/genmsgConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/genmsgConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/pkg-msg-paths.cmake.develspace.in">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/pkg-msg-paths.cmake.installspace.in">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/pkg-msg-extras.cmake.in">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/pkg-msg-extras.cmake.in">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/pkg-genmsg.context.in">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genmsg/cmake/pkg-genmsg.cmake.em">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genmsg\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/gencpp/cmake/gencppConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\gencpp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/gencpp/cmake/gencppConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\gencpp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/gencpp/cmake/gencpp-extras.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\gencpp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/gencpp/cmake/gencppConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\gencpp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/gencpp/cmake/gencppConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\gencpp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genlisp/cmake/genlispConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genlisp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genlisp/cmake/genlispConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genlisp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genlisp/cmake/genlisp-extras.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genlisp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genlisp/cmake/genlispConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genlisp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genlisp/cmake/genlispConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genlisp\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genpy/cmake/genpyConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genpy\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genpy/cmake/genpyConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genpy\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genpy/cmake/genpy-extras.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genpy\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genpy/cmake/genpyConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genpy\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/genpy/cmake/genpyConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\genpy\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/message_generation/cmake/message_generationConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\message_generation\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../opt/ros/indigo/share/message_generation/cmake/message_generationConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\opt\ros\indigo\share\message_generation\cmake\" />
       </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../../../../../../usr/src/gtest/CMakeLists.txt">
           <Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\src\gtest\" />
@@ -725,8 +905,20 @@
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../build-baxter_gui-Desktop-Default/catkin_generated/package.cmake">
           <Option virtualFolder="CMake Files\..\build-baxter_gui-Desktop-Default\catkin_generated\" />
       </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../build-baxter_gui-Desktop-Default/catkin_generated/baxter_gui-msg-extras.cmake.develspace.in">
+          <Option virtualFolder="CMake Files\..\build-baxter_gui-Desktop-Default\catkin_generated\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../build-baxter_gui-Desktop-Default/catkin_generated/baxter_gui-msg-extras.cmake.installspace.in">
+          <Option virtualFolder="CMake Files\..\build-baxter_gui-Desktop-Default\catkin_generated\" />
+      </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../build-baxter_gui-Desktop-Default/catkin_generated/installspace/_setup_util.py">
           <Option virtualFolder="CMake Files\..\build-baxter_gui-Desktop-Default\catkin_generated\installspace\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../build-baxter_gui-Desktop-Default/devel/share/baxter_gui/cmake/baxter_gui-msg-paths.cmake">
+          <Option virtualFolder="CMake Files\..\build-baxter_gui-Desktop-Default\devel\share\baxter_gui\cmake\" />
+      </Unit>
+      <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/../build-baxter_gui-Desktop-Default/cmake/baxter_gui-genmsg.cmake">
+          <Option virtualFolder="CMake Files\..\build-baxter_gui-Desktop-Default\cmake\" />
       </Unit>
       <Unit filename="/home/n/catkin_ws/src/Baxter2017/baxter_gui/resources/images.qrc">
           <Option virtualFolder="CMake Files\resources\" />

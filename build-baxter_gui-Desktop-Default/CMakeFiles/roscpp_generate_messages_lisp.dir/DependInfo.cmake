@@ -19,6 +19,7 @@ set(CMAKE_TARGET_LINKED_INFO_FILES
 
 # The include file search paths:
 set(CMAKE_C_TARGET_INCLUDE_PATH
+  "devel/include"
   "/opt/ros/indigo/include"
   "/usr/include/qt4"
   "/usr/include/qt4/QtGui"

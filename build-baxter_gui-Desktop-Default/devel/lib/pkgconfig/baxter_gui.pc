@@ -3,6 +3,6 @@ prefix=/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel
 Name: baxter_gui
 Description: Description of baxter_gui
 Version: 0.1.0
-Cflags: 
+Cflags: -I/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel/include
 Libs: -L/home/n/catkin_ws/src/Baxter2017/build-baxter_gui-Desktop-Default/devel/lib 
 Requires: 

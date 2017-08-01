@@ -3,6 +3,6 @@ prefix=/usr/local
 Name: baxter_gui
 Description: Description of baxter_gui
 Version: 0.1.0
-Cflags: 
+Cflags: -I/usr/local/include
 Libs: -L/usr/local/lib 
 Requires: 
