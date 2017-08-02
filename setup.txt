@@ -1,0 +1,35 @@
+###Setup for Baxter project HKUST2017 (ubuntu 14.04)
+##ROS
+#Install ros indigo full (with gazebo 2.2)
+http://wiki.ros.org/indigo/Installation/Ubuntu
+#setup ros workspace (catkin)
+http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment
+
+##Baxter
+#Baxter simulation
+http://sdk.rethinkrobotics.com/wiki/Simulator_Installation
+#Gazebo workspace error
+https://github.com/jaejunlee0538/gazebo_2.2_ros_indigo/issues/1
+wget -r -R "index\.html*" http://models.gazebosim.org/
+sudo cp -r models.gazebosim.org ~/.gazebo/models/
+#Baxter sdk
+http://sdk.rethinkrobotics.com/wiki/Workstation_Setup
+#baxter moveit
+http://sdk.rethinkrobotics.com/wiki/MoveIt_Tutorial
+
+##Kinectv2 (Xbox One)
+#libfreenect2
+https://github.com/OpenKinect/libfreenect2
+!!AMD is a bitch!!
+#Kinect2 bridge
+https://github.com/code-iai/iai_kinect2
+
+##QT
+
+
+
+##Git repo Baxter2017
+repo:git@github.com:HKbaxterteam/Baxter2017.git
+apt-get install ros-indigo-zbar-ros 
+
+
