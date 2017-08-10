@@ -53,7 +53,7 @@ class board_detector
     Mat org, subImage;
 	Mat filter_image_red, filter_image_blue;
 
-  board_detector() : it_(n_), debug_flag(false), rows(7), cols(7), filter_red_r_low(0), filter_red_g_low(0), filter_red_b_low(0), filter_red_r_high(255), filter_red_g_high(25), filter_red_b_high(25), filter_blue_r_low(0), filter_blue_g_low(0), filter_blue_b_low(50), filter_blue_r_high(25), filter_blue_g_high(25), filter_blue_b_high(255) 
+  board_detector() : it_(n_), debug_flag(true), rows(7), cols(7), filter_red_r_low(0), filter_red_g_low(0), filter_red_b_low(0), filter_red_r_high(255), filter_red_g_high(25), filter_red_b_high(25), filter_blue_r_low(0), filter_blue_g_low(0), filter_blue_b_low(50), filter_blue_r_high(25), filter_blue_g_high(25), filter_blue_b_high(255) 
   {
   	// Subscrive and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &board_detector::imageCb, this);
