@@ -80,6 +80,17 @@ def move_group_python_interface_tutorial():
   pose_target.position.x = 0.7
   pose_target.position.y = -0.05
   pose_target.position.z = 1.1
+
+  #Planning scene stuff
+  collision_detection::CollisionRequest collision_request;
+  collision_detection::CollisionResult collision_result;
+  scene.checkSelfCollision(collision_request, collision_result);
+  
+
+
+
+
+
   group.set_pose_target(pose_target)
 
   ## Now, we call the planner to compute the plan
