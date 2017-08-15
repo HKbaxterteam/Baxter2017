@@ -23,6 +23,8 @@ https://github.com/OpenKinect/libfreenect2
 !!AMD is a bitch!!
 #Kinect2 bridge
 https://github.com/code-iai/iai_kinect2
+#opencv2.4
+https://gist.github.com/bigsnarfdude/7305c8d8335c7cfc91888485a33d9bd9
 
 ##QT
 
