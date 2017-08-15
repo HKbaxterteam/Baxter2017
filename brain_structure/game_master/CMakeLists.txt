@@ -1,0 +1,114 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(game_master)
+
+## Compile as C++11, supported in ROS Kinetic and newer
+# add_compile_options(-std=c++11)
+
+## Find catkin macros and libraries
+## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+## is used, also find other catkin packages
+find_package(catkin REQUIRED COMPONENTS
+  actionlib
+  actionlib_msgs
+  message_generation
+  roscpp
+  rospy
+  std_msgs
+)
+
+## System dependencies are found with CMake's conventions
+ find_package(Boost REQUIRED COMPONENTS system)
+
+
+################################################
+## Declare ROS messages, services and actions ##
+################################################
+
+
+## Generate messages in the 'msg' folder
+# add_message_files(
+#   FILES
+#   Message1.msg
+#   Message2.msg
+# )
+
+## Generate services in the 'srv' folder
+# add_service_files(
+#   FILES
+#   Service1.srv
+#   Service2.srv
+# )
+
+## Generate actions in the 'action' folder
+ add_action_files(
+    FILES
+	DIRECTORY action
+    FILES gui_game_master.action
+ )
+
+## Generate added messages and services with any dependencies listed here
+ generate_messages(
+   DEPENDENCIES
+   actionlib_msgs#   std_msgs
+ )
+
+################################################
+## Declare ROS dynamic reconfigure parameters ##
+################################################
+
+
+
+###################################
+## catkin specific configuration ##
+###################################
+## The catkin_package macro generates cmake config files for your package
+## Declare things to be passed to dependent projects
+## INCLUDE_DIRS: uncomment this if you package contains header files
+## LIBRARIES: libraries you create in this project that dependent projects also need
+## CATKIN_DEPENDS: catkin_packages dependent projects also need
+## DEPENDS: system dependencies of this project that dependent projects also need
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES actionlib_tutorials
+#  CATKIN_DEPENDS actionlib actionlib_msgs message_generation roscpp rospy std_msgs
+#  DEPENDS system_lib
+)
+catkin_package(
+  CATKIN_DEPENDS actionlib_msgs
+)
+
+###########
+## Build ##
+###########
+
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
+include_directories(
+# include
+  ${catkin_INCLUDE_DIRS}
+)
+
+include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+
+add_executable(gui_game_master_server src/gui_game_master_server.cpp)
+
+target_link_libraries(
+  gui_game_master_server
+  ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  gui_game_master_server
+  ${game_master_EXPORTED_TARGETS}
+)
+#############
+## Install ##
+#############
+
+
+## Mark executables and/or libraries for installation
+
+
+#############
+## Testing ##
+#############
