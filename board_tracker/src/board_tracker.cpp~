@@ -56,7 +56,7 @@ class board_cutout
     board_cutout() : it_(n_),rboard_width(80),rboard_height(80),rqrcode_width(20), rqrcode_height(20), rqrboard_offset_x(0), rqrboard_offset_y(0), debug_flag(false)
     {
       // Subscrive and publisher
-      image_sub_raw_ = it_.subscribe("/kinect2/hd/image_color", 1, &board_cutout::imageCb, this);
+      image_sub_raw_ = it_.subscribe("/usb_cam/image_raw", 1, &board_cutout::imageCb, this);
       image_pub_cut_ = it_.advertise("/TTTgame/cut_board", 1);
       
       //debug
