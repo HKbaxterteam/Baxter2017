@@ -1,0 +1,22 @@
+<!-- -*- xml -*-
+     THis launches the ros/visp/auto/tracker node
+  -->
+<launch>
+  
+
+<!-- Tf transform Z-Y-X-->
+<!--node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.081 -0.131 0.871 0.009 0.262 0.059 0.963 /world /kinect2_link 10" /-->
+
+<!-- Tf transform X,y,z, yaw,pitch,roll-->
+<!--node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.081 -0.131 0.871 0.137 0.528 0.055 /world /kinect2_link 10" /-->
+
+<!-- Tf transform X,y,z, yaw,pitch,roll-->
+<node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.293 -0.036 0.961 -0.006 0.561 0.025 /base /kinect2_help 10" />
+
+<node pkg="tf" type="static_transform_publisher" name="kinectTransformer2" args="0.0 -0.0 0.0 -1.57 0.0 -1.57 /kinect2_help /kinect2_rgb_optical_frame 10" />
+
+<!--node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.138 -0.219 0.920 -1.32 0.571 -1.572 /world /kinect2_link 10" /-->
+
+
+
+</launch>

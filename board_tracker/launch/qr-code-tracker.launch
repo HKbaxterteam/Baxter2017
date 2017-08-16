@@ -16,8 +16,6 @@
     <remap from="/visp_auto_tracker/image_raw" to="/kinect2/hd/image_color"/>
   </node>
 
-<!-- Tf transform-->
-<node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.146 -0.085 0.942 0.006 0.297 0.040 0.954 /world /kinect2_link 10" />
 
   <!-- Launch the viewer -->
   <!-- node pkg="visp_tracker" type="visp_tracker_viewer" name="tracker_mbt_viewer" output="screen">
