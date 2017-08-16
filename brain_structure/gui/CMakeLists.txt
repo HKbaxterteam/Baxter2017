@@ -59,15 +59,15 @@ catkin_package(
   CATKIN_DEPENDS actionlib_msgs
 )
 
-add_executable(gui_game_master_client src/gui_game_master_client.cpp)
+add_executable(gui src/gui.cpp)
 
 target_link_libraries(
-  gui_game_master_client
+  gui
   ${catkin_LIBRARIES}
 )
 
 add_dependencies(
-  gui_game_master_client
+  gui
   ${gui_EXPORTED_TARGETS}
 )
 

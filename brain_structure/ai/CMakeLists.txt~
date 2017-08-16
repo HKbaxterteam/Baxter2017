@@ -59,15 +59,15 @@ catkin_package(
   CATKIN_DEPENDS actionlib_msgs
 )
 
-add_executable(ai src/ai.cpp)
+add_executable(send_game_board_client src/send_game_board_client.cpp)
 
 target_link_libraries(
-  ai
+  send_game_board_client
   ${catkin_LIBRARIES}
 )
 
 add_dependencies(
-  ai
+  send_game_board_client
   ${ai_EXPORTED_TARGETS}
 )
 
