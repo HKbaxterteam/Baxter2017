@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(camera)
+project(ai)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -33,7 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_action_files(
     FILES
 	DIRECTORY action
-    FILES camera_game_master.action
+    FILES ai_game_master.action
  )
 
 ## Generate added messages and services with any dependencies listed here
@@ -59,16 +59,16 @@ catkin_package(
   CATKIN_DEPENDS actionlib_msgs
 )
 
-add_executable(camera src/camera.cpp)
+add_executable(ai src/ai.cpp)
 
 target_link_libraries(
-  camera
+  ai
   ${catkin_LIBRARIES}
 )
 
 add_dependencies(
-  camera
-  ${camera_EXPORTED_TARGETS}
+  ai
+  ${ai_EXPORTED_TARGETS}
 )
 
 ###########
