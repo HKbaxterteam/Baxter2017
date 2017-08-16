@@ -45,6 +45,9 @@ find_package(catkin REQUIRED COMPONENTS
 	DIRECTORY action
     FILES gui_game_master.action
     FILES ai_game_master.action
+    FILES grasping_baxter_game_master.action
+    FILES camera_game_master.action
+    FILES watch_dog_game_master.action
  )
 
 ## Generate added messages and services with any dependencies listed here
