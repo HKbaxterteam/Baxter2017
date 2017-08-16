@@ -48,12 +48,13 @@ class board_cutout
     double iqrboard_offset_y; // offset from qrcode to board in image y
     double iboard_width; //image board width
     double iboard_height; //image board heigth
+    double offsetangle;
     bool debug_flag;
     //Open cv images
     Mat org, grey, game; 
     Mat M, rotated,rotated2, cropped;
     //board_cutout() : it_(n_),rboard_width(100),rboard_height(100),rqrcode_width(20), rqrcode_height(20), rqrboard_offset_x(-20), rqrboard_offset_y(30), debug_flag(false)
-    board_cutout() : it_(n_),rboard_width(420),rboard_height(420),rqrcode_width(90), rqrcode_height(90), rqrboard_offset_x(-400), rqrboard_offset_y(380), debug_flag(false)
+    board_cutout() : it_(n_),rboard_width(420),rboard_height(420),rqrcode_width(85), rqrcode_height(85), rqrboard_offset_x(-385), rqrboard_offset_y(460), offsetangle(6), debug_flag(false)
     {
       // Subscrive and publisher
       image_sub_raw_ = it_.subscribe("/usb_cam/image_raw", 1, &board_cutout::imageCb, this);
@@ -75,114 +76,6 @@ class board_cutout
       }    
     }
 
-    static double rad2Deg(double rad){return rad*(180/M_PI);}//Convert radians to degrees
-static double deg2Rad(double deg){return deg*(M_PI/180);}//Convert degrees to radians
-
-void warpMatrix(Size   sz,
-                double theta,
-                double phi,
-                double gamma,
-                double scale,
-                double fovy,
-                Mat&   M,
-                vector<Point2f>* corners){
-    double st=sin(deg2Rad(theta));
-    double ct=cos(deg2Rad(theta));
-    double sp=sin(deg2Rad(phi));
-    double cp=cos(deg2Rad(phi));
-    double sg=sin(deg2Rad(gamma));
-    double cg=cos(deg2Rad(gamma));
-
-    double halfFovy=fovy*0.5;
-    double d=hypot(sz.width,sz.height);
-    double sideLength=scale*d/cos(deg2Rad(halfFovy));
-    double h=d/(2.0*sin(deg2Rad(halfFovy)));
-    double n=h-(d/2.0);
-    double f=h+(d/2.0);
-
-    Mat F=Mat(4,4,CV_64FC1);//Allocate 4x4 transformation matrix F
-    Mat Rtheta=Mat::eye(4,4,CV_64FC1);//Allocate 4x4 rotation matrix around Z-axis by theta degrees
-    Mat Rphi=Mat::eye(4,4,CV_64FC1);//Allocate 4x4 rotation matrix around X-axis by phi degrees
-    Mat Rgamma=Mat::eye(4,4,CV_64FC1);//Allocate 4x4 rotation matrix around Y-axis by gamma degrees
-
-    Mat T=Mat::eye(4,4,CV_64FC1);//Allocate 4x4 translation matrix along Z-axis by -h units
-    Mat P=Mat::zeros(4,4,CV_64FC1);//Allocate 4x4 projection matrix
-
-    //Rtheta
-    Rtheta.at<double>(0,0)=Rtheta.at<double>(1,1)=ct;
-    Rtheta.at<double>(0,1)=-st;Rtheta.at<double>(1,0)=st;
-    //Rphi
-    Rphi.at<double>(1,1)=Rphi.at<double>(2,2)=cp;
-    Rphi.at<double>(1,2)=-sp;Rphi.at<double>(2,1)=sp;
-    //Rgamma
-    Rgamma.at<double>(0,0)=Rgamma.at<double>(2,2)=cg;
-    Rgamma.at<double>(0,2)=sg;Rgamma.at<double>(2,0)=sg;
-
-    //T
-    T.at<double>(2,3)=-h;
-    //P
-    P.at<double>(0,0)=P.at<double>(1,1)=1.0/tan(deg2Rad(halfFovy));
-    P.at<double>(2,2)=-(f+n)/(f-n);
-    P.at<double>(2,3)=-(2.0*f*n)/(f-n);
-    P.at<double>(3,2)=-1.0;
-    //Compose transformations
-    F=P*T*Rphi*Rtheta*Rgamma;//Matrix-multiply to produce master matrix
-
-    //Transform 4x4 points
-    double ptsIn [4*3];
-    double ptsOut[4*3];
-    double halfW=sz.width/2, halfH=sz.height/2;
-
-    ptsIn[0]=-halfW;ptsIn[ 1]= halfH;
-    ptsIn[3]= halfW;ptsIn[ 4]= halfH;
-    ptsIn[6]= halfW;ptsIn[ 7]=-halfH;
-    ptsIn[9]=-halfW;ptsIn[10]=-halfH;
-    ptsIn[2]=ptsIn[5]=ptsIn[8]=ptsIn[11]=0;//Set Z component to zero for all 4 components
-
-    Mat ptsInMat(1,4,CV_64FC3,ptsIn);
-    Mat ptsOutMat(1,4,CV_64FC3,ptsOut);
-
-    perspectiveTransform(ptsInMat,ptsOutMat,F);//Transform points
-
-    //Get 3x3 transform and warp image
-    Point2f ptsInPt2f[4];
-    Point2f ptsOutPt2f[4];
-
-    for(int i=0;i<4;i++){
-        Point2f ptIn (ptsIn [i*3+0], ptsIn [i*3+1]);
-        Point2f ptOut(ptsOut[i*3+0], ptsOut[i*3+1]);
-        ptsInPt2f[i]  = ptIn+Point2f(halfW,halfH);
-        ptsOutPt2f[i] = (ptOut+Point2f(1,1))*(sideLength*0.5);
-    }
-
-    M=getPerspectiveTransform(ptsInPt2f,ptsOutPt2f);
-
-    //Load corners vector
-    if(corners){
-        corners->clear();
-        corners->push_back(ptsOutPt2f[0]);//Push Top Left corner
-        corners->push_back(ptsOutPt2f[1]);//Push Top Right corner
-        corners->push_back(ptsOutPt2f[2]);//Push Bottom Right corner
-        corners->push_back(ptsOutPt2f[3]);//Push Bottom Left corner
-    }
-}
-
-void warpImage(const Mat &src,
-               double    theta,
-               double    phi,
-               double    gamma,
-               double    scale,
-               double    fovy,
-               Mat&      dst,
-               Mat&      M,
-               vector<Point2f> &corners){
-    double halfFovy=fovy*0.5;
-    double d=hypot(src.cols,src.rows);
-    double sideLength=scale*d/cos(deg2Rad(halfFovy));
-
-    warpMatrix(src.size(),theta,phi,gamma, scale,fovy,M,&corners);//Compute warp matrix
-    warpPerspective(src,dst,M,Size(sideLength,sideLength));//Do actual image warp
-}
 
     void imageCb(const sensor_msgs::ImageConstPtr& msg)
     {
@@ -251,7 +144,7 @@ void warpImage(const Mat &src,
             vpgame.push_back(vpgame[0]+Point(0,-iboard_height));
             RotatedRect rgame = minAreaRect(vpgame);  
             // get angle and size from the bounding box
-            float angle = rgame.angle;
+            float angle = rgame.angle-offsetangle;
             Size rect_size = rgame.size;
             // thanks to http://felix.abecassis.me/2011/10/opencv-rotation-deskewing/
             if (rgame.angle < -45.) {
@@ -268,30 +161,30 @@ void warpImage(const Mat &src,
             // perform the affine transformation
             warpAffine(org, rotated, M, org.size(), INTER_CUBIC);
 
-Mat m, disp, warp;
+Mat m, disp, warp, crop1;
+//TODO: build the first regon of intrest depending on qr-pose
 Rect myROI(0, 130, 550, 300);
 Mat croppedRef(rotated, myROI);
 croppedRef.copyTo(disp);
 
+getRectSubPix(rotated, rect_size, rgame.center, crop1);
+            
 
-    vector<Point2f> corners;
-    cout << "starting warping" << endl; 
-        warpImage(disp, 0, -70, 0, 1, 78, rotated2, warp, corners);
-        cout << "done warping" << endl;
-        //namedWindow("disp", WINDOW_NORMAL);
-        //resizeWindow("disp", 800,800);
-        //imshow("disp", disp);
-    
+     
+    //crop a secon time depending on the warp parameter
 
 cout << "show stuff" << endl;
-//rotated2=rotated;
+rotated2=rotated;
             namedWindow("rot", WINDOW_NORMAL);
             namedWindow("org", WINDOW_NORMAL);
             namedWindow("crop", WINDOW_NORMAL);
             namedWindow("disp", WINDOW_NORMAL);
             resizeWindow("rot", 800,800);
             resizeWindow("org", 800,800);
+            namedWindow("crop1", WINDOW_NORMAL);
+            resizeWindow("crop1", 800,800);
             imshow("disp", disp); //show the frame in "MyVideo" window
+            imshow("crop1", crop1); //show the frame in "MyVideo" window
             
             imshow("rot", rotated2); //show the frame in "MyVideo" window
             imshow("org", rotated); //show the frame in "MyVideo" window
