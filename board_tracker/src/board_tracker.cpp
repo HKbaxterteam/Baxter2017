@@ -75,7 +75,114 @@ class board_cutout
       }    
     }
 
+    static double rad2Deg(double rad){return rad*(180/M_PI);}//Convert radians to degrees
+static double deg2Rad(double deg){return deg*(M_PI/180);}//Convert degrees to radians
 
+void warpMatrix(Size   sz,
+                double theta,
+                double phi,
+                double gamma,
+                double scale,
+                double fovy,
+                Mat&   M,
+                vector<Point2f>* corners){
+    double st=sin(deg2Rad(theta));
+    double ct=cos(deg2Rad(theta));
+    double sp=sin(deg2Rad(phi));
+    double cp=cos(deg2Rad(phi));
+    double sg=sin(deg2Rad(gamma));
+    double cg=cos(deg2Rad(gamma));
+
+    double halfFovy=fovy*0.5;
+    double d=hypot(sz.width,sz.height);
+    double sideLength=scale*d/cos(deg2Rad(halfFovy));
+    double h=d/(2.0*sin(deg2Rad(halfFovy)));
+    double n=h-(d/2.0);
+    double f=h+(d/2.0);
+
+    Mat F=Mat(4,4,CV_64FC1);//Allocate 4x4 transformation matrix F
+    Mat Rtheta=Mat::eye(4,4,CV_64FC1);//Allocate 4x4 rotation matrix around Z-axis by theta degrees
+    Mat Rphi=Mat::eye(4,4,CV_64FC1);//Allocate 4x4 rotation matrix around X-axis by phi degrees
+    Mat Rgamma=Mat::eye(4,4,CV_64FC1);//Allocate 4x4 rotation matrix around Y-axis by gamma degrees
+
+    Mat T=Mat::eye(4,4,CV_64FC1);//Allocate 4x4 translation matrix along Z-axis by -h units
+    Mat P=Mat::zeros(4,4,CV_64FC1);//Allocate 4x4 projection matrix
+
+    //Rtheta
+    Rtheta.at<double>(0,0)=Rtheta.at<double>(1,1)=ct;
+    Rtheta.at<double>(0,1)=-st;Rtheta.at<double>(1,0)=st;
+    //Rphi
+    Rphi.at<double>(1,1)=Rphi.at<double>(2,2)=cp;
+    Rphi.at<double>(1,2)=-sp;Rphi.at<double>(2,1)=sp;
+    //Rgamma
+    Rgamma.at<double>(0,0)=Rgamma.at<double>(2,2)=cg;
+    Rgamma.at<double>(0,2)=sg;Rgamma.at<double>(2,0)=sg;
+
+    //T
+    T.at<double>(2,3)=-h;
+    //P
+    P.at<double>(0,0)=P.at<double>(1,1)=1.0/tan(deg2Rad(halfFovy));
+    P.at<double>(2,2)=-(f+n)/(f-n);
+    P.at<double>(2,3)=-(2.0*f*n)/(f-n);
+    P.at<double>(3,2)=-1.0;
+    //Compose transformations
+    F=P*T*Rphi*Rtheta*Rgamma;//Matrix-multiply to produce master matrix
+
+    //Transform 4x4 points
+    double ptsIn [4*3];
+    double ptsOut[4*3];
+    double halfW=sz.width/2, halfH=sz.height/2;
+
+    ptsIn[0]=-halfW;ptsIn[ 1]= halfH;
+    ptsIn[3]= halfW;ptsIn[ 4]= halfH;
+    ptsIn[6]= halfW;ptsIn[ 7]=-halfH;
+    ptsIn[9]=-halfW;ptsIn[10]=-halfH;
+    ptsIn[2]=ptsIn[5]=ptsIn[8]=ptsIn[11]=0;//Set Z component to zero for all 4 components
+
+    Mat ptsInMat(1,4,CV_64FC3,ptsIn);
+    Mat ptsOutMat(1,4,CV_64FC3,ptsOut);
+
+    perspectiveTransform(ptsInMat,ptsOutMat,F);//Transform points
+
+    //Get 3x3 transform and warp image
+    Point2f ptsInPt2f[4];
+    Point2f ptsOutPt2f[4];
+
+    for(int i=0;i<4;i++){
+        Point2f ptIn (ptsIn [i*3+0], ptsIn [i*3+1]);
+        Point2f ptOut(ptsOut[i*3+0], ptsOut[i*3+1]);
+        ptsInPt2f[i]  = ptIn+Point2f(halfW,halfH);
+        ptsOutPt2f[i] = (ptOut+Point2f(1,1))*(sideLength*0.5);
+    }
+
+    M=getPerspectiveTransform(ptsInPt2f,ptsOutPt2f);
+
+    //Load corners vector
+    if(corners){
+        corners->clear();
+        corners->push_back(ptsOutPt2f[0]);//Push Top Left corner
+        corners->push_back(ptsOutPt2f[1]);//Push Top Right corner
+        corners->push_back(ptsOutPt2f[2]);//Push Bottom Right corner
+        corners->push_back(ptsOutPt2f[3]);//Push Bottom Left corner
+    }
+}
+
+void warpImage(const Mat &src,
+               double    theta,
+               double    phi,
+               double    gamma,
+               double    scale,
+               double    fovy,
+               Mat&      dst,
+               Mat&      M,
+               vector<Point2f> &corners){
+    double halfFovy=fovy*0.5;
+    double d=hypot(src.cols,src.rows);
+    double sideLength=scale*d/cos(deg2Rad(halfFovy));
+
+    warpMatrix(src.size(),theta,phi,gamma, scale,fovy,M,&corners);//Compute warp matrix
+    warpPerspective(src,dst,M,Size(sideLength,sideLength));//Do actual image warp
+}
 
     void imageCb(const sensor_msgs::ImageConstPtr& msg)
     {
@@ -153,165 +260,39 @@ class board_cutout
             }
             // get the rotation matrix 
             M = getRotationMatrix2D(rgame.center, angle, 1);
+            //cv::Point2f center(org.cols/2.0, org.rows/2.0);
+    
+            //M.at<double>(0,2) += org.cols*1.5 ;
+            //M.at<double>(1,2) += org.rows*1.5;
+
             // perform the affine transformation
             warpAffine(org, rotated, M, org.size(), INTER_CUBIC);
 
-            //take care of z rotation
-
-            /*
-            double phi=0.0;
-            double theta=0.00;
-            double psi=0.04;
-
-            Mat D = (Mat_<double>(3, 3) <<
-              cos(phi), sin(phi),           0,
-              -sin(phi), cos(phi), 0,
-              0, 0,  1);
-
-            Mat C = (Mat_<double>(3, 3) <<
-              1, 0, 0,
-              0, cos(theta), sin(theta),
-              0, -sin(theta),  cos(theta));
-
-            Mat B = (Mat_<double>(3, 3) <<
-              cos(psi), sin(psi),           0,
-              -sin(psi), cos(psi), 0,
-              0, 0,  1);
-
-              */
-
-/*
-
-            double roll=0.4;
-            double pitch=0.00;
-            double yaw=0.0;
+Mat m, disp, warp;
+Rect myROI(0, 130, 550, 300);
+Mat croppedRef(rotated, myROI);
+croppedRef.copyTo(disp);
 
 
-            Mat Rx = (Mat_<double>(3, 3) <<
-              1,          0,           0,
-              0, cos(roll), -sin(roll),
-              0, sin(roll),  cos(roll));
+    vector<Point2f> corners;
+    cout << "starting warping" << endl; 
+        warpImage(disp, 0, -70, 0, 1, 78, rotated2, warp, corners);
+        cout << "done warping" << endl;
+        //namedWindow("disp", WINDOW_NORMAL);
+        //resizeWindow("disp", 800,800);
+        //imshow("disp", disp);
+    
 
-            Mat Ry = (Mat_<double>(3, 3) <<
-              cos(pitch), 0, sin(pitch),
-              0, 1,          0,
-              -sin(pitch), 0,  cos(pitch));
-
-            Mat Rz = (Mat_<double>(3, 3) <<
-              cos(yaw), -sin(yaw), 0,
-              sin(yaw),  cos(yaw), 0,
-              0,          0,           1);
-              
-
-cout << "more matrix " << endl;     
-          
-
-            Mat R = Rx*Rz*Ry;
-            //Mat R = B*C*D;
-            double rotwidth=rotated.cols;
-            double rotheight=rotated.rows;
-            Mat T = (Mat_<double>(3, 1) << 0,0,1);
-            Mat H = (Mat_<double>(3, 1) << rotwidth/2,rotheight/2,1);
-            cout << "more T " << endl;  
-            T=R*H;
-cout << "more H2 " << endl; 
-            Mat H2 = (Mat_<double>(3, 3) <<
-              1, 0, (rotwidth/2-T.at<double>(0,0)),
-              0,  1, (rotheight/2-T.at<double>(1,0)),
-              0,          0,           1);
-cout << "more W " << endl; 
-              Mat W=H2*R;
-
-cout << "more warp " << H2 << endl; 
-
-            Mat HOPE = (Mat_<double>(2, 3) <<
-              W.at<double>(0,0), W.at<double>(0,1), 0, 
-              W.at<double>(1,0),  W.at<double>(1,1) ,0);
-            //Mat trans = A*R*A.inv();
-            //warpPerspective(rotated, rotated2, HOPE, rotated.size(),INTER_CUBIC);
-            //perspectiveTransform(rotated,rotated2,W);
-            warpAffine(rotated,rotated2,HOPE,rotated.size(),INTER_CUBIC);
-
+cout << "show stuff" << endl;
+//rotated2=rotated;
+            namedWindow("rot", WINDOW_NORMAL);
+            namedWindow("org", WINDOW_NORMAL);
+            namedWindow("crop", WINDOW_NORMAL);
+            namedWindow("disp", WINDOW_NORMAL);
+            resizeWindow("rot", 800,800);
+            resizeWindow("org", 800,800);
+            imshow("disp", disp); //show the frame in "MyVideo" window
             
-/*
-            double roll=0.01;
-            double pitch=0.0;
-            double yaw=0.4;
-            double f=1;
-            double cx=0;
-            double cy=0;
-
-            // Camera Calibration Intrinsics Matrix
-    Mat A2 = (Mat_<double>(3,4) <<
-              f, 0, cx, 0,
-              0, f, cy, 0,
-              0, 0, 1,  0);
-    // Inverted Camera Calibration Intrinsics Matrix
-    Mat A1 = (Mat_<double>(4,3) <<
-              1/f, 0,   -cx/f,
-              0,   1/f, -cy/f,
-              0,   0,   0,
-              0,   0,   1);
-    // Rotation matrices around the X, Y, and Z axis
-    Mat RX = (Mat_<double>(4, 4) <<
-              1, 0,         0,          0,
-              0, cos(roll), -sin(roll), 0,
-              0, sin(roll), cos(roll),  0,
-              0, 0,         0,          1);
-    Mat RY = (Mat_<double>(4, 4) <<
-              cos(pitch),  0, sin(pitch), 0,
-              0,           1, 0,          0,
-              -sin(pitch), 0, cos(pitch), 0,
-              0,           0, 0,          1);
-    Mat RZ = (Mat_<double>(4, 4) <<
-              cos(yaw), -sin(yaw), 0, 0,
-              sin(yaw),  cos(yaw), 0, 0,
-              0,          0,       1, 0,
-              0,          0,       0, 1);
-    // Translation matrix
-    double dx=0;
-    double dy=0;
-    double dz=1;
-
-    Mat T = (Mat_<double>(4, 4) <<
-             1, 0, 0, dx,
-             0, 1, 0, dy,
-             0, 0, 1, dz,
-             0, 0, 0, 1);
-    // Compose rotation matrix with (RX, RY, RZ)
-    Mat R = RZ * RY * RX;
-    // Final transformation matrix
-    Mat H = A2 * (T * (R * A1));
-    // Apply matrix transformation
-    warpPerspective(rotated, rotated2, H, rotated.size(), INTER_LANCZOS4);
-
-*/
-
-
-    Point2f srcTri[3];
-   Point2f dstTri[3];
-
-   /// Set your 3 points to calculate the  Affine Transform
-   double gamma=0.1;
-   srcTri[0] = Point2f( 541, 458 );
-   srcTri[1] = Point2f( 476, 310 );
-   srcTri[2] = Point2f( 294, 315);
-
-   dstTri[0] = Point2f( 541, 458);
-   dstTri[1] = Point2f( 541,   310-100 );
-   dstTri[2] = Point2f( 295-100,  310-100 );
-
-   Mat warp_mat( 2, 3, CV_32FC1 );
-
-   warp_mat = getAffineTransform( srcTri, dstTri );
-
-   warpAffine( rotated, rotated2, warp_mat, rotated.size() );
-
-
-cout << "more done " << warp_mat << endl; 
-            namedWindow("rot", CV_WINDOW_AUTOSIZE);
-            namedWindow("org", CV_WINDOW_AUTOSIZE);
-            namedWindow("crop", CV_WINDOW_AUTOSIZE);
             imshow("rot", rotated2); //show the frame in "MyVideo" window
             imshow("org", rotated); //show the frame in "MyVideo" window
 
