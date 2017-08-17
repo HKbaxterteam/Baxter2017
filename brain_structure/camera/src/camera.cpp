@@ -39,8 +39,7 @@ public:
     //***************************************************
 
     // push_back the seeds for the fibonacci sequence
-    feedback_camera.sequence.clear();
-    feedback_camera.sequence.push_back(1);
+    feedback_camera.progress=20; // progress in %
 
     // publish info to the console for the user
     ROS_INFO("%s: start camera received", action_name_.c_str());
@@ -53,7 +52,7 @@ public:
     if(success)
     {
     	ROS_INFO("camera is running");
-      result_camera.sequence = feedback_camera.sequence;
+      result_camera.update_done = 1;
       ROS_INFO("%s: Done", action_name_.c_str());
       // set the action state to succeeded
       as_camera.setSucceeded(result_camera);

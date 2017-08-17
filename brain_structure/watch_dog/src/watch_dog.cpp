@@ -39,8 +39,7 @@ public:
     //***************************************************
 
     // push_back the seeds for the fibonacci sequence
-    feedback_watch_dog.sequence.clear();
-    feedback_watch_dog.sequence.push_back(1);
+    feedback_watch_dog.progress=20; // progress in %
 
     // publish info to the console for the user
     ROS_INFO("%s: start watch_dog received", action_name_.c_str());
@@ -53,7 +52,7 @@ public:
     if(success)
     {
     	ROS_INFO("watch_dog is running");
-      result_watch_dog.sequence = feedback_watch_dog.sequence;
+      result_watch_dog.watch_dog_done = 1;
       ROS_INFO("%s: Done", action_name_.c_str());
       // set the action state to succeeded
       as_watch_dog.setSucceeded(result_watch_dog);

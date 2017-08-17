@@ -60,11 +60,11 @@ public:
   {
   }
  //TODO: send whole gamboard
-  void request_move_ai(int order)
+  void request_move_ai(std::vector<int> gameboard)
   {
-    //Send the gmaeboard *******
+    //Send the gameboard *******
     game_master::ai_game_masterGoal goal;
-    goal.order = order;
+    goal.gameboard = gameboard;
 
     // Need boost::bind to pass in the 'this' pointer
     ac_ai.sendGoal(goal,
@@ -86,11 +86,11 @@ public:
   }
 
 
-void request_update_camera(int order)
+void request_update_camera(int update)
   {
     //Send the gmaeboard *******
     game_master::camera_game_masterGoal goal;
-    goal.order = order;
+    goal.update = update;
 
     // Need boost::bind to pass in the 'this' pointer
     ac_camera.sendGoal(goal,
@@ -112,11 +112,11 @@ void request_update_camera(int order)
 
 
 
-void request_watch_dog(int order)
+void request_watch_dog(int start_watch_dog)
   {
     //Send the gmaeboard *******
     game_master::watch_dog_game_masterGoal goal;
-    goal.order = order;
+    goal.start_watch_dog = start_watch_dog;
 
     // Need boost::bind to pass in the 'this' pointer
     ac_watch_dog.sendGoal(goal,
@@ -139,11 +139,11 @@ void request_watch_dog(int order)
 
 
 
-  void request_grasping_baxter(int order)
+  void request_grasping_baxter(int move)
   {
     //Send which move should be executed
     game_master::grasping_baxter_game_masterGoal goal;
-    goal.order = order;
+    goal.move = move;
 
     // Need boost::bind to pass in the 'this' pointer
     ac_grasping_baxter.sendGoal(goal,
@@ -171,8 +171,7 @@ void request_watch_dog(int order)
     bool success = true;
 
     // push_back the seeds for the fibonacci sequence
-    feedback_gui.sequence.clear();
-    feedback_gui.sequence.push_back(7);
+    feedback_gui.progress=20; // progress in %
 
     // publish info to the console for the user
     ROS_INFO("%s: start received", action_name_.c_str());
@@ -184,7 +183,7 @@ void request_watch_dog(int order)
 
     if(success)
     {
-      result_gui.sequence = feedback_gui.sequence;
+      result_gui.game_started = 1;
       ROS_INFO("%s: Done", action_name_.c_str());
       // set the action state to succeeded
       as_gui.setSucceeded(result_gui);
@@ -210,7 +209,7 @@ int main(int argc, char** argv)
   }
 
   ROS_INFO_THROTTLE(1, "GUI OK");
-int gameboard=6;
+  std::vector<int> gameboard;
   gmb.request_move_ai(gameboard);
 
   while(ros::ok() && !gmb.ai_received_move_flag){

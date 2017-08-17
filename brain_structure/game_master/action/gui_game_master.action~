@@ -1,0 +1,8 @@
+#goal definition
+int32 start_game
+---
+#result definition
+int32 game_started
+---
+#feedback
+int32 progress_gui

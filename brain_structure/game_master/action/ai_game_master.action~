@@ -5,4 +5,4 @@ int32[] gameboard
 int32 best_move
 ---
 #feedback
-int32 progress
+int32 ai_progress

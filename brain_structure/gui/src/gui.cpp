@@ -5,30 +5,30 @@
 using namespace gui;
 typedef actionlib::SimpleActionClient<gui_game_masterAction> Client;
 
-class MyNode
+class gui_boss
 {
 public:
-  MyNode() : ac("gui_game_master", true)
+  gui_boss() : ac("gui_game_master", true)
   {
     ROS_INFO("Waiting for action server to start.");
     ac.waitForServer();
     ROS_INFO("Action server started, sending goal.");
   }
 
-  void doStuff(int order)
+  void request_game_start(int start_game)
   {
     gui_game_masterGoal goal;
-    goal.order = order;
+    goal.start_game = start_game;
 
     // Need boost::bind to pass in the 'this' pointer
     ac.sendGoal(goal,
-                boost::bind(&MyNode::doneCb, this, _1, _2),
+                boost::bind(&gui_boss::received_game_started, this, _1, _2),
                 Client::SimpleActiveCallback(),
                 Client::SimpleFeedbackCallback());
 
   }
 
-  void doneCb(const actionlib::SimpleClientGoalState& state,
+  void received_game_started(const actionlib::SimpleClientGoalState& state,
               const gui_game_masterResultConstPtr& result)
   {
     ROS_INFO("Finished in state [%s]", state.toString().c_str());
@@ -44,8 +44,8 @@ private:
 int main (int argc, char **argv)
 {
   ros::init(argc, argv, "test_gui_game_master_class_client");
-  MyNode my_node;
-  my_node.doStuff(10);
+  gui_boss gb;
+  gb.request_game_start(10);
   ros::spin();
   return 0;
 }

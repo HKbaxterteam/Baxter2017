@@ -5,4 +5,4 @@ int32 move
 int32 done_grasping
 ---
 #feedback
-int32 progress
+int32 progress_grasping

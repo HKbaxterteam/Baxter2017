@@ -40,14 +40,12 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate actions in the 'action' folder
- add_action_files(
-    FILES
-	DIRECTORY action
-    FILES gui_game_master.action
-    FILES ai_game_master.action
-    FILES grasping_baxter_game_master.action
-    FILES camera_game_master.action
-    FILES watch_dog_game_master.action
+ add_action_files(FILES 
+ ai_game_master.action
+ gui_game_master.action
+ grasping_baxter_game_master.action
+ camera_game_master.action
+ watch_dog_game_master.action
  )
 
 ## Generate added messages and services with any dependencies listed here
@@ -65,17 +63,10 @@ find_package(catkin REQUIRED COMPONENTS
 ###################################
 ## catkin specific configuration ##
 ###################################
-## The catkin_package macro generates cmake config files for your package
-## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if you package contains header files
-## LIBRARIES: libraries you create in this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## DEPENDS: system dependencies of this project that dependent projects also need
+
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES actionlib_tutorials
-#  CATKIN_DEPENDS actionlib actionlib_msgs message_generation roscpp rospy std_msgs
-#  DEPENDS system_lib
+
+
 )
 catkin_package(
   CATKIN_DEPENDS actionlib_msgs
@@ -91,12 +82,7 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-)
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 add_executable(game_master src/game_master.cpp)
 
@@ -109,8 +95,10 @@ add_dependencies(
   game_master
   ${game_master_EXPORTED_TARGETS}
 )
-
+ add_dependencies(game_master ${catkin_EXPORTED_TARGETS})
 include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+
+#include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 #############
 ## Install ##
 #############

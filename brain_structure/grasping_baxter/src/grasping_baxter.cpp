@@ -39,8 +39,7 @@ public:
     //***************************************************
 
     // push_back the seeds for the fibonacci sequence
-    feedback_grasping_baxter.sequence.clear();
-    feedback_grasping_baxter.sequence.push_back(1);
+    feedback_grasping_baxter.progress=20; // progress in %
 
     // publish info to the console for the user
     ROS_INFO("%s: start received", action_name_.c_str());
@@ -53,7 +52,7 @@ public:
     if(success)
     {
     	ROS_INFO("executing move ");
-      result_grasping_baxter.sequence = feedback_grasping_baxter.sequence;
+      result_grasping_baxter.done_grasping = 1;
       ROS_INFO("%s: Done", action_name_.c_str());
       // set the action state to succeeded
       as_grasping_baxter.setSucceeded(result_grasping_baxter);

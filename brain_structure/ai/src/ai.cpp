@@ -39,8 +39,8 @@ public:
     //***************************************************
 
     // push_back the seeds for the fibonacci sequence
-    feedback_ai.sequence.clear();
-    feedback_ai.sequence.push_back(1);
+
+    feedback_ai.progress=20;	// progess in percentage
 
     // publish info to the console for the user
     ROS_INFO("%s: start received", action_name_.c_str());
@@ -53,7 +53,7 @@ public:
     if(success)
     {
     	ROS_INFO("calculating move done");
-      result_ai.sequence = feedback_ai.sequence;
+      result_ai.best_move = 35;	// retuŕn best move between 0...48
       ROS_INFO("%s: Done", action_name_.c_str());
       // set the action state to succeeded
       as_ai.setSucceeded(result_ai);
