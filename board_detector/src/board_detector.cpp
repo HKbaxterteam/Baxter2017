@@ -54,9 +54,13 @@ class board_detector
 	int filter_blue_r_high;
 	int filter_blue_g_high;
 	int filter_blue_b_high;
+	//opencv help
+	vector<vector<Point> > contours;
+    vector<Vec4i> hierarchy;
     //opencv images
-    Mat org, subImage;
+    Mat org, subImage, input_grey;
 	Mat filter_image_red, filter_image_blue;
+	Mat canny_output, drawing, countourtest;
 
   board_detector() : it_(n_), debug_flag(true), rows(7), cols(7), filter_red_r_low(0), filter_red_g_low(0), filter_red_b_low(0), filter_red_r_high(255), filter_red_g_high(25), filter_red_b_high(25), filter_blue_r_low(0), filter_blue_g_low(0), filter_blue_b_low(50), filter_blue_r_high(25), filter_blue_g_high(25), filter_blue_b_high(255) 
   {
@@ -107,213 +111,213 @@ class board_detector
       //check if there is an image ...
       if(org.size().width==0 || org.size().height==0)
       	return;
+      
+      //convert to gray scale
+      cvtColor(org, input_grey, CV_BGR2GRAY);
+      // find contur in the image  
+      int thresh = 100;
+      int max_thresh = 255;
+      RNG rng(12345);
+      // blur the image with gausian
+      blur(input_grey, input_grey, Size(3, 3));
+      // Detect edges using canny
+      Canny( org, canny_output, thresh, thresh*2, 3 );
+      // Find contours
+      findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
-      Mat input_grey;
-    cvtColor(org, input_grey, CV_BGR2GRAY);
-            // find contur in the subimage
-            Mat canny_output;
-  vector<vector<Point> > contours;
-  vector<Vec4i> hierarchy;
-  int thresh = 100;
-int max_thresh = 255;
-RNG rng(12345);
-blur(input_grey, input_grey, Size(3, 3));
-  /// Detect edges using canny
+      if(debug_flag){
+      	// Draw contours
+        drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
 
-  Canny( org, canny_output, thresh, thresh*2, 3 );
-  /// Find contours
- 
-  findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+        countourtest;
+        drawing.copyTo(countourtest);
 
-  /// Draw contours
-  Mat drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
-
-  Mat countourtest;
-  drawing.copyTo(countourtest);
-
-  for( int i = 0; i< contours.size(); i++ )
-     {
-       Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-       drawContours( drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
-     }
-
-  //cout << drawing << endl;
-  /// Show in a window
-waitKey(10);
-  namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
-  imshow( "Contours", drawing );
- ROS_INFO("image shown done");
-
-int largest_area=0;
-    int largest_contour_index=0;
-    Rect bounding_rect;
-
- // get bigges conure
- for( size_t i = 0; i< contours.size(); i++ ) // iterate through each contour.
-    {
-        double area = contourArea( contours[i] );  //  Find the area of contour
-
-        if( area > largest_area )
+        for( int i = 0; i< contours.size(); i++ )
         {
-            largest_area = area;
-            largest_contour_index = i;               //Store the index of largest contour
-            bounding_rect = boundingRect( contours[i] ); // Find the bounding rectangle for biggest contour
+          Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+          drawContours( drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
         }
-    }
 
-    Mat warpedCard(400, 400, CV_8UC3);
+        // Show in a window
+        waitKey(10);
+        namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
+        imshow( "Contours", drawing );
+      }
+  
+      //find lagrest countur (gameboard boundingbox)
+      int largest_area=0;
+      int largest_contour_index=0;
+      //Rect bounding_rect;
 
-    cout << "conutor area" << largest_area << endl;
-if(largest_area>org.rows*org.cols/1.5)
-{
-	//draw onlz bigges countur
-    Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-       
-    drawContours( countourtest, contours, largest_contour_index, color);
-   
-	namedWindow( "Contours2", CV_WINDOW_AUTOSIZE );
-  imshow( "Contours2", countourtest );
- ROS_INFO("image shown done2");
+      // get bigges conure
+	  for( size_t i = 0; i< contours.size(); i++ ) // iterate through each contour.
+	    {
+	        double area = contourArea( contours[i] );  //  Find the area of contour
 
- Mat mc=org;
- vector<Point> approx;
-double d=0;
-do
-{
-    d=d+1;
-    approxPolyDP(contours[largest_contour_index],approx,d,true);
-    cout << approx.size() << " " <<d<<endl;
-}
-while (approx.size()>4);
-contours.push_back(approx);
-drawContours(mc,contours,contours.size()-1,Scalar(0,0,255),1);
-imshow("Ctr",mc);
+	        if( area > largest_area )
+	        {
+	            largest_area = area;
+	            largest_contour_index = i;               //Store the index of largest contour
+	            //bounding_rect = boundingRect( contours[i] ); // Find the bounding rectangle for biggest contour
+	        }
+	    }
 
+	  //output for sclicing up the thing
+      Mat warpedCard(400, 400, CV_8UC3);
 
-vector<Point2f> dest;
-dest.push_back(Point2f(0,0));
-dest.push_back(Point2f(0, warpedCard.rows));
-dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));
-dest.push_back(Point2f(warpedCard.cols, 0.0));
+      
+	  if(largest_area>org.rows*org.cols/1.5)
+		{
+		  if(debug_flag)
+		  {
+		    //draw onlz bigges countur
+		    Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+		    drawContours( countourtest, contours, largest_contour_index, color);
+		    namedWindow( "Contours2", CV_WINDOW_AUTOSIZE );
+		    imshow( "Contours2", countourtest );
+		  }
+		  
 
+		  
+		  vector<Point> approx;
+		  double d=0;
+		  do
+		  {
+		    d=d+1;
+		    approxPolyDP(contours[largest_contour_index],approx,d,true);
+		    //cout << approx.size() << " " <<d<<endl;
+		  }
+		  while (approx.size()>4);
+		  
+		  contours.push_back(approx);
+		  
+		  if(debug_flag){
+		  	Mat mc=org;
+		  	drawContours(mc,contours,contours.size()-1,Scalar(0,0,255),1);
+		    imshow("Ctr",mc);
+		  }
+		  
+          //target points for homogentranform
+		  vector<Point2f> dest;
+		  dest.push_back(Point2f(0,0));
+		  dest.push_back(Point2f(0, warpedCard.rows));
+		  dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));
+		  dest.push_back(Point2f(warpedCard.cols, 0.0));
 
-vector<Point2f> inpoint;
-inpoint.push_back(approx[0]);
-inpoint.push_back(approx[1]);
-inpoint.push_back(approx[2]);
-inpoint.push_back(approx[3]);
+          //inputpoints
+		  vector<Point2f> inpoint;
+		  inpoint.push_back(approx[0]);
+		  inpoint.push_back(approx[1]);
+		  inpoint.push_back(approx[2]);
+		  inpoint.push_back(approx[3]);
 
-cout << "aprox size : " << approx.size() << endl;
-cout << "p1: " << approx[0] << " p2: " << approx[1] << " p3: " << approx[2] << " p4: " << approx[3] << endl;
-    if (approx.size() == 4)
-    {
-    	ROS_INFO("WARP");
-        Mat homography = findHomography(inpoint, dest);
-        warpPerspective(org, warpedCard, homography, Size(warpedCard.cols, warpedCard.rows));
-    }
-
-    imshow("warped card", warpedCard);
-
-//waitKey();
-
-// parameters
-	  int rowcount=0;
-	  int colcount=0;
-	  int image_width=warpedCard.size().width;
-	  int image_height=warpedCard.size().height;
-	  //defult rect
-	  Rect Rec(0, 0, 10, 10);
-
-
-
-	  //Loop through all ROI and se if its O or X
-	  for(int i=0;i<cols*rows;i++){
-	    //ROI
-		Rec.x=image_width/cols*colcount;
-		Rec.y=image_height/rows*rowcount;
-		Rec.width=image_width/cols;
-		Rec.height=image_height/rows;
-		//keep track of ROI
-		colcount+=1;
-		if (colcount>cols-1){
-		   	colcount=0;
-		    rowcount+=1;
-		    if (rowcount>rows-1){
-		    	rowcount=0;
+		  //cout << "aprox size : " << approx.size() << endl;
+		  //cout << "p1: " << approx[0] << " p2: " << approx[1] << " p3: " << approx[2] << " p4: " << approx[3] << endl;
+		  if (approx.size() == 4)
+		    {
+		      Mat homography = findHomography(inpoint, dest);
+		      warpPerspective(org, warpedCard, homography, Size(warpedCard.cols, warpedCard.rows));
 		    }
-		}
-		//copy to new sub image 
-		subImage = warpedCard(Rec).clone();
-		waitKey(10);
+            
+            if(debug_flag){
+            	imshow("warped card", warpedCard);
+            }
 
-		//debug subimages  
-		if(debug_flag){
-			namedWindow("show sub", WINDOW_AUTOSIZE);
-			imshow("Step show sub", subImage);
-			waitKey(100);
-		}   
-					    
-		//filter for red
-		inRange(subImage,   cv::Scalar(filter_red_b_low, filter_red_g_low, filter_red_r_low), cv::Scalar(filter_red_b_high, filter_red_g_high, filter_red_r_high), filter_image_red);
-		waitKey(10);
-		//filter blue
-		inRange(subImage,   cv::Scalar(filter_blue_b_low, filter_blue_g_low, filter_blue_r_low), cv::Scalar(filter_blue_b_high, filter_blue_g_high, filter_blue_r_high), filter_image_blue);
-		waitKey(10);
-		//debug show filter image
-		if(debug_flag){
-			namedWindow("show filter sub", WINDOW_AUTOSIZE);
-			imshow("Step show filterv sub", subImage);
-			waitKey(100);
-			namedWindow("show filter sub", WINDOW_AUTOSIZE);
-			imshow("Step show filterv sub", filter_image_red);
-			waitKey(100);
-		    namedWindow("show filter sub", WINDOW_AUTOSIZE);
-			imshow("Step show filterv sub", subImage);
-			waitKey(100);
-			namedWindow("show filter sub", WINDOW_AUTOSIZE);
-			imshow("Step show filterv sub", filter_image_blue);
-			waitKey(100);
-		}
-			
-		//make bw version
-		Mat bw_red=filter_image_red>128;
-		Mat bw_blue=filter_image_blue>128;
-		//count white pixel
-		double white_red= countNonZero(bw_red);
-		double white_blue= countNonZero(bw_blue);
-		double allpix=filter_image_red.size().width*filter_image_red.size().height;
-		//if more than 5% is red and les then 1% blue -> its O-piece
-		if(white_red>allpix/95 && white_blue<allpix/99 ){
-		    //ROS_INFO_STREAM( " O-piece detected" );
-		    gameboard[rowcount][colcount]=2;
-		}
-		//if more than 5% is blue and les then 1% red -> its X-piece	    
-		if(white_red<allpix/99 && white_blue>allpix/95 ){
-		    //ROS_INFO_STREAM( " X-piece detected" );	
-			gameboard[rowcount][colcount]=1;
-		}
-		//if less than 1% is red and les then 1% blue -> its no-piece	    
-		if(white_red<allpix/99 && white_blue<allpix/99 ){
-		    //ROS_INFO_STREAM( " No-piece detected" );	
-			gameboard[rowcount][colcount]=0;
-		}
-		waitKey(10);
-			
-	  }
+            //slize it up!!!
+	        // parameters
+		    int rowcount=0;
+		    int colcount=0;
+		    int image_width=warpedCard.size().width;
+		    int image_height=warpedCard.size().height;
+		    //defult rect
+		    Rect Rec(0, 0, 10, 10);
 
-	  //Print gameboard
-	  for(int i=0;i<rows;i++){
-		for(int j=0;j<cols;j++){
-			cout << "|" << gameboard[i][j];
-		}
-		cout << "|" << endl;
-		cout << "_______________" << endl;		
-	  }
-	  
+  		    //Loop through all ROI and se if its O or X
+		    for(int i=0;i<cols*rows;i++){
+		      //ROI
+			  Rec.x=image_width/cols*colcount;
+			  Rec.y=image_height/rows*rowcount;
+			  Rec.width=image_width/cols;
+			  Rec.height=image_height/rows;
+			  //keep track of ROI
+			  colcount+=1;
+			  if (colcount>cols-1){
+			    colcount=0;
+			    rowcount+=1;
+			    if (rowcount>rows-1){
+			      rowcount=0;
+			    }
+			  }
+			  //copy to new sub image 
+			  subImage = warpedCard(Rec).clone();
+			  waitKey(10);
+
+			  //debug subimages  
+			  if(debug_flag){
+				namedWindow("show sub", WINDOW_AUTOSIZE);
+				imshow("Step show sub", subImage);
+				waitKey(100);
+			  }   
+						    
+			  //filter for red
+			  inRange(subImage,   cv::Scalar(filter_red_b_low, filter_red_g_low, filter_red_r_low), cv::Scalar(filter_red_b_high, filter_red_g_high, filter_red_r_high), filter_image_red);
+			  waitKey(10);
+			  //filter blue
+			  inRange(subImage,   cv::Scalar(filter_blue_b_low, filter_blue_g_low, filter_blue_r_low), cv::Scalar(filter_blue_b_high, filter_blue_g_high, filter_blue_r_high), filter_image_blue);
+			  waitKey(10);
+			  //debug show filter image
+			  if(debug_flag){
+				namedWindow("show filter sub", WINDOW_AUTOSIZE);
+				imshow("Step show filterv sub", subImage);
+				waitKey(100);
+				namedWindow("show filter sub", WINDOW_AUTOSIZE);
+				imshow("Step show filterv sub", filter_image_red);
+				waitKey(100);
+			    namedWindow("show filter sub", WINDOW_AUTOSIZE);
+				imshow("Step show filterv sub", subImage);
+				waitKey(100);
+				namedWindow("show filter sub", WINDOW_AUTOSIZE);
+				imshow("Step show filterv sub", filter_image_blue);
+				waitKey(100);
+			  }
+				
+			  //make bw version
+			  Mat bw_red=filter_image_red>128;
+			  Mat bw_blue=filter_image_blue>128;
+			  //count white pixel
+			  double white_red= countNonZero(bw_red);
+			  double white_blue= countNonZero(bw_blue);
+			  double allpix=filter_image_red.size().width*filter_image_red.size().height;
+			  //if more than 5% is red and les then 1% blue -> its O-piece
+			  if(white_red>allpix/95 && white_blue<allpix/99 ){
+			    //ROS_INFO_STREAM( " O-piece detected" );
+			    gameboard[rowcount][colcount]=2;
+			  }
+			  //if more than 5% is blue and les then 1% red -> its X-piece	    
+			  if(white_red<allpix/99 && white_blue>allpix/95 ){
+			    //ROS_INFO_STREAM( " X-piece detected" );	
+				gameboard[rowcount][colcount]=1;
+			  }
+			  //if less than 1% is red and les then 1% blue -> its no-piece	    
+			  if(white_red<allpix/99 && white_blue<allpix/99 ){
+			    //ROS_INFO_STREAM( " No-piece detected" );	
+				gameboard[rowcount][colcount]=0;
+			  }
+			 waitKey(10);
+				
+		    }
+
+		    //Print gameboard
+		    for(int i=0;i<rows;i++){
+			  for(int j=0;j<cols;j++){
+				cout << "|" << gameboard[i][j];
+			  }
+			  cout << "|" << endl;
+			  cout << "_______________" << endl;		
+		    }
+		  
+	    }
     }
-
-
-}
     
 
 
