@@ -20,6 +20,7 @@
 #include "opencv2/opencv.hpp"
 #include <zbar.h>  
 
+
 //Namespace
 using namespace cv;  
 using namespace std;  
@@ -52,9 +53,8 @@ class board_cutout
     bool debug_flag;
     //Open cv images
     Mat org, grey, game; 
-    Mat M, rotated,rotated2, cropped;
-    //board_cutout() : it_(n_),rboard_width(100),rboard_height(100),rqrcode_width(20), rqrcode_height(20), rqrboard_offset_x(-20), rqrboard_offset_y(30), debug_flag(false)
-    board_cutout() : it_(n_),rboard_width(420),rboard_height(420),rqrcode_width(85), rqrcode_height(85), rqrboard_offset_x(-385), rqrboard_offset_y(460), offsetangle(6), debug_flag(false)
+    Mat M, rotated, cropped;
+    board_cutout() : it_(n_),rboard_width(420),rboard_height(420),rqrcode_width(83), rqrcode_height(83), rqrboard_offset_x(-390), rqrboard_offset_y(420), offsetangle(0), debug_flag(false)
     {
       // Subscrive and publisher
       image_sub_raw_ = it_.subscribe("/usb_cam/image_raw", 1, &board_cutout::imageCb, this);
@@ -64,8 +64,7 @@ class board_cutout
       if(debug_flag){
         namedWindow("Input", CV_WINDOW_AUTOSIZE);
         namedWindow("Cut output",CV_WINDOW_AUTOSIZE);
-      }
-      
+      }      
     }
 
     ~board_cutout()
@@ -108,7 +107,7 @@ class board_cutout
       // scan the image for barcodes   
       int n = scanner.scan(image);   
       // extract results  
-      //TODO: make sure only one barcode is there  
+      //TODO: make sure it is our barcode thats detected   
       for(Image::SymbolIterator symbol = image.symbol_begin();   
         symbol != image.symbol_end();   
         ++symbol) {   
@@ -124,7 +123,6 @@ class board_cutout
             vp.push_back(Point(symbol->get_location_x(i),symbol->get_location_y(i)));   
           }   
           //get new rect for game area
-
           RotatedRect r = minAreaRect(vp);
           if(vp.size()==4){
             //calculate board position          
@@ -154,50 +152,21 @@ class board_cutout
             // get the rotation matrix 
             M = getRotationMatrix2D(rgame.center, angle, 1);
             //cv::Point2f center(org.cols/2.0, org.rows/2.0);
-    
-            //M.at<double>(0,2) += org.cols*1.5 ;
-            //M.at<double>(1,2) += org.rows*1.5;
 
             // perform the affine transformation
             warpAffine(org, rotated, M, org.size(), INTER_CUBIC);
 
-Mat m, disp, warp, crop1;
-//TODO: build the first regon of intrest depending on qr-pose
-Rect myROI(0, 130, 550, 300);
-Mat croppedRef(rotated, myROI);
-croppedRef.copyTo(disp);
-
-getRectSubPix(rotated, rect_size, rgame.center, crop1);
-            
-
-     
-    //crop a secon time depending on the warp parameter
-
-cout << "show stuff" << endl;
-rotated2=rotated;
-            namedWindow("rot", WINDOW_NORMAL);
-            namedWindow("org", WINDOW_NORMAL);
-            namedWindow("crop", WINDOW_NORMAL);
-            namedWindow("disp", WINDOW_NORMAL);
-            resizeWindow("rot", 800,800);
-            resizeWindow("org", 800,800);
-            namedWindow("crop1", WINDOW_NORMAL);
-            resizeWindow("crop1", 800,800);
-            imshow("disp", disp); //show the frame in "MyVideo" window
-            imshow("crop1", crop1); //show the frame in "MyVideo" window
-            
-            imshow("rot", rotated2); //show the frame in "MyVideo" window
-            imshow("org", rotated); //show the frame in "MyVideo" window
-
             // crop the resulting image
-            getRectSubPix(rotated2, rect_size, rgame.center, cropped);
+            getRectSubPix(rotated, rect_size, rgame.center, cropped);
+            
+
             waitKey(10);
-            imshow("crop", cropped); //show the frame in "MyVideo" window
             //debug output
             if(debug_flag){
               imshow("Cut output", cropped); //show the frame in "MyVideo" window
               cout << "cut size width : " << cropped.cols << " height " << cropped.rows << endl;  
             }
+
         }
         //debug
         if(debug_flag){
@@ -219,7 +188,7 @@ rotated2=rotated;
     cv_bridge::CvImage out_msg;
     out_msg.header   = cv_ptr->header; // Same timestamp and tf frame as input image
     out_msg.header.stamp =ros::Time::now(); // new timestamp
-    out_msg.encoding = sensor_msgs::image_encodings::RGB8; // encoding, might need to try some diffrent ones
+    out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
     out_msg.image    = cropped; 
     image_pub_cut_.publish(out_msg.toImageMsg()); //transfer to Ros image message   
 

@@ -20,6 +20,11 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/opencv.hpp"
+//#include "opencv2/highgui/highgui.hpp"
+//#include "opencv2/imgproc/imgproc.hpp"
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 
 //Namespace
 using namespace cv;
@@ -53,7 +58,7 @@ class board_detector
     Mat org, subImage;
 	Mat filter_image_red, filter_image_blue;
 
-  board_detector() : it_(n_), debug_flag(false), rows(7), cols(7), filter_red_r_low(0), filter_red_g_low(0), filter_red_b_low(0), filter_red_r_high(255), filter_red_g_high(25), filter_red_b_high(25), filter_blue_r_low(0), filter_blue_g_low(0), filter_blue_b_low(50), filter_blue_r_high(25), filter_blue_g_high(25), filter_blue_b_high(255) 
+  board_detector() : it_(n_), debug_flag(true), rows(7), cols(7), filter_red_r_low(0), filter_red_g_low(0), filter_red_b_low(0), filter_red_r_high(255), filter_red_g_high(25), filter_red_b_high(25), filter_blue_r_low(0), filter_blue_g_low(0), filter_blue_b_low(50), filter_blue_r_high(25), filter_blue_g_high(25), filter_blue_b_high(255) 
   {
   	// Subscrive and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &board_detector::imageCb, this);
@@ -62,13 +67,15 @@ class board_detector
     gameboard = new int*[rows];
 	for(int i = 0; i < rows; ++i)
     	gameboard[i] = new int[cols];
-
+   
     //debug
     if(debug_flag){
       namedWindow("Input_cutout", CV_WINDOW_AUTOSIZE);
       namedWindow("ROI-section", CV_WINDOW_AUTOSIZE);
       namedWindow("ROI-section-filtered", CV_WINDOW_AUTOSIZE);
     }
+
+    namedWindow("Contours", CV_WINDOW_AUTOSIZE );
   }
 
   ~board_detector()
@@ -100,14 +107,124 @@ class board_detector
       //check if there is an image ...
       if(org.size().width==0 || org.size().height==0)
       	return;
-      
-      // parameters
+
+      Mat input_grey;
+    cvtColor(org, input_grey, CV_BGR2GRAY);
+            // find contur in the subimage
+            Mat canny_output;
+  vector<vector<Point> > contours;
+  vector<Vec4i> hierarchy;
+  int thresh = 100;
+int max_thresh = 255;
+RNG rng(12345);
+blur(input_grey, input_grey, Size(3, 3));
+  /// Detect edges using canny
+
+  Canny( org, canny_output, thresh, thresh*2, 3 );
+  /// Find contours
+ 
+  findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+  /// Draw contours
+  Mat drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
+
+  Mat countourtest;
+  drawing.copyTo(countourtest);
+
+  for( int i = 0; i< contours.size(); i++ )
+     {
+       Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+       drawContours( drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
+     }
+
+  //cout << drawing << endl;
+  /// Show in a window
+waitKey(10);
+  namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
+  imshow( "Contours", drawing );
+ ROS_INFO("image shown done");
+
+int largest_area=0;
+    int largest_contour_index=0;
+    Rect bounding_rect;
+
+ // get bigges conure
+ for( size_t i = 0; i< contours.size(); i++ ) // iterate through each contour.
+    {
+        double area = contourArea( contours[i] );  //  Find the area of contour
+
+        if( area > largest_area )
+        {
+            largest_area = area;
+            largest_contour_index = i;               //Store the index of largest contour
+            bounding_rect = boundingRect( contours[i] ); // Find the bounding rectangle for biggest contour
+        }
+    }
+
+    Mat warpedCard(400, 400, CV_8UC3);
+
+    cout << "conutor area" << largest_area << endl;
+if(largest_area>org.rows*org.cols/1.5)
+{
+	//draw onlz bigges countur
+    Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+       
+    drawContours( countourtest, contours, largest_contour_index, color);
+   
+	namedWindow( "Contours2", CV_WINDOW_AUTOSIZE );
+  imshow( "Contours2", countourtest );
+ ROS_INFO("image shown done2");
+
+ Mat mc=org;
+ vector<Point> approx;
+double d=0;
+do
+{
+    d=d+1;
+    approxPolyDP(contours[largest_contour_index],approx,d,true);
+    cout << approx.size() << " " <<d<<endl;
+}
+while (approx.size()>4);
+contours.push_back(approx);
+drawContours(mc,contours,contours.size()-1,Scalar(0,0,255),1);
+imshow("Ctr",mc);
+
+
+vector<Point2f> dest;
+dest.push_back(Point2f(0,0));
+dest.push_back(Point2f(0, warpedCard.rows));
+dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));
+dest.push_back(Point2f(warpedCard.cols, 0.0));
+
+
+vector<Point2f> inpoint;
+inpoint.push_back(approx[0]);
+inpoint.push_back(approx[1]);
+inpoint.push_back(approx[2]);
+inpoint.push_back(approx[3]);
+
+cout << "aprox size : " << approx.size() << endl;
+cout << "p1: " << approx[0] << " p2: " << approx[1] << " p3: " << approx[2] << " p4: " << approx[3] << endl;
+    if (approx.size() == 4)
+    {
+    	ROS_INFO("WARP");
+        Mat homography = findHomography(inpoint, dest);
+        warpPerspective(org, warpedCard, homography, Size(warpedCard.cols, warpedCard.rows));
+    }
+
+    imshow("warped card", warpedCard);
+
+//waitKey();
+
+// parameters
 	  int rowcount=0;
 	  int colcount=0;
-	  int image_width=org.size().width;
-	  int image_height=org.size().height;
+	  int image_width=warpedCard.size().width;
+	  int image_height=warpedCard.size().height;
 	  //defult rect
 	  Rect Rec(0, 0, 10, 10);
+
+
 
 	  //Loop through all ROI and se if its O or X
 	  for(int i=0;i<cols*rows;i++){
@@ -126,7 +243,7 @@ class board_detector
 		    }
 		}
 		//copy to new sub image 
-		subImage = org(Rec).clone();
+		subImage = warpedCard(Rec).clone();
 		waitKey(10);
 
 		//debug subimages  
@@ -146,16 +263,16 @@ class board_detector
 		if(debug_flag){
 			namedWindow("show filter sub", WINDOW_AUTOSIZE);
 			imshow("Step show filterv sub", subImage);
-			waitKey(1000);
+			waitKey(100);
 			namedWindow("show filter sub", WINDOW_AUTOSIZE);
 			imshow("Step show filterv sub", filter_image_red);
-			waitKey(1000);
+			waitKey(100);
 		    namedWindow("show filter sub", WINDOW_AUTOSIZE);
 			imshow("Step show filterv sub", subImage);
-			waitKey(1000);
+			waitKey(100);
 			namedWindow("show filter sub", WINDOW_AUTOSIZE);
 			imshow("Step show filterv sub", filter_image_blue);
-			waitKey(1000);
+			waitKey(100);
 		}
 			
 		//make bw version
@@ -192,7 +309,16 @@ class board_detector
 		cout << "|" << endl;
 		cout << "_______________" << endl;		
 	  }
+	  
     }
+
+
+}
+    
+
+
+      
+      
 };
 
 int main(int argc, char** argv)
