@@ -54,7 +54,7 @@ class board_cutout
     //Open cv images
     Mat org, grey, game; 
     Mat M, rotated, cropped;
-    board_cutout() : it_(n_),rboard_width(420),rboard_height(420),rqrcode_width(83), rqrcode_height(83), rqrboard_offset_x(-390), rqrboard_offset_y(420), offsetangle(0), debug_flag(false)
+    board_cutout() : it_(n_),rboard_width(470),rboard_height(470),rqrcode_width(83), rqrcode_height(83), rqrboard_offset_x(-430), rqrboard_offset_y(420), offsetangle(0), debug_flag(false)
     {
       // Subscrive and publisher
       image_sub_raw_ = it_.subscribe("/usb_cam/image_raw", 1, &board_cutout::imageCb, this);

@@ -50,7 +50,7 @@ class board_detector
 	Mat filter_image_red, filter_image_blue;
 	Mat canny_output, drawing, countourtest;
 
-  board_detector() : it_(n_), debug_flag(true), rows(7), cols(7), r_threshold(110),b_threshold(110) 
+  board_detector() : it_(n_), debug_flag(true), rows(7), cols(7), r_threshold(100),b_threshold(100) 
   {
   	// Subscrive and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &board_detector::imageCb, this);
