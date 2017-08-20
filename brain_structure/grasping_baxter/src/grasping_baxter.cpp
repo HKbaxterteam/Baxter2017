@@ -195,6 +195,7 @@ grasping_baxter_environment();
     test_constraints.orientation_constraints.push_back(ocm);
     //group.setPathConstraints(test_constraints);
   //goal_pub.publish(target_posehope);
+    ros::Duration(0.5).sleep();
 
   success = group.plan(my_plan);
 
