@@ -15,11 +15,11 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   moveit_core
-  moveit_ros_planning
-  moveit_ros_planning_interface
-  pluginlib
-  cmake_modules
-  geometric_shapes
+    moveit_ros_planning
+    moveit_ros_planning_interface
+    pluginlib
+    cmake_modules
+    geometric_shapes
 
 )
 
