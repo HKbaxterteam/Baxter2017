@@ -33,24 +33,39 @@ public:
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
     moveit::planning_interface::MoveGroup::Plan my_plan;
 	geometry_msgs::PoseStamped target_posehope;
-	ros::Publisher goal_pub;
+	ros::Publisher ar_pub;
+  ros::Publisher target_pub;
 	geometry_msgs::PoseStamped ar_code_pose;
+
+  geometry_msgs::PoseStamped target_pose;
+
+
+  // reachability test
+  double offset_qr_pose_pick_up_x;
+  double offset_qr_pose_pick_up_y;
+  double offset_qr_pose_pick_up_z;
+  double offset_qr_orientation_pick_up_x;
+  double offset_qr_orientation_pick_up_y;
+  double offset_qr_orientation_pick_up_z;
+  double offset_qr_orientation_pick_up_w;
 
 
 
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name), grasping_baxter_start_flag(false),group("right_arm")
+    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_qr_pose_pick_up_x(-0.12),offset_qr_pose_pick_up_y(+0.185),
+    offset_qr_pose_pick_up_z(0),offset_qr_orientation_pick_up_x(0),offset_qr_orientation_pick_up_y(0),offset_qr_orientation_pick_up_z(0),offset_qr_orientation_pick_up_w(0)
   {
     as_grasping_baxter.start();
-    goal_pub = nh_.advertise<geometry_msgs::PoseStamped>("goalpose", 1);
+    ar_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/ar_code", 1);
+    target_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/target", 1);
 
 
     //callback will do that later:
     ar_code_pose.header.frame_id="/world";
     ar_code_pose.header.stamp = ros::Time::now();;
-    ar_code_pose.pose.position.x=0.45;
-    ar_code_pose.pose.position.y=-0.2;
+    ar_code_pose.pose.position.x=0.80;
+    ar_code_pose.pose.position.y=0.0;
     ar_code_pose.pose.position.z=-0.15;
     ar_code_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
     
@@ -65,9 +80,99 @@ public:
   }
 
   void publish_goalpose(){
-  	goal_pub.publish(ar_code_pose);
+  	ar_pub.publish(ar_code_pose);    
+    target_pub.publish(target_pose);
 
   }
+
+  void picking_test(){
+
+  //get pose
+  geometry_msgs::PoseStamped pick_up_pose;
+  //geometry_msgs::PoseStamped target_posehope;
+
+  target_pose.header.stamp=ros::Time::now();
+  target_pose.header.frame_id="/world";
+
+  pick_up_pose.header.stamp=ros::Time::now();
+  pick_up_pose.header.frame_id="/world";
+
+
+
+  pick_up_pose.pose.position.x=ar_code_pose.pose.position.x+offset_qr_pose_pick_up_x;
+  pick_up_pose.pose.position.y=ar_code_pose.pose.position.y+offset_qr_pose_pick_up_y;
+  pick_up_pose.pose.position.z=ar_code_pose.pose.position.z+offset_qr_pose_pick_up_z;
+  pick_up_pose.pose.orientation.x=ar_code_pose.pose.orientation.x+offset_qr_orientation_pick_up_x;
+  pick_up_pose.pose.orientation.y=ar_code_pose.pose.orientation.y+offset_qr_orientation_pick_up_y;
+  pick_up_pose.pose.orientation.z=ar_code_pose.pose.orientation.z+offset_qr_orientation_pick_up_z;
+  pick_up_pose.pose.orientation.w=ar_code_pose.pose.orientation.w+offset_qr_orientation_pick_up_w;
+
+
+  target_pose=pick_up_pose;
+
+    int i=0;
+    double offset_x=-0.065;
+    double offset_y=-0.065;
+    while(i <= 48) {
+      bool success=false;
+
+
+        int row=i/7;
+        int col=i%7;
+
+        target_pose.pose.position.x=pick_up_pose.pose.position.x+row*offset_x;
+        target_pose.pose.position.y=pick_up_pose.pose.position.y+col*offset_y;
+
+
+          std::cout << "reaching field n" << i << std::endl;;
+
+          group.setPoseTarget(target_pose);
+
+          success = group.plan(my_plan);
+
+          //ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");    
+          //move it!!!
+          group.move() ;
+          sleep(5.0);
+          ros::spinOnce();
+          if(success)
+            ROS_INFO("WE DID IT!!!!!!!!!!");
+          else
+            ROS_INFO("Fail");
+
+
+    ros::Duration(0.5).sleep();
+    
+
+    group.setPoseTarget(ar_code_pose);
+
+          success = group.plan(my_plan);
+
+          //ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");    
+          //move it!!!
+          group.move() ;
+          sleep(5.0);
+          ros::spinOnce();
+          if(success)
+            ROS_INFO("WE DID IT!!!!!!!!!!");
+          else
+            ROS_INFO("Fail");
+
+
+
+                  i++;
+
+   }
+
+
+
+
+
+
+  }
+
+
+
 
 
   void grasping_baxter_environment(){
@@ -180,8 +285,9 @@ grasping_baxter_environment();
   
  target_posehope= group.getRandomPose(group.getEndEffectorLink().c_str());
   
-  group.setPoseTarget(ar_code_pose);
+  
 
+/*
     moveit_msgs::OrientationConstraint ocm;
 
     ocm.link_name = group.getEndEffectorLink().c_str();
@@ -195,7 +301,13 @@ grasping_baxter_environment();
     test_constraints.orientation_constraints.push_back(ocm);
     //group.setPathConstraints(test_constraints);
   //goal_pub.publish(target_posehope);
+  */
     ros::Duration(0.5).sleep();
+
+    picking_test();
+    /*
+
+    group.setPoseTarget(ar_code_pose);
 
   success = group.plan(my_plan);
 
@@ -208,6 +320,8 @@ grasping_baxter_environment();
     ROS_INFO("WE DID IT!!!!!!!!!!");
   else
     ROS_INFO("Fail");
+    */
+
 
     //ros::spinOnce();
 
@@ -251,7 +365,7 @@ int main(int argc, char** argv)
 
   while(ros::ok()){
   	gbb.publish_goalpose();
-  	ROS_INFO("publishing");
+  	//ROS_INFO("publishing");
   	ros::spinOnce();
   	ros::Duration(0.5).sleep(); 
   }
