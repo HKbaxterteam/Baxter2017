@@ -32,15 +32,18 @@ public:
     moveit::planning_interface::MoveGroup group;
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
     moveit::planning_interface::MoveGroup::Plan my_plan;
-	geometry_msgs::PoseStamped target_posehope;
-	ros::Publisher ar_pub;
-  ros::Publisher target_pub;
-	geometry_msgs::PoseStamped ar_code_pose;
+  	geometry_msgs::PoseStamped target_posehope;
+  	ros::Publisher ar_pub;
+    ros::Publisher target_pub;
 
-  geometry_msgs::PoseStamped target_pose;
+  	geometry_msgs::PoseStamped ar_code_pose;
+    geometry_msgs::PoseStamped target_pose;
+    geometry_msgs::PoseStamped p0_pose;
+    geometry_msgs::PoseStamped pick_up_pose;
 
 
-  // reachability test
+/*------------- old names
+   reachability test
   double offset_qr_pose_pick_up_x;
   double offset_qr_pose_pick_up_y;
   double offset_qr_pose_pick_up_z;
@@ -50,11 +53,45 @@ public:
   double offset_qr_orientation_pick_up_w;
 
 
+// offset for piece-box storage
+  double offset_storage_pose_pick_up_x;
+  double offset_storage_pose_pick_up_y;
+  double offset_storage_pose_pick_up_z;
+  double offset_storage_orientation_pick_up_x;
+  double offset_storage_orientation_pick_up_y;
+  double offset_storage_orientation_pick_up_z;
+  double offset_storage_orientation_pick_up_w;
+*/
+
+//---- new names
+
+  double offset_p0_pose_x;
+  double offset_p0_pose_y;
+  double offset_p0_pose_z;
+  double offset_p0_orientation_x;
+  double offset_p0_orientation_y;
+  double offset_p0_orientation_z;
+  double offset_p0_orientation_w;
+
+
+// offset for piece-box storage
+  double offset_pick_up_pose_x;
+  double offset_pick_up_pose_y;
+  double offset_pick_up_pose_z;
+  double offset_pick_up_orientation_x;
+  double offset_pick_up_orientation_y;
+  double offset_pick_up_orientation_z;
+  double offset_pick_up_orientation_w;
+
+
+
 
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_qr_pose_pick_up_x(-0.12),offset_qr_pose_pick_up_y(+0.185),
-    offset_qr_pose_pick_up_z(0),offset_qr_orientation_pick_up_x(0),offset_qr_orientation_pick_up_y(0),offset_qr_orientation_pick_up_z(0),offset_qr_orientation_pick_up_w(0)
+    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.12),offset_p0_pose_y(+0.185),
+    offset_p0_pose_z(0),offset_p0_orientation_x(0),offset_p0_orientation_y(0),offset_p0_orientation_z(0),
+    offset_p0_orientation_w(0),offset_pick_up_pose_x(-0.18),offset_pick_up_pose_y(-0.285),offset_pick_up_pose_z(0.1),
+    offset_pick_up_orientation_x(0),offset_pick_up_orientation_y(0),offset_pick_up_orientation_z(0),offset_pick_up_orientation_w(0)
   {
     as_grasping_baxter.start();
     ar_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/ar_code", 1);
@@ -69,7 +106,8 @@ public:
     ar_code_pose.pose.position.z=-0.15;
     ar_code_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
     
-    
+
+ 
 
   }
 
@@ -79,8 +117,39 @@ public:
 
   }
 
+ void ar_code_pose_callback()
+ {
+
+      p0_pose.header.stamp=ros::Time::now();
+      p0_pose.header.frame_id="/world";
+
+      p0_pose.pose.position.x=ar_code_pose.pose.position.x+offset_p0_pose_x;
+      p0_pose.pose.position.y=ar_code_pose.pose.position.y+offset_p0_pose_y;
+      p0_pose.pose.position.z=ar_code_pose.pose.position.z+offset_p0_pose_z;
+      p0_pose.pose.orientation.x=ar_code_pose.pose.orientation.x+offset_p0_orientation_x;
+      p0_pose.pose.orientation.y=ar_code_pose.pose.orientation.y+offset_p0_orientation_y;
+      p0_pose.pose.orientation.z=ar_code_pose.pose.orientation.z+offset_p0_orientation_z;
+      p0_pose.pose.orientation.w=ar_code_pose.pose.orientation.w+offset_p0_orientation_w;
+
+
+    
+      pick_up_pose.header.stamp=ros::Time::now();
+      pick_up_pose.header.frame_id="/world";
+
+      pick_up_pose.pose.position.x=ar_code_pose.pose.position.x+offset_pick_up_pose_x;
+      pick_up_pose.pose.position.y=ar_code_pose.pose.position.y+offset_pick_up_pose_y;
+      pick_up_pose.pose.position.z=ar_code_pose.pose.position.z+offset_pick_up_pose_z;
+      pick_up_pose.pose.orientation.x=ar_code_pose.pose.orientation.x+offset_pick_up_orientation_x;
+      pick_up_pose.pose.orientation.y=ar_code_pose.pose.orientation.y+offset_pick_up_orientation_y;
+      pick_up_pose.pose.orientation.z=ar_code_pose.pose.orientation.z+offset_pick_up_orientation_z;
+      pick_up_pose.pose.orientation.w=ar_code_pose.pose.orientation.w+offset_pick_up_orientation_w;
+
+
+
+
+ }
   void publish_goalpose(){
-  	ar_pub.publish(ar_code_pose);    
+  	ar_pub.publish(pick_up_pose);    
     target_pub.publish(target_pose);
 
   }
@@ -88,40 +157,44 @@ public:
   void picking_test(){
 
   //get pose
-  geometry_msgs::PoseStamped pick_up_pose;
+
   //geometry_msgs::PoseStamped target_posehope;
+    ar_code_pose_callback();
+
 
   target_pose.header.stamp=ros::Time::now();
   target_pose.header.frame_id="/world";
-
-  pick_up_pose.header.stamp=ros::Time::now();
-  pick_up_pose.header.frame_id="/world";
-
-
-
-  pick_up_pose.pose.position.x=ar_code_pose.pose.position.x+offset_qr_pose_pick_up_x;
-  pick_up_pose.pose.position.y=ar_code_pose.pose.position.y+offset_qr_pose_pick_up_y;
-  pick_up_pose.pose.position.z=ar_code_pose.pose.position.z+offset_qr_pose_pick_up_z;
-  pick_up_pose.pose.orientation.x=ar_code_pose.pose.orientation.x+offset_qr_orientation_pick_up_x;
-  pick_up_pose.pose.orientation.y=ar_code_pose.pose.orientation.y+offset_qr_orientation_pick_up_y;
-  pick_up_pose.pose.orientation.z=ar_code_pose.pose.orientation.z+offset_qr_orientation_pick_up_z;
-  pick_up_pose.pose.orientation.w=ar_code_pose.pose.orientation.w+offset_qr_orientation_pick_up_w;
-
-
-  target_pose=pick_up_pose;
+  target_pose=p0_pose;
 
     int i=0;
     double offset_x=-0.065;
     double offset_y=-0.065;
-    while(i <= 48) {
-      bool success=false;
+    while(i <= 0) {
+        bool success=false;
+
+        group.setPoseTarget(pick_up_pose);
+
+        success = group.plan(my_plan);
+
+          //ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");    
+          //move it!!!
+          group.move() ;
+          sleep(5.0);
+          ros::spinOnce();
+          if(success)
+            ROS_INFO("WE DID IT!!!!!!!!!!");
+          else
+            ROS_INFO("Fail");
 
 
+    ros::Duration(0.5).sleep();
+    
+success=false;
         int row=i/7;
         int col=i%7;
 
-        target_pose.pose.position.x=pick_up_pose.pose.position.x+row*offset_x;
-        target_pose.pose.position.y=pick_up_pose.pose.position.y+col*offset_y;
+        target_pose.pose.position.x=p0_pose.pose.position.x+row*offset_x;
+        target_pose.pose.position.y=p0_pose.pose.position.y+col*offset_y;
 
 
           std::cout << "reaching field n" << i << std::endl;;
@@ -141,22 +214,7 @@ public:
             ROS_INFO("Fail");
 
 
-    ros::Duration(0.5).sleep();
     
-
-    group.setPoseTarget(ar_code_pose);
-
-          success = group.plan(my_plan);
-
-          //ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");    
-          //move it!!!
-          group.move() ;
-          sleep(5.0);
-          ros::spinOnce();
-          if(success)
-            ROS_INFO("WE DID IT!!!!!!!!!!");
-          else
-            ROS_INFO("Fail");
 
 
 
@@ -243,7 +301,7 @@ public:
 	// A pose for the box (specified relative to frame_id) 
 	geometry_msgs::Pose table_pose;
 	table_pose.orientation.w = 1.0;
-	table_pose.position.x =  0.825;
+	table_pose.position.x =  0.61;//0.825;
 	table_pose.position.y = 0;
 	table_pose.position.z =  -0.575;
 

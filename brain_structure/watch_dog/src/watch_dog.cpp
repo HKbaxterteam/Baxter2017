@@ -2,6 +2,9 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <watch_dog/watch_dog_game_masterAction.h>
+  #include <iostream>
+using namespace std;
+
 class watch_dog_boss
 {
 protected:
@@ -38,6 +41,12 @@ public:
     //CALCULATE THE AI MOVE******************************
     //***************************************************
 
+    do 
+ {
+   cout << '\n' << "Press a key to continue...";
+ } while (cin.get() != '\n');
+
+
     // push_back the seeds for the fibonacci sequence
     feedback_watch_dog.progress=20; // progress in %
 
@@ -69,6 +78,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "watch_dog_game_master");
   ROS_INFO("Start watch_dog node");
   //start action server
+
+
+
   watch_dog_boss ab("watch_dog_game_master");
 
   ros::spin();
