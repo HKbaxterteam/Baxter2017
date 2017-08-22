@@ -2,6 +2,11 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <ai/ai_game_masterAction.h>
+
+#include <stdio.h>      /* printf, scanf, puts, NULL */
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+
 class ai_boss
 {
 protected:
@@ -37,6 +42,21 @@ public:
     ROS_INFO("calculating move");
     //CALCULATE THE AI MOVE******************************
     //***************************************************
+    bool coolmove=false;
+    /* initialize random seed: */
+    srand (time(NULL));
+
+    int randomnum;
+    // find cool move
+    while(!coolmove){
+
+      /* generate secret number between 0 and 48: */
+      randomnum = rand() % 48 ;
+      if(goal->gameboard[randomnum]==0)
+        coolmove=true;
+
+    }
+
 
     // push_back the seeds for the fibonacci sequence
 
@@ -53,7 +73,7 @@ public:
     if(success)
     {
     	ROS_INFO("calculating move done");
-      result_ai.best_move = 35;	// retuŕn best move between 0...48
+      result_ai.best_move = randomnum;	// retuŕn best move between 0...48
       ROS_INFO("%s: Done", action_name_.c_str());
       // set the action state to succeeded
       as_ai.setSucceeded(result_ai);

@@ -14,6 +14,10 @@
 
 #include  <tf/transform_datatypes.h>
 
+#include <baxter_core_msgs/EndEffectorState.h>
+#include <baxter_core_msgs/EndEffectorCommand.h>
+#include <baxter_core_msgs/DigitalIOState.h>
+
 
 class grasping_baxter_boss
 {
@@ -35,11 +39,14 @@ public:
   	geometry_msgs::PoseStamped target_posehope;
   	ros::Publisher ar_pub;
     ros::Publisher target_pub;
+    ros::Publisher rightGripperPub;
 
   	geometry_msgs::PoseStamped ar_code_pose;
     geometry_msgs::PoseStamped target_pose;
     geometry_msgs::PoseStamped p0_pose;
     geometry_msgs::PoseStamped pick_up_pose;
+  int target_field;
+  int gripperSeq;
 
 
 /*------------- old names
@@ -90,20 +97,23 @@ public:
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
     action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.12),offset_p0_pose_y(+0.185),
     offset_p0_pose_z(0),offset_p0_orientation_x(0),offset_p0_orientation_y(0),offset_p0_orientation_z(0),
-    offset_p0_orientation_w(0),offset_pick_up_pose_x(-0.18),offset_pick_up_pose_y(-0.285),offset_pick_up_pose_z(0.1),
+    offset_p0_orientation_w(0),offset_pick_up_pose_x(-0.18),offset_pick_up_pose_y(-0.285),offset_pick_up_pose_z(0.07),
     offset_pick_up_orientation_x(0),offset_pick_up_orientation_y(0),offset_pick_up_orientation_z(0),offset_pick_up_orientation_w(0)
   {
     as_grasping_baxter.start();
     ar_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/ar_code", 1);
     target_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/target", 1);
 
+    rightGripperPub = nh_.advertise<baxter_core_msgs::EndEffectorCommand>("/robot/end_effector/right_gripper/command",10);
+
 
     //callback will do that later:
     ar_code_pose.header.frame_id="/world";
     ar_code_pose.header.stamp = ros::Time::now();;
-    ar_code_pose.pose.position.x=0.80;
-    ar_code_pose.pose.position.y=0.0;
-    ar_code_pose.pose.position.z=-0.15;
+    ar_code_pose.pose.position.x=0.849068284615;
+    ar_code_pose.pose.position.y=-0.0577751363464;
+    ar_code_pose.pose.position.z=-0.145608429006;
+
     ar_code_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
     
 
@@ -115,6 +125,38 @@ public:
   {
     
 
+  }
+
+   bool closerightGripper()
+  {
+    ROS_INFO("Closing right arm gripper");
+    
+    baxter_core_msgs::EndEffectorCommand command;
+    command.command = baxter_core_msgs::EndEffectorCommand::CMD_GO;
+    command.args = "{\"position\": 0.0}";
+    command.id = 65538;
+    command.sequence = gripperSeq++;
+    // Send command several times to be safe
+    ROS_INFO("publishing gripper");
+    rightGripperPub.publish(command);
+    ros::Duration(2).sleep();
+    return true;
+  }
+
+  bool openrightGripper()
+  {
+          ROS_INFO("Opening right arm gripper");
+
+          baxter_core_msgs::EndEffectorCommand command;
+          command.command = baxter_core_msgs::EndEffectorCommand::CMD_GO;
+          command.args = "{\"position\": 100.0}";
+          command.id = 65538;
+          command.sequence = gripperSeq++;
+          rightGripperPub.publish(command);
+          ros::Duration(2).sleep();
+          
+          ROS_INFO("Done opening");
+          return true;
   }
 
  void ar_code_pose_callback()
@@ -147,10 +189,88 @@ public:
 
 
 
- }
+  }
+  
   void publish_goalpose(){
   	ar_pub.publish(pick_up_pose);    
     target_pub.publish(target_pose);
+
+  }
+
+  void place_piece(){
+
+    //geometry_msgs::PoseStamped target_posehope;
+    ar_code_pose_callback();
+
+    target_pose.header.stamp=ros::Time::now();
+    target_pose.header.frame_id="/world";
+    target_pose=pick_up_pose;
+    
+    bool success=false;
+
+    group.setPoseTarget(target_pose);
+
+    success = group.plan(my_plan);
+    //move it!!!
+    group.move() ;
+    sleep(5.0);
+    if(success)
+      ROS_INFO("WE DID IT!!!!!!!!!!");
+    else
+      ROS_INFO("Fail");
+  
+    //suck up the piece
+    bool suckit=false;
+    double offset_x=-0.065;
+    double offset_y=-0.065;
+
+    suckit= closerightGripper();
+    ros::Duration(0.5).sleep();
+    if(suckit){
+      ROS_INFO("sucking it");
+
+      success=false;
+
+      int row=target_field/7;
+      int col=target_field%7;
+
+      target_pose.pose.position.x=p0_pose.pose.position.x+row*offset_x;
+      target_pose.pose.position.y=p0_pose.pose.position.y+col*offset_y;
+
+      std::cout << "reaching field n" << target_field << std::endl;;
+
+      group.setPoseTarget(target_pose);
+
+      success = group.plan(my_plan);
+
+      //move it!!!
+      group.move() ;
+      sleep(5.0);
+      ros::spinOnce();
+      if(success)
+        ROS_INFO("WE DID IT!!!!!!!!!!");
+      else
+        ROS_INFO("Fail");
+
+      //suck up the piece
+    bool stopsuckit=false;
+
+    stopsuckit= openrightGripper();
+    if(stopsuckit){
+      ROS_INFO("good job");
+    }
+    else{
+      ROS_INFO("NOO good job");
+    }
+
+
+
+    }
+    else{
+      ROS_INFO("Failed horribly");
+    }
+
+
 
   }
 
@@ -169,7 +289,7 @@ public:
     int i=0;
     double offset_x=-0.065;
     double offset_y=-0.065;
-    while(i <= 0) {
+    while(i <= 48) {
         bool success=false;
 
         group.setPoseTarget(pick_up_pose);
@@ -195,9 +315,10 @@ success=false;
 
         target_pose.pose.position.x=p0_pose.pose.position.x+row*offset_x;
         target_pose.pose.position.y=p0_pose.pose.position.y+col*offset_y;
+        target_pose.pose.position.z=pick_up_pose.pose.position.z;
 
 
-          std::cout << "reaching field n" << i << std::endl;;
+          std::cout << "reaching field n" << i << std::endl;
 
           group.setPoseTarget(target_pose);
 
@@ -246,9 +367,9 @@ success=false;
   moveit::planning_interface::MoveGroup::Plan my_plan;
   geometry_msgs::PoseStamped target_posehope;
   //tolerances
-  group.setGoalOrientationTolerance(0.01);
-  group.setGoalPositionTolerance(0.01);
-  group.setGoalTolerance(0.01);
+  group.setGoalOrientationTolerance(0.005);
+  group.setGoalPositionTolerance(0.005);
+  group.setGoalTolerance(0.005);
   group.setNumPlanningAttempts(2);
   group.setPlanningTime(20);
   group.setStartStateToCurrentState();
@@ -296,14 +417,14 @@ success=false;
 	cube.dimensions.resize(3);
 	cube.dimensions[0] = 0.65;
 	cube.dimensions[1] = 0.65;
-	cube.dimensions[2] = 0.75;
+	cube.dimensions[2] = 0.85;
 
 	// A pose for the box (specified relative to frame_id) 
 	geometry_msgs::Pose table_pose;
 	table_pose.orientation.w = 1.0;
 	table_pose.position.x =  0.61;//0.825;
 	table_pose.position.y = 0;
-	table_pose.position.z =  -0.575;
+	table_pose.position.z =  -0.525;//-0.575;
 
 	co_table.primitives.push_back(cube);
 	co_table.primitive_poses.push_back(table_pose);
@@ -337,11 +458,13 @@ grasping_baxter_environment();
     ROS_INFO("calculating move");
     //CALCULATE THE AI MOVE******************************
 
+    target_field =goal->move;
+
     // Planning to a Pose goal
       // ^^^^^^^^^^^^^^^^^^^^^^^ 
     group.setPlannerId("RRTConnectkConfigDefault");
   
- target_posehope= group.getRandomPose(group.getEndEffectorLink().c_str());
+ //target_posehope= group.getRandomPose(group.getEndEffectorLink().c_str());
   
   
 
@@ -362,6 +485,7 @@ grasping_baxter_environment();
   */
     ros::Duration(0.5).sleep();
 
+    //place_piece();
     picking_test();
     /*
 
