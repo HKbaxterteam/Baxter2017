@@ -12,7 +12,7 @@
 <node pkg="ai" type="ai" name="ai" output="screen" />
 
 <!-- starte grasping_baxter node-->
-<node pkg="grasping_baxter" type="grasping_baxter" name="grasping_baxter" output="screen" />
+<include file="$(find grasping_baxter)/launch/grasping.launch"/>
 
 <!-- starte camera launch-->
 <include file="$(find camera)/launch/camera.launch"/>

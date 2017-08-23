@@ -43,7 +43,7 @@ class board_cutout
     board_cutout() : it_(n_),debug_flag(true),cutout_x(10),cutout_y(80),cutout_width(450),cutout_height(350) 
     {
       // Subscrive and publisher
-      image_sub_raw_ = it_.subscribe("/TTT_game/webcam/input_image_raw", 1, &board_cutout::imageCb, this);
+      image_sub_raw_ = it_.subscribe("/TTTgame/webcam/input_image_raw", 1, &board_cutout::imageCb, this);
       image_pub_cut_ = it_.advertise("/TTTgame/cut_board", 1);
       
       //debug
@@ -80,7 +80,9 @@ class board_cutout
       org = cv_ptr->image;
 //debug output
             if(debug_flag){
+              waitKey(1);
               imshow("Input", org); //show the frame in "MyVideo" window
+              waitKey(1);
             }
       // we cut out a smaller portion of the image
        Rect Rec(cutout_x, cutout_y, cutout_width, cutout_height);
@@ -95,10 +97,11 @@ class board_cutout
     out_msg.image    = cutorg; 
     image_pub_cut_.publish(out_msg.toImageMsg()); //transfer to Ros image message  
 
-    waitKey(10);
             //debug output
             if(debug_flag){
+              waitKey(1);
               imshow("Cut output", cutorg); //show the frame in "MyVideo" window
+              waitKey(1);
             }
 
 
