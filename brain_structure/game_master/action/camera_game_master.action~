@@ -2,7 +2,7 @@
 int32 update
 ---
 #result definition
-int32 update_done
+int32[] gameboard
 ---
 #feedback
-int32 progress_camera
+int32 progress

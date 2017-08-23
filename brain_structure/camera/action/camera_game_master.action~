@@ -2,7 +2,7 @@
 int32 update
 ---
 #result definition
-int32[] gameboard
+int32 update_done
 ---
 #feedback
 int32 progress

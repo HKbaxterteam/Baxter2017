@@ -31,6 +31,8 @@ public:
   bool grasping_done_flag;
   bool camera_done_flag;
   bool watch_dog_done_flag;
+  int ai_move;
+  std::vector<int> gameboard;
 
   game_master_boss(std::string name) :
     as_gui(nh_, name, boost::bind(&game_master_boss::gui_start_command, this, _1), false),
@@ -81,7 +83,8 @@ public:
   {
     ROS_INFO("Finished in state [%s]", state.toString().c_str());
     //ROS_INFO("Answer: %i", result->sequence.back());
-    ROS_INFO("got move: ");
+    ai_move =result->best_move;
+    std::cout << "best move is: " << ai_move << std::endl;
     ai_received_move_flag=true;
   }
 
@@ -106,6 +109,9 @@ void request_update_camera(int update)
   {
     ROS_INFO("Finished in state [%s]", state.toString().c_str());
     //ROS_INFO("Answer: %i", result->sequence.back());
+    //get new gameboard here!!!
+    gameboard=result->gameboard;
+    //TODO: check if only one piece and other stuff
     ROS_INFO("update_camera_done ");
     camera_done_flag=true;
   }
@@ -209,8 +215,20 @@ int main(int argc, char** argv)
   }
 
   ROS_INFO_THROTTLE(1, "GUI OK");
-  std::vector<int> gameboard;
-  gmb.request_move_ai(gameboard);
+  
+  //init gameboard
+  gmb.gameboard.clear();
+  for (int i = 0; i < 49; ++i)
+  {
+    gmb.gameboard.push_back(0);
+  }
+
+  
+
+  //MAIN LOOP+++++++++++++++++
+
+  // ask AI for a cool move 
+  gmb.request_move_ai(gmb.gameboard);
 
   while(ros::ok() && !gmb.ai_received_move_flag){
     ROS_INFO_THROTTLE(1, "Waiting for Ai");
@@ -220,8 +238,8 @@ int main(int argc, char** argv)
 
   ROS_INFO_THROTTLE(1, "Ai ok");
 
-  int move=77;
-  gmb.request_grasping_baxter(move);
+  // send the cool move to the baxter_grasping
+  gmb.request_grasping_baxter(gmb.ai_move);
 
   while(ros::ok() && !gmb.grasping_done_flag){
     ROS_INFO_THROTTLE(1, "Waiting for move ");
@@ -231,7 +249,9 @@ int main(int argc, char** argv)
 
   ROS_INFO_THROTTLE(1, "move done");
 
-  int update=77;
+  //ask camera to perform an update
+
+  int update=1;
   gmb.request_update_camera(update);
 
   while(ros::ok() && !gmb.camera_done_flag ){
@@ -240,7 +260,7 @@ int main(int argc, char** argv)
     ros::Duration(1.0).sleep();
   }
 
-  ROS_INFO_THROTTLE(1, "watch dog done");
+  ROS_INFO_THROTTLE(1, "camera done");
 
   int wuff=0.815;
   gmb.request_watch_dog(wuff);

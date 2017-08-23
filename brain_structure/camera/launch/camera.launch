@@ -1,0 +1,16 @@
+<!-- -*- xml -*-
+     THis launches the camera part
+  -->
+<launch>
+  
+<!-- starte webcamnode-->
+<include file="$(find camera)/launch/webcam.launch"/>
+
+<!-- starte board cut out node-->
+<node pkg="camera" type="board_cutout" name="board_cutout" output="screen" />
+
+<!-- starte camera node-->
+<node pkg="camera" type="camera" name="camera" output="screen" />
+
+
+</launch>

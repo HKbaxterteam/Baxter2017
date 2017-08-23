@@ -42,6 +42,7 @@ class board_detector
     int** gameboard;
     int r_threshold;
     int b_threshold;
+    int diff_threshold;
 	//opencv help
 	vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
@@ -50,7 +51,7 @@ class board_detector
 	Mat filter_image_red, filter_image_blue;
 	Mat canny_output, drawing, countourtest;
 
-  board_detector() : it_(n_), debug_flag(true), rows(7), cols(7), r_threshold(100),b_threshold(100) 
+  board_detector() : it_(n_), debug_flag(true), rows(7), cols(7),diff_threshold(25), r_threshold(110),b_threshold(110) 
   {
   	// Subscrive and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &board_detector::imageCb, this);
@@ -257,8 +258,27 @@ class board_detector
 			  Scalar meancolor = cv::mean(subImage);
 			  if(debug_flag){
 			    cout << "row: " << rowcount << " col: " << colcount << " R: " << meancolor[0] << " G: " << meancolor [1] << " B: " << meancolor[2] << endl;
+			    cout << "diff red : " << meancolor[2] - meancolor[0] <<  endl;
+			    cout << "diff blue: " << meancolor[0] - meancolor[2] <<  endl;
+			     
 			  }
-			  			    
+
+			  // difference aproch to detect pieces
+			  if(meancolor[2] - meancolor[0] > diff_threshold ){
+			    //ROS_INFO_STREAM( " Red-piece detected" );
+			    gameboard[rowcount][colcount]=2;
+			  }
+			  if(meancolor[0] - meancolor[2] > diff_threshold){
+			    //ROS_INFO_STREAM( " Blue-piece detected" );	
+				gameboard[rowcount][colcount]=1;
+			  }
+			  //if less than 1% is red and les then 1% blue -> its no-piece	    
+			  if(meancolor[2] - meancolor[0] < diff_threshold && meancolor[0] - meancolor[2] < diff_threshold){
+			    //ROS_INFO_STREAM( " No-piece detected" );	
+				gameboard[rowcount][colcount]=0;
+			  }
+
+			  /*			    
 			  // what piece is it?
 			  if(meancolor[0]<r_threshold && meancolor[2]>b_threshold ){
 			    //ROS_INFO_STREAM( " Red-piece detected" );
@@ -273,6 +293,7 @@ class board_detector
 			    //ROS_INFO_STREAM( " No-piece detected" );	
 				gameboard[rowcount][colcount]=0;
 			  }
+			  */
 			  //keep track of ROI
 			  colcount+=1;
 			  if (colcount>cols-1){

@@ -14,7 +14,13 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  OpenCV
+  cv_bridge
+  image_transport
 )
+
+find_package(OpenCV REQUIRED)
+   include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
 
 ## System dependencies are found with CMake's conventions
  find_package(Boost REQUIRED COMPONENTS system)
@@ -69,6 +75,13 @@ target_link_libraries(
 add_dependencies(
   camera
   ${camera_EXPORTED_TARGETS}
+)
+
+add_executable(board_cutout src/board_cutout.cpp)
+
+target_link_libraries(
+  board_cutout
+  ${catkin_LIBRARIES}
 )
 
 ###########

@@ -54,7 +54,7 @@ class board_cutout
     //Open cv images
     Mat org, grey, game; 
     Mat M, rotated, cropped;
-    board_cutout() : it_(n_),rboard_width(470),rboard_height(470),rqrcode_width(83), rqrcode_height(83), rqrboard_offset_x(-430), rqrboard_offset_y(420), offsetangle(0), debug_flag(false)
+    board_cutout() : it_(n_),debug_flag(true), rboard_width(470),rboard_height(470),rqrcode_width(83), rqrcode_height(83), rqrboard_offset_x(-430), rqrboard_offset_y(420), offsetangle(0)
     {
       // Subscrive and publisher
       image_sub_raw_ = it_.subscribe("/usb_cam/image_raw", 1, &board_cutout::imageCb, this);
@@ -92,6 +92,31 @@ class board_cutout
 
       // process the image
       org = cv_ptr->image;
+//debug output
+            if(debug_flag){
+              imshow("Input", org); //show the frame in "MyVideo" window
+            }
+      // we cut out a smaller portion of the image
+       Rect Rec(10, 80, 450, 350);
+
+       Mat cutorg  = org(Rec).clone();
+
+       //publish the image in ros
+    cv_bridge::CvImage out_msg;
+    out_msg.header   = cv_ptr->header; // Same timestamp and tf frame as input image
+    out_msg.header.stamp =ros::Time::now(); // new timestamp
+    out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
+    out_msg.image    = cutorg; 
+    image_pub_cut_.publish(out_msg.toImageMsg()); //transfer to Ros image message  
+
+    waitKey(10);
+            //debug output
+            if(debug_flag){
+              imshow("Cut output", cutorg); //show the frame in "MyVideo" window
+            }
+
+/*
+
       //Set up qr code scanner (Zbar)
       ImageScanner scanner;   
       scanner.set_config(ZBAR_NONE, ZBAR_CFG_ENABLE, 1);   
@@ -191,7 +216,7 @@ class board_cutout
     out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
     out_msg.image    = cropped; 
     image_pub_cut_.publish(out_msg.toImageMsg()); //transfer to Ros image message   
-
+*/
   }
 };
 

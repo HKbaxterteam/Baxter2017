@@ -1,0 +1,14 @@
+<!-- -*- xml -*-
+     THis launches the camera part
+  -->
+<launch>
+  
+<!-- starte webcamnode-->
+
+<!-- starte board cut out node-->
+
+<!-- starte camera node-->
+<!--node pkg="camera" type="camera" name="camera" output="screen" /-->
+
+
+</launch>
