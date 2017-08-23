@@ -3,22 +3,9 @@
   -->
 <launch>
   
-
-<!-- starte game master node-->
-<node pkg="game_master" type="game_master" name="game_master" output="screen" />
-
-
-<!-- starte ai node-->
-<node pkg="ai" type="ai" name="ai" output="screen" />
-
-<!-- starte grasping_baxter launch-->
-<include file="$(find grasping_baxter)/launch/grasping.launch"/>
-
-<!-- starte camera launch-->
-<include file="$(find camera)/launch/camera.launch"/>
-
-<!-- starte watch_dog node-->
-<node pkg="watch_dog" type="watch_dog" name="watch_dog" output="screen" />
+  <!-- start kinect bridge -->
+<include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch"/>
+<param name="publish_tf" value="true"/>
 
 
 </launch>
