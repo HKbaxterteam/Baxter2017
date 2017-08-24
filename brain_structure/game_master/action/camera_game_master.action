@@ -3,6 +3,7 @@ int32 update
 ---
 #result definition
 int32[] gameboard
+int32 fail
 ---
 #feedback
 int32 progress

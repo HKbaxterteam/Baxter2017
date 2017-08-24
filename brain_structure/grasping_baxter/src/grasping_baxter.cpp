@@ -504,7 +504,7 @@ grasping_baxter_boss(std::string name) :
 
   	 double gameboard_x=0.61; //0.825;		// x-pos of gameboard
   	 double gameboard_y=0;//gameboard_w;		//
-  	 double gameboard_z= 0; //-0.525;//-0.575;
+  	 double gameboard_z= -0.14; //-0.525;//-0.575;
   	 double dis_gb_storage_x=0.003;
   	 //double dis_gb_storage_y=gameboard_y/3;
   	 double dis_sticks_x=0.05;
@@ -600,14 +600,14 @@ grasping_baxter_boss(std::string name) :
 
   	// A pose for the box (specified relative to frame_id) 
   	geometry_msgs::Pose table_pose;
-  /*	table_pose.orientation.w = 1.0;
+    table_pose.orientation.w = 1.0;
   	table_pose.position.x =  0.61;//0.825;
   	table_pose.position.y = 0;
   	table_pose.position.z =  -0.525;//-0.575;
 
   	co_table.primitives.push_back(cube);
   	co_table.primitive_poses.push_back(table_pose);
-  	co_table.operation = co_table.ADD; */
+  	co_table.operation = co_table.ADD; 
 
   	//--- gameboard model
   	cube.dimensions.resize(3);

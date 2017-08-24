@@ -32,13 +32,15 @@ public:
   bool ai_received_move_flag;
   bool grasping_done_flag;
   bool camera_done_flag;
+  bool camera_try_again_flag;
   bool watch_dog_done_flag;
   int ai_move;
   std::vector<int> gameboard;
 
   game_master_boss(std::string name) :
     as_gui(nh_, name, boost::bind(&game_master_boss::gui_start_command, this, _1), false),
-    action_name_(name), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true), ac_camera("camera_game_master", true),ac_watch_dog("watch_dog_game_master", true), gui_start_flag(false),ai_received_move_flag(false),grasping_done_flag(false)
+    action_name_(name), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true), ac_camera("camera_game_master", true),
+    ac_watch_dog("watch_dog_game_master", true), gui_start_flag(false),ai_received_move_flag(false),grasping_done_flag(false),camera_try_again_flag(false)
   {
     as_gui.start(); //start server that waits for gui
 
@@ -115,7 +117,12 @@ void request_update_camera(int update)
     gameboard=result->gameboard;
     //TODO: check if only one piece and other stuff
     ROS_INFO("update_camera_done ");
-    camera_done_flag=true;
+    cout << "we got " << result->fail << endl;
+    if(result->fail==1)
+      camera_done_flag=true;
+    else{
+        camera_try_again_flag=true;
+    }
   }
 
 
@@ -267,6 +274,11 @@ while(ros::ok() && !EOG)
 
   while(ros::ok() && !gmb.camera_done_flag ){
     ROS_INFO_THROTTLE(5, "Waiting for camera ");
+    if(gmb.camera_try_again_flag){
+      gmb.request_update_camera(update);
+      ROS_INFO( "Ww try again for camera ");
+      gmb.camera_try_again_flag=false;
+    }
     ros::spinOnce();
     ros::Duration(1.0).sleep();
   }

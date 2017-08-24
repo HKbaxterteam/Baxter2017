@@ -141,7 +141,7 @@ public:
   {
     // helper variables
     ros::Rate r(1);
-    bool success = true;
+    bool success = false;
 
     ROS_INFO("starting camera comand");
 
@@ -152,269 +152,283 @@ public:
       as_camera.publishFeedback(feedback_camera);
       return;
     }
-    // process the cut out board and detect the pieces***
-    // feddback
-    feedback_camera.progress=0; // progress in %    
-    as_camera.publishFeedback(feedback_camera);
 
-    //convert to gray scale
-    cvtColor(org, input_grey, CV_BGR2GRAY);
-    // find contur in the image  
-    int thresh = 100;
-    int max_thresh = 255;
-    RNG rng(12345);
-    // blur the image with gausian
-   blur(input_grey, input_grey, Size(3, 3));
-    // Detect edges using canny
-    
-    Canny( org, canny_output, thresh, thresh*2, 3 );
-    // Find contours
-    
-    findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-    
-    if(debug_flag){
-      // Draw contours
-      drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
-      countourtest;
-      drawing.copyTo(countourtest);
+  
+      // process the cut out board and detect the pieces***
+      // feddback
+      feedback_camera.progress=0; // progress in %    
+      as_camera.publishFeedback(feedback_camera);
+
+      //convert to gray scale
+      cvtColor(org, input_grey, CV_BGR2GRAY);
+      // find contur in the image  
+      int thresh = 100;
+      int max_thresh = 255;
+      RNG rng(12345);
+      // blur the image with gausian
+     blur(input_grey, input_grey, Size(3, 3));
+      // Detect edges using canny
       
-      for( int i = 0; i< contours.size(); i++ )
-      {
-        cout << "do this " << contours.size() << " i " << i << endl;
-        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-        drawContours( drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
-      }
-      // Show in a window
-      waitKey(1);
-      //namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
-      imshow( "Contours", drawing );
-      waitKey(1);
-    }
-
-    // feddback
-    feedback_camera.progress=20; // progress in %    
-    as_camera.publishFeedback(feedback_camera);
-
-
-    //find lagrest countur (gameboard boundingbox)
-    int largest_area=0;
-    int largest_contour_index=0;
-
-    // get bigges conure
-    for( size_t i = 0; i< contours.size(); i++ ) // iterate through each contour.
-      {
-        double area = contourArea( contours[i] );  //  Find the area of contour
-        if( area > largest_area )
-        {
-          largest_area = area;
-          largest_contour_index = i;               //Store the index of largest contour
-        }
-      }
-
-    // feddback
-    feedback_camera.progress=40; // progress in %    
-    as_camera.publishFeedback(feedback_camera);
-
-    //output for sclicing up the thing
-    Mat warpedCard(400, 400, CV_8UC3);
-    //check that the largest area is at least half of the image
-    if(largest_area>org.rows*org.cols/2)
-    {
-      if(debug_flag)
-      {
-        //draw onlz bigges countur
-        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-        drawContours( countourtest, contours, largest_contour_index, color);
-        waitKey(1);
-        imshow( "gameboard contour", countourtest );
-        waitKey(1);
-      }
-
-      vector<Point> corners;
-      double d=0;
-      do
-      {
-        d=d+1;
-        approxPolyDP(contours[largest_contour_index],corners,d,true);
-      }
-
-      while (corners.size()>4);
+      Canny( org, canny_output, thresh, thresh*2, 3 );
+      // Find contours
       
-      contours.push_back(corners);
+      findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
       
       if(debug_flag){
-        Mat mc=org;
-        drawContours(mc,contours,contours.size()-1,Scalar(0,0,255),1);
+        // Draw contours
+        drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
+        countourtest;
+        drawing.copyTo(countourtest);
+        
+        for( int i = 0; i< contours.size(); i++ )
+        {
+          //cout << "do this " << contours.size() << " i " << i << endl;
+          Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+          drawContours( drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
+        }
+        // Show in a window
         waitKey(1);
-        imshow("Ctr",mc);
+        //namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
+        imshow( "Contours", drawing );
         waitKey(1);
+        cout << "Contours" << endl;
       }
 
       // feddback
-      feedback_camera.progress=60; // progress in %    
+      feedback_camera.progress=20; // progress in %    
       as_camera.publishFeedback(feedback_camera);
-      
-          //target points for homogentranform
-      vector<Point2f> dest;
-      dest.push_back(Point2f(warpedCard.cols, 0.0));
-      dest.push_back(Point2f(0,0));
-      dest.push_back(Point2f(0, warpedCard.rows));
-      dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));
 
-      //inputpoints
-      //make sure approx and dest are in the right order ALWAZS
-      vector<Point2f> inpoint;
-      for(int j=0; j<corners.size();j++){
-        //check for first point
-        if(corners[j].x<warpedCard.cols/2 && corners[j].y<warpedCard.rows/2)
-          inpoint.push_back(corners[j]);
-        
-        //check for second point
-        if(corners[j].x>warpedCard.cols/2 && corners[j].y<warpedCard.rows/2)
-          inpoint.push_back(corners[j]);
-        
-        //check for 3 point
-        if(corners[j].x>warpedCard.cols/2 && corners[j].y>warpedCard.rows/2)
-          inpoint.push_back(corners[j]);        
-        //check for 4 point
-        if(corners[j].x<warpedCard.cols/2 && corners[j].y>warpedCard.rows/2)
-          inpoint.push_back(corners[j]);
-      }
 
-      if(debug_flag){
-        cout << "aprox size : " << inpoint.size() << endl;
-        cout << "p1: " << inpoint[0] << " p2: " << inpoint[1] << " p3: " << inpoint[2] << " p4: " << inpoint[3] << endl;
-      }
-      
-      if (corners.size() == 4)
+      //find lagrest countur (gameboard boundingbox)
+      int largest_area=0;
+      int largest_contour_index=0;
+
+      // get bigges conure
+      for( size_t i = 0; i< contours.size(); i++ ) // iterate through each contour.
         {
-          Mat homography = findHomography(inpoint, dest);
-          warpPerspective(org, warpedCard, homography, Size(warpedCard.cols, warpedCard.rows));
+          double area = contourArea( contours[i] );  //  Find the area of contour
+          if( area > largest_area )
+          {
+            largest_area = area;
+            largest_contour_index = i;               //Store the index of largest contour
+          }
         }
-        else{
-          // feddback
-          feedback_camera.progress=-3; // progress in %    
-          as_camera.publishFeedback(feedback_camera);
-        }   
+
+      // feddback
+      feedback_camera.progress=40; // progress in %    
+      as_camera.publishFeedback(feedback_camera);
+
+      //output for sclicing up the thing
+      Mat warpedCard(400, 400, CV_8UC3);
+      //check that the largest area is at least half of the image
+      if(largest_area>org.rows*org.cols/1.5)
+      {
+        cout << "larges contour" << endl;
+        if(debug_flag)
+        {
+          //draw onlz bigges countur
+          Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+          drawContours( countourtest, contours, largest_contour_index, color);
+          waitKey(1);
+          imshow( "gameboard contour", countourtest );
+          waitKey(1);
+        }
+
+        vector<Point> corners;
+        double d=0;
+        do
+        {
+          d=d+1;
+          approxPolyDP(contours[largest_contour_index],corners,d,true);
+        }
+
+        while (corners.size()>4);
+        
+        contours.push_back(corners);
         
         if(debug_flag){
+          Mat mc=org;
+          drawContours(mc,contours,contours.size()-1,Scalar(0,0,255),1);
           waitKey(1);
-          imshow("Gameboard", warpedCard);
+          imshow("Ctr",mc);
           waitKey(1);
+          cout << "Ctr" << endl;
+        }
+
+        // feddback
+        feedback_camera.progress=60; // progress in %    
+        as_camera.publishFeedback(feedback_camera);
+        
+            //target points for homogentranform
+        vector<Point2f> dest;
+        dest.push_back(Point2f(warpedCard.cols, 0.0));
+        dest.push_back(Point2f(0,0));
+        dest.push_back(Point2f(0, warpedCard.rows));
+        dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));
+
+        //inputpoints
+        //make sure approx and dest are in the right order ALWAZS
+        vector<Point2f> inpoint;
+        for(int j=0; j<corners.size();j++){
+          //check for first point
+          if(corners[j].x<warpedCard.cols/2 && corners[j].y<warpedCard.rows/2)
+            inpoint.push_back(corners[j]);
+          
+          //check for second point
+          if(corners[j].x>warpedCard.cols/2 && corners[j].y<warpedCard.rows/2)
+            inpoint.push_back(corners[j]);
+          
+          //check for 3 point
+          if(corners[j].x>warpedCard.cols/2 && corners[j].y>warpedCard.rows/2)
+            inpoint.push_back(corners[j]);        
+          //check for 4 point
+          if(corners[j].x<warpedCard.cols/2 && corners[j].y>warpedCard.rows/2)
+            inpoint.push_back(corners[j]);
+        }
+
+        if(debug_flag){
+          cout << "aprox size : " << inpoint.size() << endl;
+          cout << "p1: " << inpoint[0] << " p2: " << inpoint[1] << " p3: " << inpoint[2] << " p4: " << inpoint[3] << endl;
+        }
+        
+        if (corners.size() == 4)
+          {
+            Mat homography = findHomography(inpoint, dest);
+            warpPerspective(org, warpedCard, homography, Size(warpedCard.cols, warpedCard.rows));
+          }
+          else{
+            // feddback
+            feedback_camera.progress=-3; // progress in %    
+            as_camera.publishFeedback(feedback_camera);
+          }   
+          
+          if(debug_flag){
+            waitKey(1);
+            imshow("Gameboard", warpedCard);
+            waitKey(1);
+            cout << "gameboard" << endl;
+            }
+
+          // feddback
+          feedback_camera.progress=80; // progress in %    
+          as_camera.publishFeedback(feedback_camera);
+          //slize it up!!!
+            // parameters
+          int rowcount=0;
+          int colcount=0;
+          int image_width=warpedCard.size().width;
+          int image_height=warpedCard.size().height;
+          //defult rect
+          Rect Rec(0, 0, 10, 10);
+
+          //clear the gameboard
+          gameboard.clear();
+
+            //Loop through all ROI and se if its O or X
+        for(int i=0;i<cols*rows;i++){
+            //ROI
+          Rec.x=image_width/cols*colcount;
+          Rec.y=image_height/rows*rowcount;
+          Rec.width=image_width/cols;
+          Rec.height=image_height/rows;
+          
+          //copy to new sub image 
+          subImage = warpedCard(Rec).clone();
+          waitKey(10);
+
+          //debug subimages  
+          if(debug_flag){
+          namedWindow("show sub", WINDOW_AUTOSIZE);
+          waitKey(1);
+          imshow("Step show sub", subImage);
+          waitKey(100);
+          cout << "sub image" << endl;
+          }   
+
+          //get mean color of ROI
+          Scalar meancolor = cv::mean(subImage);
+          if(debug_flag){
+            cout << "row: " << rowcount << " col: " << colcount << " R: " << meancolor[0] << " G: " << meancolor [1] << " B: " << meancolor[2] << endl;
+            cout << "diff red : " << meancolor[2] - meancolor[0] <<  endl;
+            cout << "diff blue: " << meancolor[0] - meancolor[2] <<  endl;
+             
+          }
+
+          // difference aproch to detect pieces
+          if(meancolor[2] - meancolor[0] > diff_threshold ){
+            //ROS_INFO_STREAM( " Red-piece detected" );
+            gameboard.push_back(2);
+          }
+          if(meancolor[0] - meancolor[2] > diff_threshold){
+            //ROS_INFO_STREAM( " Blue-piece detected" );  
+            gameboard.push_back(1);
+          }
+          //if less than 1% is red and les then 1% blue -> its no-piece     
+          if(meancolor[2] - meancolor[0] < diff_threshold && meancolor[0] - meancolor[2] < diff_threshold){
+            //ROS_INFO_STREAM( " No-piece detected" );  
+            gameboard.push_back(0);
+          }
+
+          //keep track of ROI
+          colcount+=1;
+          if (colcount>cols-1){
+            colcount=0;
+            rowcount+=1;
+            if (rowcount>rows-1){
+              rowcount=0;
+            }
           }
 
         // feddback
-        feedback_camera.progress=80; // progress in %    
+        feedback_camera.progress=100; // progress in %    
         as_camera.publishFeedback(feedback_camera);
-        //slize it up!!!
-          // parameters
-        int rowcount=0;
-        int colcount=0;
-        int image_width=warpedCard.size().width;
-        int image_height=warpedCard.size().height;
-        //defult rect
-        Rect Rec(0, 0, 10, 10);
+        success=true;
+        cout << "winnnn" << endl;
+         waitKey(10);
+          
+        }
 
-        //clear the gameboard
-        gameboard.clear();
-
-          //Loop through all ROI and se if its O or X
-      for(int i=0;i<cols*rows;i++){
-          //ROI
-        Rec.x=image_width/cols*colcount;
-        Rec.y=image_height/rows*rowcount;
-        Rec.width=image_width/cols;
-        Rec.height=image_height/rows;
-        
-        //copy to new sub image 
-        subImage = warpedCard(Rec).clone();
-        waitKey(10);
-
-        //debug subimages  
         if(debug_flag){
-        namedWindow("show sub", WINDOW_AUTOSIZE);
-        waitKey(1);
-        imshow("Step show sub", subImage);
-        waitKey(100);
-        }   
-
-        //get mean color of ROI
-        Scalar meancolor = cv::mean(subImage);
-        if(debug_flag){
-          cout << "row: " << rowcount << " col: " << colcount << " R: " << meancolor[0] << " G: " << meancolor [1] << " B: " << meancolor[2] << endl;
-          cout << "diff red : " << meancolor[2] - meancolor[0] <<  endl;
-          cout << "diff blue: " << meancolor[0] - meancolor[2] <<  endl;
-           
-        }
-
-        // difference aproch to detect pieces
-        if(meancolor[2] - meancolor[0] > diff_threshold ){
-          //ROS_INFO_STREAM( " Red-piece detected" );
-          gameboard.push_back(2);
-        }
-        if(meancolor[0] - meancolor[2] > diff_threshold){
-          //ROS_INFO_STREAM( " Blue-piece detected" );  
-          gameboard.push_back(1);
-        }
-        //if less than 1% is red and les then 1% blue -> its no-piece     
-        if(meancolor[2] - meancolor[0] < diff_threshold && meancolor[0] - meancolor[2] < diff_threshold){
-          //ROS_INFO_STREAM( " No-piece detected" );  
-          gameboard.push_back(0);
-        }
-
-        //keep track of ROI
-        colcount+=1;
-        if (colcount>cols-1){
-          colcount=0;
-          rowcount+=1;
-          if (rowcount>rows-1){
-            rowcount=0;
+          //Print gameboard
+          cout << "*********************************" << endl;
+          for(int i=0;i<rows;i++){
+          for(int j=0;j<cols;j++){
+          cout << "|" << gameboard[j+rows*i];
           }
+          cout << "|" << endl;
+          cout << "_______________" << endl;    
+          }
+          cout << "*********************************" << endl;
         }
-
-      // feddback
-      feedback_camera.progress=100; // progress in %    
-      as_camera.publishFeedback(feedback_camera);
-
-       waitKey(10);
         
+
+      }
+      else{
+        // feddback
+        cout << "not larges countor" << endl;
+      feedback_camera.progress=-2; // progress in %    
+      as_camera.publishFeedback(feedback_camera);
       }
 
-      if(debug_flag){
-        //Print gameboard
-        cout << "*********************************" << endl;
-        for(int i=0;i<rows;i++){
-        for(int j=0;j<cols;j++){
-        cout << "|" << gameboard[j+rows*i];
-        }
-        cout << "|" << endl;
-        cout << "_______________" << endl;    
-        }
-        cout << "*********************************" << endl;
+      ROS_INFO(" Camera work done");
+
+  	  if(success)
+      {
+      	ROS_INFO("camera is running");
+        
+        
+        result_camera.gameboard = gameboard;
+        ROS_INFO("%s: Done", action_name_.c_str());
+        // set the action state to succeeded
+        as_camera.setSucceeded(result_camera);
+        camera_start_flag=true;
       }
-      
-
+      else{
+        result_camera.fail =2;
+        as_camera.setSucceeded(result_camera);
+      }
     }
-    else{
-      // feddback
-    feedback_camera.progress=-2; // progress in %    
-    as_camera.publishFeedback(feedback_camera);
-    }
-
-    ROS_INFO(" Camera work done");
-
-	  if(success)
-    {
-    	ROS_INFO("camera is running");
-      
-      
-      result_camera.gameboard = gameboard;
-      ROS_INFO("%s: Done", action_name_.c_str());
-      // set the action state to succeeded
-      as_camera.setSucceeded(result_camera);
-      camera_start_flag=true;
-    }
-  }
+  
 
 
 };
