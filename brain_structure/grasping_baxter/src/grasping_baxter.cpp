@@ -18,6 +18,17 @@
 #include <baxter_core_msgs/EndEffectorCommand.h>
 #include <baxter_core_msgs/DigitalIOState.h>
 
+#include <ar_track_alvar_msgs/AlvarMarker.h>
+#include <ar_track_alvar_msgs/AlvarMarkers.h>
+
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include <iostream>
+#include <stdio.h>
+
+using namespace cv;
+using namespace std;
+
 
 class grasping_baxter_boss
 {
@@ -40,7 +51,9 @@ public:
   	geometry_msgs::PoseStamped target_posehope;
   	ros::Publisher ar_pub;
     ros::Publisher target_pub;
+    ros::Publisher pp_pub;
     ros::Publisher rightGripperPub;
+    ros::Subscriber ar_pose_sub;
 
   	geometry_msgs::PoseStamped ar_code_pose;
     geometry_msgs::PoseStamped target_pose;
@@ -49,56 +62,64 @@ public:
   int target_field;
   int gripperSeq;
 
+//monitor game states
+  int num_game_pieces_left;
+
 
 // offset for from ar to 
   double offset_p0_pose_x;
   double offset_p0_pose_y;
   double offset_p0_pose_z;
-  double offset_p0_orientation_x;
-  double offset_p0_orientation_y;
-  double offset_p0_orientation_z;
-  double offset_p0_orientation_w;
+  //double offset_p0_orientation_x;
+  //double offset_p0_orientation_y;
+  //double offset_p0_orientation_z;
+  //double offset_p0_orientation_w;
 
 
 // offset for piece-box storage
   double offset_pick_up_pose_x;
   double offset_pick_up_pose_y;
   double offset_pick_up_pose_z;
-  double offset_pick_up_orientation_x;
-  double offset_pick_up_orientation_y;
-  double offset_pick_up_orientation_z;
-  double offset_pick_up_orientation_w;
 
+//x a y offset for field to field
+  double offset_ff_x;
+  double offset_ff_y;
+// x a y offset stack to stack
+  double offset_ss_x;
+  double offset_ss_y;
+  //double offset_pick_up_orientation_x;
+  //double offset_pick_up_orientation_y;
+  //double offset_pick_up_orientation_z;
+  //double offset_pick_up_orientation_w;
+/*
+grasping_baxter_boss(std::string name) :
+    as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
+    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.12),offset_p0_pose_y(+0.185),
+    offset_p0_pose_z(0),offset_p0_orientation_x(0),offset_p0_orientation_y(0),offset_p0_orientation_z(0),
+    offset_p0_orientation_w(0),offset_pick_up_pose_x(-0.18),offset_pick_up_pose_y(-0.285),offset_pick_up_pose_z(0.07),
+    offset_pick_up_orientation_x(0),offset_pick_up_orientation_y(0),offset_pick_up_orientation_z(0),offset_pick_up_orientation_w(0),
+    debug_flag(false)
+  {
+    */
 
 
 
   grasping_baxter_boss(std::string name) :
-    as_grasping_baxter(nh_,debug_flag(true), name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.12),offset_p0_pose_y(+0.185),
-    offset_p0_pose_z(0),offset_p0_orientation_x(0),offset_p0_orientation_y(0),offset_p0_orientation_z(0),
-    offset_p0_orientation_w(0),offset_pick_up_pose_x(-0.18),offset_pick_up_pose_y(-0.285),offset_pick_up_pose_z(0.07),
-    offset_pick_up_orientation_x(0),offset_pick_up_orientation_y(0),offset_pick_up_orientation_z(0),offset_pick_up_orientation_w(0)
+    as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
+    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.095),offset_p0_pose_y(+0.16),
+    offset_p0_pose_z(0.11),offset_pick_up_pose_x(-0.28),offset_pick_up_pose_y(-0.26),offset_pick_up_pose_z(0.16),
+    debug_flag(false),num_game_pieces_left(18)
   {
     as_grasping_baxter.start();
+
+    //poses pub
     ar_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/ar_code", 1);
     target_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/target", 1);
+    pp_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/pick_place", 1);
 
+    ar_pose_sub = nh_.subscribe("/TTTgame/ar_tag/ar_pose", 1, &grasping_baxter_boss::ar_code_pose_callback, this);
     rightGripperPub = nh_.advertise<baxter_core_msgs::EndEffectorCommand>("/robot/end_effector/right_gripper/command",10, true);
 
-
-
-
-    //callback will do that later:
-    ar_code_pose.header.frame_id="/world";
-    ar_code_pose.header.stamp = ros::Time::now();;
-    ar_code_pose.pose.position.x=0.915;
-    ar_code_pose.pose.position.y=-0.15;
-    ar_code_pose.pose.position.z=-0.145608429006;
-
-    ar_code_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
-    
-
- 
 
   }
 
@@ -150,51 +171,158 @@ public:
     return true;
   }
 
- void ar_code_pose_callback()
+
+ void ar_code_pose_callback(const ar_track_alvar_msgs::AlvarMarkers::ConstPtr& msg)
  {
+   //cout << "callbocko" << endl;
+    geometry_msgs::PoseStamped ar_code_l_pose;
+    geometry_msgs::PoseStamped ar_code_r_pose;
+    //check if there are 2 poses
+    if(msg->markers.size()!=2){
+      ROS_INFO("Not 2 Markers");
+      return;
+    }
 
-  //THis will be the callback from the kinect
+    //get left marker
+    if(msg->markers[0].pose.pose.position.y > msg->markers[1].pose.pose.position.y )
+      ar_code_l_pose=msg->markers[0].pose;
+
+    if(msg->markers[1].pose.pose.position.y > msg->markers[0].pose.pose.position.y)
+      ar_code_l_pose=msg->markers[1].pose;
+
+    //get right marker
+    if(msg->markers[0].pose.pose.position.y < msg->markers[1].pose.pose.position.y )
+      ar_code_r_pose=msg->markers[0].pose;
+
+    if(msg->markers[1].pose.pose.position.y < msg->markers[0].pose.pose.position.y)
+      ar_code_r_pose=msg->markers[1].pose;
+
+    
+    //comine the two ar_code poses to one
+    ar_code_pose.header.frame_id="/world";
+    ar_code_pose.header.stamp = ros::Time::now();;
+    // we the abs diff of the markers and half them
+    if(ar_code_l_pose.pose.position.x>ar_code_r_pose.pose.position.x)
+      ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x - (ar_code_l_pose.pose.position.x-ar_code_r_pose.pose.position.x)/2;
+
+    if(ar_code_l_pose.pose.position.x<=ar_code_r_pose.pose.position.x)
+      ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x + (ar_code_r_pose.pose.position.x-ar_code_l_pose.pose.position.x)/2;
+
+    
+    ar_code_pose.pose.position.y = ar_code_r_pose.pose.position.y+(ar_code_l_pose.pose.position.y-ar_code_r_pose.pose.position.y)/2;
+    
+    ar_code_pose.pose.position.z = (ar_code_l_pose.pose.position.z +ar_code_r_pose.pose.position.z)/2;
+
+    //cout << "ar code z: " << ar_code_pose.pose.position.z << " l : " << ar_code_l_pose.pose.position.z << " r : " << ar_code_r_pose.pose.position.z << endl;
+    
+    // get yaw
+    double theta_l = tf::getYaw(ar_code_l_pose.pose.orientation);
+    double theta_r = tf::getYaw(ar_code_r_pose.pose.orientation);
+
+    double theta = (theta_l+theta_r)/2;
+    ar_code_pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
+
+    // calculate p0 pose using x and y ofsset (known)
+    p0_pose.header.stamp=ros::Time::now();
+    p0_pose.header.frame_id="/world";
+
+    // calc P0 with ar at origin
+    Mat p0 = (Mat_<double>(2,1) <<
+                    offset_p0_pose_x,
+                    offset_p0_pose_y);
+    // rotate around theta
+    Mat r = (Mat_<double>(2,2) <<
+                    cos(theta), -sin(theta),
+                    sin(theta), cos(theta));
+    Mat p0r= r*p0;
+    //translate to get true pose
+    Mat t = (Mat_<double>(2,1)  <<
+                    ar_code_pose.pose.position.x,
+                    ar_code_pose.pose.position.y);
+    p0=p0r+t;
+
+    //set it to p0 pose (x,y)
+    p0_pose.pose.position.x=p0.at<double>(0,0);
+    p0_pose.pose.position.y=p0.at<double>(1,0);
+    //set z
+    p0_pose.pose.position.z=ar_code_pose.pose.position.z+offset_p0_pose_z;
+    //set oriantion
+    //NOTE: not sure why baxter need this oriantation to grasp from the top ...
+    p0_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
+
+    //calculate offsets to other P (p1-58)
+    t = (Mat_<double>(2,1)  <<
+                    -0.065,
+                    -0.065);
+    t = r*t;
+
+    offset_ff_x =  t.at<double>(0,0);
+    offset_ff_y =  t.at<double>(1,0);
 
 
-    //calculate p0 pose
-      p0_pose.header.stamp=ros::Time::now();
-      p0_pose.header.frame_id="/world";
+    //calculate pickup pose pose dependig on how many pieces are left
 
-      p0_pose.pose.position.x=ar_code_pose.pose.position.x+offset_p0_pose_x;
-      p0_pose.pose.position.y=ar_code_pose.pose.position.y+offset_p0_pose_y;
-      p0_pose.pose.position.z=ar_code_pose.pose.position.z+offset_p0_pose_z;
-      p0_pose.pose.orientation.x=ar_code_pose.pose.orientation.x+offset_p0_orientation_x;
-      p0_pose.pose.orientation.y=ar_code_pose.pose.orientation.y+offset_p0_orientation_y;
-      p0_pose.pose.orientation.z=ar_code_pose.pose.orientation.z+offset_p0_orientation_z;
-      p0_pose.pose.orientation.w=ar_code_pose.pose.orientation.w+offset_p0_orientation_w;
+    pick_up_pose.header.stamp=ros::Time::now();
+    pick_up_pose.header.frame_id="/world";
 
+    // calc Ppu with ar at origin
+    Mat ppu = (Mat_<double>(2,1) <<
+                    offset_pick_up_pose_x,
+                    offset_pick_up_pose_y);
+    // rotate around theta
+     r = (Mat_<double>(2,2) <<
+                    cos(theta), -sin(theta),
+                    sin(theta), cos(theta));
+    Mat ppur= r*ppu;
+    //translate to get true pose
+     t = (Mat_<double>(2,1)  <<
+                    ar_code_pose.pose.position.x,
+                    ar_code_pose.pose.position.y);
+    ppu=ppur+t;
 
-    //calculate pickup pose pose
-      pick_up_pose.header.stamp=ros::Time::now();
-      pick_up_pose.header.frame_id="/world";
+    //set it to p0 pose (x,y)
+    pick_up_pose.pose.position.x=ppu.at<double>(0,0);
+    pick_up_pose.pose.position.y=ppu.at<double>(1,0);
+    //set z
+    pick_up_pose.pose.position.z=ar_code_pose.pose.position.z+offset_pick_up_pose_z;
+    //set oriantion
+    //NOTE: not sure why baxter need this oriantation to grasp from the top ...
+    pick_up_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
 
-      pick_up_pose.pose.position.x=ar_code_pose.pose.position.x+offset_pick_up_pose_x;
-      pick_up_pose.pose.position.y=ar_code_pose.pose.position.y+offset_pick_up_pose_y;
-      pick_up_pose.pose.position.z=ar_code_pose.pose.position.z+offset_pick_up_pose_z;
-      pick_up_pose.pose.orientation.x=ar_code_pose.pose.orientation.x+offset_pick_up_orientation_x;
-      pick_up_pose.pose.orientation.y=ar_code_pose.pose.orientation.y+offset_pick_up_orientation_y;
-      pick_up_pose.pose.orientation.z=ar_code_pose.pose.orientation.z+offset_pick_up_orientation_z;
-      pick_up_pose.pose.orientation.w=ar_code_pose.pose.orientation.w+offset_pick_up_orientation_w;
+    //addjust pick up pose depending on on which tower we are emptieng
+    //calc tower offsets
+    t = (Mat_<double>(2,1)  <<
+                    0.065,
+                    0.0);
+    t = r*t;
 
+    offset_ss_x =  t.at<double>(0,0);
+    offset_ss_y =  t.at<double>(1,0);
+    
+
+    //second tower
+    if(num_game_pieces_left<13){
+      pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
+      pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
+    }
+    //3 tower
+    if(num_game_pieces_left<7){
+      pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+2*offset_ss_x;
+      pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+2*offset_ss_y;
+    }
+  
   }
   
   void publish_goalpose(){
-  	ar_pub.publish(pick_up_pose);    
+  	ar_pub.publish(ar_code_pose);    
     target_pub.publish(target_pose);
+    pp_pub.publish(pick_up_pose);
   }
 
 //function to pick up a piece and place it where the Ai wants it
   void place_piece(){
 
-    //simulate ar callback  
-    ar_code_pose_callback();
-
-    //define target pose
+   //define target pose
     target_pose.header.stamp=ros::Time::now();
     target_pose.header.frame_id="/world";
     target_pose=pick_up_pose;
@@ -205,32 +333,61 @@ public:
     success = group.plan(my_plan);
     //move it!!!
     group.move() ;
-    sleep(5.0);
+    sleep(0.1);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
       ROS_INFO("Fail");
-  
+
+    //move down depending on how many pieces are left
+    int pieces_in_stack=num_game_pieces_left % 6;
+    if(num_game_pieces_left % 6==0)
+      pieces_in_stack=6;
+    
+    // move down depeding on pieces ins tack
+    target_pose.pose.position.z = target_pose.pose.position.z - (6-pieces_in_stack)*0.01;
+    
+    success=false;
+    group.setPoseTarget(target_pose);
+    success = group.plan(my_plan);
+    //move it!!!
+    group.move() ;
+    sleep(0.1);
+    if(success)
+      ROS_INFO("WE DID IT!!!!!!!!!!");
+    else
+      ROS_INFO("Fail");
+
     //suck up the piece
     closerightGripper();
-    ros::Duration(0.5).sleep();
-    
+    ros::Duration(0.5).sleep();  
 
-    //move to place pos
+    //decrese num of game pieces
+    num_game_pieces_left--;  
+
+    //move up again?
+    target_pose.pose.position.z = pick_up_pose.pose.position.z;
+
     success=false;
+    group.setPoseTarget(target_pose);
+    success = group.plan(my_plan);
+    //move it!!!
+    group.move() ;
+    sleep(0.1);
+    if(success)
+      ROS_INFO("WE DID IT!!!!!!!!!!");
+    else
+      ROS_INFO("Fail");
 
-    //TODO: calculate possition invariant to angelar errors
-    double offset_x=-0.065;
-    double offset_y=-0.065;
+    //move to place pos with the pick up z  
+    //calculate the field possition
+    int row=target_field/6;
+    int col=target_field%6;
 
-    int row=target_field/7;
-    int col=target_field%7;
-
-    target_pose.pose.position.x=p0_pose.pose.position.x+row*offset_x;
-    target_pose.pose.position.y=p0_pose.pose.position.y+col*offset_y;
-
-    std::cout << "reaching field n" << target_field << std::endl;;
-
+    target_pose.pose.position.x=p0_pose.pose.position.x+row*offset_ff_x;
+    target_pose.pose.position.y=p0_pose.pose.position.y+col*offset_ff_y;
+    std::cout << "reaching field n" << target_field << std::endl;
+    success=false;
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
     //move it!!!
@@ -241,9 +398,34 @@ public:
     else
       ROS_INFO("Fail");
 
+    // move down to p0 z pose
+    target_pose.pose.position.z = p0_pose.pose.position.z;
+    success=false;
+    group.setPoseTarget(target_pose);
+    success = group.plan(my_plan);
+    //move it!!!
+    group.move() ;
+    sleep(1.0);
+    if(success)
+      ROS_INFO("WE DID IT!!!!!!!!!!");
+    else
+      ROS_INFO("Fail");
+
+    //release the piece
     openrightGripper();
 
-    //TODO:move away to prepare pos
+    //move to pick up pose   
+    target_pose=pick_up_pose; 
+    success=false;
+    group.setPoseTarget(target_pose);
+    success = group.plan(my_plan);
+    //move it!!!
+    group.move() ;
+    sleep(1.0);
+    if(success)
+      ROS_INFO("WE DID IT!!!!!!!!!!");
+    else
+      ROS_INFO("Fail");
 
   }
 
@@ -251,7 +433,7 @@ public:
   void picking_test(){
 
     //simulate callback
-    ar_code_pose_callback();
+    //ar_code_pose_callback();
 
     target_pose.header.stamp=ros::Time::now();
     target_pose.header.frame_id="/world";
@@ -397,6 +579,8 @@ public:
     //make the enviroment
     grasping_baxter_environment();
 
+    bool success =false;
+
     //wher do we want to go?
     target_field =goal->move;
     //use RRT 
@@ -406,8 +590,8 @@ public:
     calibraterightGripper();
     
     //do a thing
-    //place_piece();
-    picking_test();
+    place_piece();
+    //picking_test();
     
     //feedback
     feedback_grasping_baxter.progress=20; // progress in %
@@ -428,6 +612,7 @@ public:
       grasping_baxter_start_flag=true;
     }
   }
+
 
 
 };

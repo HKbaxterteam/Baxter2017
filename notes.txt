@@ -1,0 +1,12 @@
+resolvong time diffrences between machines:
+
+**link**
+
+build time.cpp from the others folder:
+g++ 
+
+find out diffrence:
+ntpdate -q baxter7149.local
+
+start "sudo ./time offset"
+

@@ -51,7 +51,7 @@ public:
     while(!coolmove){
 
       /* generate secret number between 0 and 48: */
-      randomnum = rand() % 48 ;
+      randomnum = rand() % 35 ;
       if(goal->gameboard[randomnum]==0)
         coolmove=true;
 

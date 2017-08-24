@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>ai</name>
+  <name>grasping_baxter</name>
   <version>0.0.0</version>
-  <description>The ai package</description>
+  <description>The grasping_baxter package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -46,6 +46,22 @@
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
+  <build_depend>moveit_ros_perception</build_depend>
+  <build_depend>interactive_markers</build_depend>
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>geometric_shapes</build_depend>
+  <build_depend>ar_track_alvar_msgs</build_depend>
+
+  <run_depend>ar_track_alvar_msgs</run_depend>
+  <run_depend>pluginlib</run_depend>
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_fake_controller_manager</run_depend>
+  <run_depend>moveit_ros_planning_interface</run_depend>
+  <run_depend>moveit_ros_perception</run_depend>
+  <run_depend>interactive_markers</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>actionlib_msgs</run_depend>
   <run_depend>roscpp</run_depend>

@@ -30,6 +30,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
 //Namespace
 using namespace cv;
 using namespace std;
@@ -68,7 +71,7 @@ public:
 
   camera_boss(std::string name) :
     as_camera(nh_, name, boost::bind(&camera_boss::camera_start_command, this, _1), false),
-    action_name_(name), camera_start_flag(false),it_(nh_), debug_flag(true), rows(7), cols(7),
+    action_name_(name), camera_start_flag(false),it_(nh_), debug_flag(true), rows(6), cols(6),
     diff_threshold(25),cut_board_ok(false)
   {
     as_camera.start();
@@ -117,6 +120,7 @@ public:
       org = cv_ptr->image;
 
       if(debug_flag){
+        waitKey(1);
         imshow( "Input_cutout", org );
         waitKey(1);
       }
@@ -184,6 +188,7 @@ public:
       waitKey(1);
       //namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
       imshow( "Contours", drawing );
+      waitKey(1);
     }
 
     // feddback
@@ -220,7 +225,9 @@ public:
         //draw onlz bigges countur
         Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
         drawContours( countourtest, contours, largest_contour_index, color);
+        waitKey(1);
         imshow( "gameboard contour", countourtest );
+        waitKey(1);
       }
 
       vector<Point> corners;
@@ -238,7 +245,9 @@ public:
       if(debug_flag){
         Mat mc=org;
         drawContours(mc,contours,contours.size()-1,Scalar(0,0,255),1);
+        waitKey(1);
         imshow("Ctr",mc);
+        waitKey(1);
       }
 
       // feddback
@@ -289,7 +298,9 @@ public:
         }   
         
         if(debug_flag){
+          waitKey(1);
           imshow("Gameboard", warpedCard);
+          waitKey(1);
           }
 
         // feddback
@@ -322,6 +333,7 @@ public:
         //debug subimages  
         if(debug_flag){
         namedWindow("show sub", WINDOW_AUTOSIZE);
+        waitKey(1);
         imshow("Step show sub", subImage);
         waitKey(100);
         }   

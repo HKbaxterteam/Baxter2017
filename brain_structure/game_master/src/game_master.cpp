@@ -7,6 +7,8 @@
 #include <game_master/camera_game_masterAction.h>
 #include <game_master/watch_dog_game_masterAction.h>
 
+using namespace std;
+
 class game_master_boss
 {
 protected:
@@ -209,7 +211,7 @@ int main(int argc, char** argv)
   game_master_boss gmb("gui_game_master");
 
   while(ros::ok() && !gmb.gui_start_flag){
-    ROS_INFO_THROTTLE(1, "Waiting for GUI");
+    ROS_INFO_THROTTLE(5, "Waiting for GUI");
     ros::spinOnce();
     ros::Duration(1.0).sleep();
   }
@@ -224,14 +226,23 @@ int main(int argc, char** argv)
   }
 
   
-
+int EOG=false;
   //MAIN LOOP+++++++++++++++++
+
+while(ros::ok() && !EOG)
+{
+  //reset flags
+  gmb.ai_received_move_flag=false;
+  gmb.grasping_done_flag=false;
+  gmb.camera_done_flag=false;
+  gmb.watch_dog_done_flag=false;
+
 
   // ask AI for a cool move 
   gmb.request_move_ai(gmb.gameboard);
 
   while(ros::ok() && !gmb.ai_received_move_flag){
-    ROS_INFO_THROTTLE(1, "Waiting for Ai");
+    ROS_INFO_THROTTLE(5, "Waiting for Ai");
     ros::spinOnce();
     ros::Duration(1.0).sleep();
   }
@@ -242,7 +253,7 @@ int main(int argc, char** argv)
   gmb.request_grasping_baxter(gmb.ai_move);
 
   while(ros::ok() && !gmb.grasping_done_flag){
-    ROS_INFO_THROTTLE(1, "Waiting for move ");
+    ROS_INFO_THROTTLE(5, "Waiting for move ");
     ros::spinOnce();
     ros::Duration(1.0).sleep();
   }
@@ -255,26 +266,74 @@ int main(int argc, char** argv)
   gmb.request_update_camera(update);
 
   while(ros::ok() && !gmb.camera_done_flag ){
-    ROS_INFO_THROTTLE(1, "Waiting for camera ");
+    ROS_INFO_THROTTLE(5, "Waiting for camera ");
     ros::spinOnce();
     ros::Duration(1.0).sleep();
   }
 
-  ROS_INFO_THROTTLE(1, "camera done");
+  gmb.camera_done_flag=false;
 
-  int wuff=0.815;
+  ROS_INFO_THROTTLE(1, "camera done");
+  //Print gameboard
+  int rows=6;
+  int cols=6;
+  cout << "*********************************" << endl;
+  for(int i=0;i<rows;i++){
+    for(int j=0;j<cols;j++){
+      cout << "|" << gmb.gameboard[j+rows*i];
+    }
+    cout << "|" << endl;
+    cout << "_______________" << endl;    
+  }
+  cout << "*********************************" << endl;
+
+
+  // the plazer is on
+  int wuff=1;
   gmb.request_watch_dog(wuff);
 
   while(ros::ok() && !gmb.watch_dog_done_flag ){
-    ROS_INFO_THROTTLE(1, "Waiting for camera ");
+    ROS_INFO_THROTTLE(5, "Waiting for watchdog ");
     ros::spinOnce();
     ros::Duration(1.0).sleep();
   }
 
   ROS_INFO_THROTTLE(1, "wauzi done");
 
+  //player done
 
 
+  // ask camera for update
+  update=1;
+  gmb.request_update_camera(update);
+
+  while(ros::ok() && !gmb.camera_done_flag ){
+    ROS_INFO_THROTTLE(5, "Waiting for camera ");
+    ros::spinOnce();
+    ros::Duration(1.0).sleep();
+  }
+
+  ROS_INFO_THROTTLE(1, "camera done");
+
+
+  //Print gameboard
+  cout << "*********************************" << endl;
+  for(int i=0;i<rows;i++){
+    for(int j=0;j<cols;j++){
+      cout << "|" << gmb.gameboard[j+rows*i];
+    }
+    cout << "|" << endl;
+    cout << "_______________" << endl;    
+  }
+  cout << "*********************************" << endl;
+
+  //*************completed one circle
+
+  //TODO:check for EOG and stuff
+
+
+
+}
 
   
 
