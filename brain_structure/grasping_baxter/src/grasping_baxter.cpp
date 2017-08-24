@@ -73,11 +73,12 @@ public:
 
 
   grasping_baxter_boss(std::string name) :
-    as_grasping_baxter(nh_,debug_flag(true), name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
+    as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
     action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.12),offset_p0_pose_y(+0.185),
     offset_p0_pose_z(0),offset_p0_orientation_x(0),offset_p0_orientation_y(0),offset_p0_orientation_z(0),
     offset_p0_orientation_w(0),offset_pick_up_pose_x(-0.18),offset_pick_up_pose_y(-0.285),offset_pick_up_pose_z(0.07),
-    offset_pick_up_orientation_x(0),offset_pick_up_orientation_y(0),offset_pick_up_orientation_z(0),offset_pick_up_orientation_w(0)
+    offset_pick_up_orientation_x(0),offset_pick_up_orientation_y(0),offset_pick_up_orientation_z(0),offset_pick_up_orientation_w(0),
+    debug_flag(true)
   {
     as_grasping_baxter.start();
     ar_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/ar_code", 1);
@@ -314,6 +315,23 @@ public:
 
 //define the starting envirorment
   void grasping_baxter_environment(){
+
+  	// distances
+  	 double gameboard_l=0.60;	//length game board
+  	 double gameboard_w=0.60;	// width game board
+  	 double gameboard_h=0.01;	// thickness
+
+  	 double gameboard_x=0.61; //0.825;		// x-pos of gameboard
+  	 double gameboard_y=0;//gameboard_w;		//
+  	 double gameboard_z= 0; //-0.525;//-0.575;
+  	 double dis_gb_storage_x=0.003;
+  	 //double dis_gb_storage_y=gameboard_y/3;
+  	 double dis_sticks_x=0.05;
+  	 double dis_sticks_y=0.05;
+	 double radius_cylinder=0.004;
+	 double heigth_cylinder=0.12;
+	 double cell_size=0.065;
+
   	
     if(debug_flag){
       ROS_INFO("Reference frame: %s", group.getPlanningFrame().c_str());
@@ -359,14 +377,41 @@ public:
 
   	all_collision_objects.push_back(co_kinect);
 
+  	//------------------------------storage object
+    moveit_msgs::CollisionObject co_piece_box;
+	co_piece_box.header.frame_id = group.getPlanningFrame();
+
+  	// The id of the object is used to identify it. 
+	  co_piece_box.id = "PieceBox";
+
+  	// Define a box to add to the world. 
+  	//shape_msgs::SolidPrimitive cube;
+  	cube.type = cube.BOX;
+  	cube.dimensions.resize(3);
+  	cube.dimensions[0] = 3*cell_size;
+  	cube.dimensions[1] = 0.065;
+  	cube.dimensions[2] = 0.065;
+
+  	// A pose for the box (specified relative to frame_id) 
+  	geometry_msgs::Pose piece_box_pose;
+    piece_box_pose.orientation.w = 1.0;
+  	piece_box_pose.position.x = gameboard_x+cell_size;
+  	piece_box_pose.position.y = gameboard_l/2+cell_size+dis_gb_storage_x;
+  	piece_box_pose.position.z =  0;
+
+  	 co_piece_box.primitives.push_back(cube);
+  	 co_piece_box.primitive_poses.push_back(piece_box_pose);
+  	 co_piece_box.operation = co_piece_box.ADD;
+
+	all_collision_objects.push_back(co_piece_box);
+
+ 
+
   	/*++++++++++Table model ##############*/
   	moveit_msgs::CollisionObject co_table;
   	co_table.header.frame_id = group.getPlanningFrame();
   	co_table.id = "Table";
 
-  	// Define a box to add to the world. 
-  	//shape_msgs::SolidPrimitive primitive;
-  	//primitive.type = primitive.BOX;
   	cube.dimensions.resize(3);
   	cube.dimensions[0] = 0.65;
   	cube.dimensions[1] = 0.65;
@@ -374,17 +419,134 @@ public:
 
   	// A pose for the box (specified relative to frame_id) 
   	geometry_msgs::Pose table_pose;
-  	table_pose.orientation.w = 1.0;
+  /*	table_pose.orientation.w = 1.0;
   	table_pose.position.x =  0.61;//0.825;
   	table_pose.position.y = 0;
   	table_pose.position.z =  -0.525;//-0.575;
 
   	co_table.primitives.push_back(cube);
   	co_table.primitive_poses.push_back(table_pose);
+  	co_table.operation = co_table.ADD; */
+
+  	//--- gameboard model
+  	cube.dimensions.resize(3);
+  	cube.dimensions[0] = gameboard_l;
+  	cube.dimensions[1] = gameboard_w;
+  	cube.dimensions[2] = gameboard_h;
+  	table_pose.orientation.w = 1.0;
+  	table_pose.position.x = gameboard_x; 
+  	table_pose.position.y = gameboard_y;
+  	table_pose.position.z = gameboard_z;
+
+  	co_table.primitives.push_back(cube);
+  	co_table.primitive_poses.push_back(table_pose);
   	co_table.operation = co_table.ADD;
 
 
+
   	all_collision_objects.push_back(co_table);
+
+  //++++++++++Cylinder model ##############
+  	
+  	moveit_msgs::CollisionObject co_cylinder;
+  	co_cylinder.header.frame_id = group.getPlanningFrame();
+  	co_cylinder.id = "Cylinder";
+
+  	shape_msgs::SolidPrimitive cylinder;
+  	cylinder.type = cube.CYLINDER;
+  	cylinder.dimensions.resize(2);
+  	cylinder.dimensions[0] = heigth_cylinder; //heigth
+  	cylinder.dimensions[1] = radius_cylinder; //radius
+
+  	geometry_msgs::Pose cylinder_pose;
+
+  	//----------- position Cylinder 1
+  	cylinder_pose.orientation.w = 1.0;
+  	cylinder_pose.position.x = gameboard_x+3*cell_size;// 0.41;//0.825;
+  	cylinder_pose.position.y = -gameboard_w/2-dis_gb_storage_x-dis_sticks_y;// 0.415;
+  	cylinder_pose.position.z =  gameboard_z;//-0.575;
+
+  	co_cylinder.primitives.push_back(cylinder);
+  	co_cylinder.primitive_poses.push_back(cylinder_pose);
+  	co_cylinder.operation = co_cylinder.ADD;
+
+  	//----------- position Cylinder 2
+  	cylinder_pose.orientation.w = 1.0;
+  	cylinder_pose.position.x = gameboard_x+3*cell_size;//0.825;
+  	cylinder_pose.position.y = -gameboard_w/2-dis_gb_storage_x-2*dis_sticks_y;
+  	cylinder_pose.position.z =  0;//-0.575;
+
+  	co_cylinder.primitives.push_back(cylinder);
+  	co_cylinder.primitive_poses.push_back(cylinder_pose);
+  	co_cylinder.operation = co_cylinder.ADD;
+
+  	 //----------- position Cylinder 3
+  	cylinder_pose.orientation.w = 1.0;
+  	cylinder_pose.position.x = gameboard_x+2*cell_size;// 0.41;//0.825;
+  	cylinder_pose.position.y =  -gameboard_w/2-dis_gb_storage_x-dis_sticks_y;
+  	cylinder_pose.position.z =  gameboard_z;//-0.575;
+
+  	co_cylinder.primitives.push_back(cylinder);
+  	co_cylinder.primitive_poses.push_back(cylinder_pose);
+  	co_cylinder.operation = co_cylinder.ADD;
+
+  	 //----------- position Cylinder 4
+  	cylinder_pose.orientation.w = 1.0;
+  	cylinder_pose.position.x = gameboard_x+2*cell_size;// 0.41;//0.825;
+  	cylinder_pose.position.y =  -gameboard_w/2-dis_gb_storage_x-2*dis_sticks_y;
+  	cylinder_pose.position.z =  gameboard_z;//-0.575;
+
+
+  	co_cylinder.primitives.push_back(cylinder);
+  	co_cylinder.primitive_poses.push_back(cylinder_pose);
+  	co_cylinder.operation = co_cylinder.ADD;
+
+  	 //----------- positionCylinder 5
+  	cylinder_pose.orientation.w = 1.0;
+  	cylinder_pose.position.x = gameboard_x+cell_size;// 0.41;//0.825;
+  	cylinder_pose.position.y =  -gameboard_w/2-dis_gb_storage_x-dis_sticks_y;
+  	cylinder_pose.position.z =  gameboard_z;//-0.575;
+
+  	co_cylinder.primitives.push_back(cylinder);
+  	co_cylinder.primitive_poses.push_back(cylinder_pose);
+  	co_cylinder.operation = co_cylinder.ADD;
+
+  	//----------- position Cylinder 6
+  	cylinder_pose.orientation.w = 1.0;
+  	cylinder_pose.position.x = gameboard_x+cell_size;// 0.41;//0.825;
+  	cylinder_pose.position.y =  -gameboard_w/2-dis_gb_storage_x-2*dis_sticks_y;
+  	cylinder_pose.position.z =  gameboard_z;//-0.575;
+
+  	co_cylinder.primitives.push_back(cylinder);
+  	co_cylinder.primitive_poses.push_back(cylinder_pose);
+  	co_cylinder.operation = co_cylinder.ADD;
+
+  	//----------- position Cylinder 7
+  	cylinder_pose.orientation.w = 1.0;
+  	cylinder_pose.position.x = gameboard_x;// 0.41;//0.825;
+  	cylinder_pose.position.y =  -gameboard_w/2-dis_gb_storage_x-dis_sticks_y;
+  	cylinder_pose.position.z =  gameboard_z;//-0.575;
+
+  	co_cylinder.primitives.push_back(cylinder);
+  	co_cylinder.primitive_poses.push_back(cylinder_pose);
+  	co_cylinder.operation = co_cylinder.ADD;
+
+  	//----------- position Cylinder 8
+  	cylinder_pose.orientation.w = 1.0;
+  	cylinder_pose.position.x = gameboard_x;// 0.41;//0.825;
+  	cylinder_pose.position.y =  -gameboard_w/2-dis_gb_storage_x-2*dis_sticks_y;
+  	cylinder_pose.position.z =  gameboard_z;//-0.575;
+
+  	co_cylinder.primitives.push_back(cylinder);
+  	co_cylinder.primitive_poses.push_back(cylinder_pose);
+  	co_cylinder.operation = co_cylinder.ADD;
+
+  	all_collision_objects.push_back(co_cylinder); 
+  	
+
+
+
+
 
   	ROS_INFO("Add an objects into the world");
 	  planning_scene_interface.addCollisionObjects(all_collision_objects);
@@ -396,7 +558,8 @@ public:
   	
     //make the enviroment
     grasping_baxter_environment();
-
+    
+    bool success=false;
     //wher do we want to go?
     target_field =goal->move;
     //use RRT 
