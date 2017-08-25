@@ -740,7 +740,7 @@ grasping_baxter_boss(std::string name) :
     //make the enviroment
     grasping_baxter_environment();
     
-    bool success=false;
+    
     //wher do we want to go?
     target_field =goal->move;
     //use RRT 
@@ -750,7 +750,7 @@ grasping_baxter_boss(std::string name) :
     calibraterightGripper();
     
     //do a thing
-    place_piece();
+    //place_piece();
     //picking_test();
     
     //feedback
@@ -760,7 +760,7 @@ grasping_baxter_boss(std::string name) :
     ROS_INFO("%s: start received", action_name_.c_str());
 	  //fedback that everything is ok
     as_grasping_baxter.publishFeedback(feedback_grasping_baxter);
-    
+    bool success=true;
 
     if(success)
     {

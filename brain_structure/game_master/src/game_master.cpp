@@ -95,7 +95,8 @@ public:
 
 void request_update_camera(int update)
   {
-    //Send the gmaeboard *******
+    //ask for camera update
+    ROS_INFO("I want an camera update");
     game_master::camera_game_masterGoal goal;
     goal.update = update;
 
@@ -206,6 +207,13 @@ void request_watch_dog(int start_watch_dog)
     }
   }
 
+  void checkservers(){
+    ROS_INFO( " Check server");
+    ac_camera.waitForResult(ros::Duration(5.0));
+    ac_camera.waitForServer(); 
+  }
+
+
 
 };
 
@@ -275,7 +283,9 @@ while(ros::ok() && !EOG)
   while(ros::ok() && !gmb.camera_done_flag ){
     ROS_INFO_THROTTLE(5, "Waiting for camera ");
     if(gmb.camera_try_again_flag){
-      gmb.request_update_camera(update);
+      ros::Duration(0.5).sleep();
+      //gmb.checkservers();
+      gmb.request_update_camera(2);
       ROS_INFO( "Ww try again for camera ");
       gmb.camera_try_again_flag=false;
     }

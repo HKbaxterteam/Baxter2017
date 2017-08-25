@@ -68,7 +68,7 @@ public:
   Mat org, subImage, input_grey;
   Mat filter_image_red, filter_image_blue;
   Mat canny_output, drawing, countourtest;
-
+//TODO:: fix debug mode for camera ... somthing stops imshow with action lib ...
   camera_boss(std::string name) :
     as_camera(nh_, name, boost::bind(&camera_boss::camera_start_command, this, _1), false),
     action_name_(name), camera_start_flag(false),it_(nh_), debug_flag(true), rows(6), cols(6),
@@ -80,12 +80,10 @@ public:
     
     
     //debug
-    if(debug_flag){
+        if(debug_flag){
       namedWindow("Input_cutout", CV_WINDOW_AUTOSIZE);
-      namedWindow("Contours", CV_WINDOW_AUTOSIZE );
-      namedWindow( "gameboard contour", CV_WINDOW_AUTOSIZE );
-      namedWindow("Gameboard", CV_WINDOW_AUTOSIZE );
     }
+    
 
 
   }
@@ -93,16 +91,15 @@ public:
   ~camera_boss(void)
   {
     if(debug_flag){
-        destroyWindow("Contours");
-        destroyWindow("Input_cutout"); 
-        destroyWindow("gameboard contour");
-        destroyWindow("Gameboard");
-      }  
+      destroyWindow("Input_cutout"); 
+    }
+    
   }
 
 
   void imageCb(const sensor_msgs::ImageConstPtr& msg)
     {
+      ROS_INFO("getting callbacks haha");
       //cout << "callback" << endl;
       //read in image from subscribed topic and transform it to opencv
       cv_bridge::CvImagePtr cv_ptr;
@@ -139,6 +136,8 @@ public:
 
   void camera_start_command(const camera::camera_game_masterGoalConstPtr &goal)
   {
+
+    ROS_INFO("I will give you a camera update");
     // helper variables
     ros::Rate r(1);
     bool success = false;
@@ -151,6 +150,16 @@ public:
       feedback_camera.progress=-1;      
       as_camera.publishFeedback(feedback_camera);
       return;
+    }
+
+    if(debug_flag){
+      /*
+      namedWindow("Contours", CV_WINDOW_AUTOSIZE );
+      namedWindow("gameboard contour", CV_WINDOW_AUTOSIZE );
+      namedWindow("Gameboard", CV_WINDOW_AUTOSIZE );
+      namedWindow("show sub", WINDOW_AUTOSIZE);
+      namedWindow("Ctr", CV_WINDOW_AUTOSIZE );
+      */
     }
 
   
@@ -221,7 +230,7 @@ public:
       //output for sclicing up the thing
       Mat warpedCard(400, 400, CV_8UC3);
       //check that the largest area is at least half of the image
-      if(largest_area>org.rows*org.cols/1.5)
+      if(largest_area>org.rows*org.cols/2.5)
       {
         cout << "larges contour" << endl;
         if(debug_flag)
@@ -241,7 +250,6 @@ public:
           d=d+1;
           approxPolyDP(contours[largest_contour_index],corners,d,true);
         }
-
         while (corners.size()>4);
         
         contours.push_back(corners);
@@ -271,18 +279,18 @@ public:
         vector<Point2f> inpoint;
         for(int j=0; j<corners.size();j++){
           //check for first point
-          if(corners[j].x<warpedCard.cols/2 && corners[j].y<warpedCard.rows/2)
+          if(corners[j].x<canny_output.cols/2 && corners[j].y<canny_output.rows/2)
             inpoint.push_back(corners[j]);
           
           //check for second point
-          if(corners[j].x>warpedCard.cols/2 && corners[j].y<warpedCard.rows/2)
+          if(corners[j].x>canny_output.cols/2 && corners[j].y<canny_output.rows/2)
             inpoint.push_back(corners[j]);
           
           //check for 3 point
-          if(corners[j].x>warpedCard.cols/2 && corners[j].y>warpedCard.rows/2)
+          if(corners[j].x>canny_output.cols/2 && corners[j].y>canny_output.rows/2)
             inpoint.push_back(corners[j]);        
           //check for 4 point
-          if(corners[j].x<warpedCard.cols/2 && corners[j].y>warpedCard.rows/2)
+          if(corners[j].x<canny_output.cols/2 && corners[j].y>canny_output.rows/2)
             inpoint.push_back(corners[j]);
         }
 
@@ -338,7 +346,7 @@ public:
 
           //debug subimages  
           if(debug_flag){
-          namedWindow("show sub", WINDOW_AUTOSIZE);
+          
           waitKey(1);
           imshow("Step show sub", subImage);
           waitKey(100);
@@ -356,16 +364,19 @@ public:
 
           // difference aproch to detect pieces
           if(meancolor[2] - meancolor[0] > diff_threshold ){
-            //ROS_INFO_STREAM( " Red-piece detected" );
+            if(debug_flag)
+              ROS_INFO_STREAM( " Red-piece detected" );
             gameboard.push_back(2);
           }
           if(meancolor[0] - meancolor[2] > diff_threshold){
-            //ROS_INFO_STREAM( " Blue-piece detected" );  
+            if(debug_flag)
+              ROS_INFO_STREAM( " Blue-piece detected" );  
             gameboard.push_back(1);
           }
           //if less than 1% is red and les then 1% blue -> its no-piece     
           if(meancolor[2] - meancolor[0] < diff_threshold && meancolor[0] - meancolor[2] < diff_threshold){
-            //ROS_INFO_STREAM( " No-piece detected" );  
+            if(debug_flag)
+              ROS_INFO_STREAM( " No-piece detected" );  
             gameboard.push_back(0);
           }
 
@@ -418,15 +429,40 @@ public:
         
         
         result_camera.gameboard = gameboard;
+        result_camera.fail =1;
         ROS_INFO("%s: Done", action_name_.c_str());
         // set the action state to succeeded
         as_camera.setSucceeded(result_camera);
         camera_start_flag=true;
       }
       else{
+        result_camera.gameboard = gameboard;
         result_camera.fail =2;
         as_camera.setSucceeded(result_camera);
+        ROS_INFO("send feedback");
+        //as_camera.start();
       }
+
+      //cleanup the fucking mess becaus opencv sucks!!!!!!!!
+     if(debug_flag){
+      /*
+        destroyWindow("Contours");        
+        destroyWindow("gameboard contour");
+        destroyWindow("Gameboard");
+        destroyWindow("show sub");
+        destroyWindow("Ctr");
+        */
+      }  
+
+
+      //test
+      /*
+      result_camera.gameboard = gameboard;
+        result_camera.fail =2;
+        as_camera.setSucceeded(result_camera);
+*/
+
+      ROS_INFO("end of dunction");
     }
   
 
@@ -440,8 +476,12 @@ int main(int argc, char** argv)
   ROS_INFO("Start camera node");
   //start action server
   camera_boss ab("camera_game_master");
-
-  ros::spin();
+ while(ros::ok()){
+  ros::spinOnce();
+  ROS_INFO("Still alive");
+  ros::Duration(1.0).sleep();
+ }
+  
    
 
   return 0;
