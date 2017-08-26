@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 
   while(ros::ok()){
   ros::spinOnce();
-  ROS_INFO("AIIIIIIIIIII Still alive");
+  //ROS_INFO("AIIIIIIIIIII Still alive");
   ros::Duration(1.0).sleep();
  }
    

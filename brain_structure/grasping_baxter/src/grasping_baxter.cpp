@@ -1,3 +1,15 @@
+//************************************************
+//**********Baxter 2017 Tic-Tac-Toe***************
+//*******Nadine Drollinger & Michael Welle********
+//************************************************
+//*******Grasping node - grasping_baxter *********
+//************************************************
+
+//************************************************
+//Description: gets the ar-tag postioin and the 
+// field number. Calculates pick and place poses 
+// and does it.
+//************************************************
 
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
@@ -45,90 +57,74 @@ public:
 
 	bool grasping_baxter_start_flag;
   bool debug_flag;
-    moveit::planning_interface::MoveGroup group;
-    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-    moveit::planning_interface::MoveGroup::Plan my_plan;
-  	geometry_msgs::PoseStamped target_posehope;
-  	ros::Publisher ar_pub;
-    ros::Publisher target_pub;
-    ros::Publisher pp_pub;
-    ros::Publisher rightGripperPub;
-    ros::Subscriber ar_pose_sub;
+  moveit::planning_interface::MoveGroup group;
+  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+  moveit::planning_interface::MoveGroup::Plan my_plan;
+  geometry_msgs::PoseStamped target_posehope;
+  ros::Publisher ar_pub;
+  ros::Publisher target_pub;
+  ros::Publisher pp_pub;
+  ros::Publisher rightGripperPub;
+  ros::Subscriber ar_pose_sub;
 
-  	geometry_msgs::PoseStamped ar_code_pose;
-    geometry_msgs::PoseStamped target_pose;
-    geometry_msgs::PoseStamped p0_pose;
-    geometry_msgs::PoseStamped pick_up_pose;
+  geometry_msgs::PoseStamped ar_code_pose;
+  geometry_msgs::PoseStamped target_pose;
+  geometry_msgs::PoseStamped p0_pose;
+  geometry_msgs::PoseStamped pick_up_pose;
   int target_field;
   int gripperSeq;
 
-//monitor game states
+  //monitor game states
   int num_game_pieces_left;
 
-
-// offset for from ar to 
+  // offset for from ar to 
   double offset_p0_pose_x;
   double offset_p0_pose_y;
   double offset_p0_pose_z;
-  //double offset_p0_orientation_x;
-  //double offset_p0_orientation_y;
-  //double offset_p0_orientation_z;
-  //double offset_p0_orientation_w;
-
-
-// offset for piece-box storage
+  
+  // offset for piece-box storage
   double offset_pick_up_pose_x;
   double offset_pick_up_pose_y;
   double offset_pick_up_pose_z;
 
-//x a y offset for field to field
+  //x a y offset for field to field
   double offset_ff_x;
   double offset_ff_y;
-// x a y offset stack to stack
+  // x a y offset stack to stack
   double offset_ss_x;
   double offset_ss_y;
-  //double offset_pick_up_orientation_x;
-  //double offset_pick_up_orientation_y;
-  //double offset_pick_up_orientation_z;
-  //double offset_pick_up_orientation_w;
-/*
-grasping_baxter_boss(std::string name) :
-    as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.12),offset_p0_pose_y(+0.185),
-    offset_p0_pose_z(0),offset_p0_orientation_x(0),offset_p0_orientation_y(0),offset_p0_orientation_z(0),
-    offset_p0_orientation_w(0),offset_pick_up_pose_x(-0.18),offset_pick_up_pose_y(-0.285),offset_pick_up_pose_z(0.07),
-    offset_pick_up_orientation_x(0),offset_pick_up_orientation_y(0),offset_pick_up_orientation_z(0),offset_pick_up_orientation_w(0),
-    debug_flag(false)
-  {
-    */
 
-
-
+  //ar-tag var
+  std::vector<geometry_msgs::PoseStamped> ar_tag_pose_vector;
+  int art_vec_count;
+  int art_vec_position;
+  
+  //constructor
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
     action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.095),offset_p0_pose_y(+0.16),
-    offset_p0_pose_z(0.11),offset_pick_up_pose_x(-0.28),offset_pick_up_pose_y(-0.26),offset_pick_up_pose_z(0.16),
-    debug_flag(false),num_game_pieces_left(18)
+    offset_p0_pose_z(0.11),offset_pick_up_pose_x(-0.28),offset_pick_up_pose_y(-0.26),offset_pick_up_pose_z(0.16),art_vec_count(0),
+    art_vec_position(0),ar_tag_pose_vector(99),debug_flag(false),num_game_pieces_left(18)
   {
+    // start action server
     as_grasping_baxter.start();
 
-    //poses pub
+    //poses pub and subscribers
     ar_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/ar_code", 1);
     target_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/target", 1);
     pp_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/pick_place", 1);
-
     ar_pose_sub = nh_.subscribe("/TTTgame/ar_tag/ar_pose", 1, &grasping_baxter_boss::ar_code_pose_callback, this);
     rightGripperPub = nh_.advertise<baxter_core_msgs::EndEffectorCommand>("/robot/end_effector/right_gripper/command",10, true);
-
-
   }
 
+  //deconstructor
   ~grasping_baxter_boss(void)
   {
     
 
   }
 
+  //calibrate right Gripper
   bool calibraterightGripper()
   {
     ROS_INFO("Calibrate right arm gripper");
@@ -143,7 +139,8 @@ grasping_baxter_boss(std::string name) :
     return true;
   }
 
-   bool closerightGripper()
+  //close right Gripper
+  bool closerightGripper()
   {
     ROS_INFO("Closing right arm gripper");
     
@@ -157,6 +154,7 @@ grasping_baxter_boss(std::string name) :
     return true;
   }
 
+  //open right gripper
   bool openrightGripper()
   {
     ROS_INFO("Opening right arm gripper");
@@ -171,10 +169,11 @@ grasping_baxter_boss(std::string name) :
     return true;
   }
 
-
- void ar_code_pose_callback(const ar_track_alvar_msgs::AlvarMarkers::ConstPtr& msg)
- {
-   //cout << "callbocko" << endl;
+  //Calback from ar-tag, takes the avarage of 100 poses (in sliding avarage mode) 
+  // and calculates pickup pose and p0 pose debending on it.
+  void ar_code_pose_callback(const ar_track_alvar_msgs::AlvarMarkers::ConstPtr& msg)
+  {
+    //cout << "callbocko" << endl;
     geometry_msgs::PoseStamped ar_code_l_pose;
     geometry_msgs::PoseStamped ar_code_r_pose;
     //check if there are 2 poses
@@ -213,6 +212,8 @@ grasping_baxter_boss(std::string name) :
     
     ar_code_pose.pose.position.z = (ar_code_l_pose.pose.position.z +ar_code_r_pose.pose.position.z)/2;
 
+
+
     //cout << "ar code z: " << ar_code_pose.pose.position.z << " l : " << ar_code_l_pose.pose.position.z << " r : " << ar_code_r_pose.pose.position.z << endl;
     
     // get yaw
@@ -221,6 +222,36 @@ grasping_baxter_boss(std::string name) :
 
     double theta = (theta_l+theta_r)/2;
     ar_code_pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
+
+
+     //sliding avarage calculation vor ar-tag pose
+    ar_tag_pose_vector[art_vec_position]=ar_code_pose;
+    art_vec_position++;
+    if(art_vec_position>=100)
+      art_vec_position=0;
+
+    geometry_msgs::PoseStamped art_pose_temp=ar_tag_pose_vector[0];
+    if(art_vec_count<100)
+      art_vec_count++;
+
+    for(int i=1;i<art_vec_count;i++){
+      art_pose_temp.pose.position.x+=ar_tag_pose_vector[i].pose.position.x;
+      art_pose_temp.pose.position.y+=ar_tag_pose_vector[i].pose.position.y;
+      art_pose_temp.pose.position.z+=ar_tag_pose_vector[i].pose.position.z;
+      art_pose_temp.pose.orientation.x+=ar_tag_pose_vector[i].pose.orientation.x;
+      art_pose_temp.pose.orientation.y+=ar_tag_pose_vector[i].pose.orientation.y;
+      art_pose_temp.pose.orientation.z+=ar_tag_pose_vector[i].pose.orientation.z;
+      art_pose_temp.pose.orientation.w+=ar_tag_pose_vector[i].pose.orientation.w;      
+    }
+
+    ar_code_pose.pose.position.x=art_pose_temp.pose.position.x/art_vec_count;
+    ar_code_pose.pose.position.y=art_pose_temp.pose.position.y/art_vec_count;
+    ar_code_pose.pose.position.z=art_pose_temp.pose.position.z/art_vec_count;
+    ar_code_pose.pose.orientation.x=art_pose_temp.pose.orientation.x/art_vec_count;
+    ar_code_pose.pose.orientation.y=art_pose_temp.pose.orientation.y/art_vec_count;
+    ar_code_pose.pose.orientation.z=art_pose_temp.pose.orientation.z/art_vec_count;
+    ar_code_pose.pose.orientation.w=art_pose_temp.pose.orientation.w/art_vec_count;
+
 
     // calculate p0 pose using x and y ofsset (known)
     p0_pose.header.stamp=ros::Time::now();
@@ -750,7 +781,7 @@ grasping_baxter_boss(std::string name) :
     calibraterightGripper();
     
     //do a thing
-    //place_piece();
+    place_piece();
     //picking_test();
     
     //feedback

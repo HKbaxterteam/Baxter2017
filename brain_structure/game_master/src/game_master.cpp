@@ -331,6 +331,13 @@ while(ros::ok() && !EOG)
 
   while(ros::ok() && !gmb.camera_done_flag ){
     ROS_INFO_THROTTLE(5, "Waiting for camera ");
+    if(gmb.camera_try_again_flag){
+      ros::Duration(0.5).sleep();
+      //gmb.checkservers();
+      gmb.request_update_camera(2);
+      ROS_INFO( "Ww try again for camera ");
+      gmb.camera_try_again_flag=false;
+    }
     ros::spinOnce();
     ros::Duration(1.0).sleep();
   }
