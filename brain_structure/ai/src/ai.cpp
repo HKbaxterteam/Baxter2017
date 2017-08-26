@@ -51,7 +51,7 @@ public:
     while(!coolmove){
 
       /* generate secret number between 0 and 48: */
-      randomnum = rand() % 48 ;
+      randomnum = rand() % 35 ;
       if(goal->gameboard[randomnum]==0)
         coolmove=true;
 
@@ -92,7 +92,11 @@ int main(int argc, char** argv)
   //start action server
   ai_boss ab("ai_game_master");
 
-  ros::spin();
+  while(ros::ok()){
+  ros::spinOnce();
+  ROS_INFO("AIIIIIIIIIII Still alive");
+  ros::Duration(1.0).sleep();
+ }
    
 
   return 0;
