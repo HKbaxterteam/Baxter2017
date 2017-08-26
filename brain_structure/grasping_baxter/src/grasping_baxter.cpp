@@ -323,7 +323,7 @@ public:
 
   	 double gameboard_x=0.61; //0.825;		// x-pos of gameboard
   	 double gameboard_y=0;//gameboard_w;		//
-  	 double gameboard_z= 0; //-0.525;//-0.575;
+  	 double gameboard_z= -0.14; //-0.525;//-0.575;
   	 double dis_gb_storage_x=0.003;
   	 //double dis_gb_storage_y=gameboard_y/3;
   	 double dis_sticks_x=0.05;
@@ -397,7 +397,7 @@ public:
     piece_box_pose.orientation.w = 1.0;
   	piece_box_pose.position.x = gameboard_x+cell_size;
   	piece_box_pose.position.y = gameboard_l/2+cell_size+dis_gb_storage_x;
-  	piece_box_pose.position.z =  0;
+  	piece_box_pose.position.z =  -0.14;
 
   	 co_piece_box.primitives.push_back(cube);
   	 co_piece_box.primitive_poses.push_back(piece_box_pose);
@@ -419,14 +419,14 @@ public:
 
   	// A pose for the box (specified relative to frame_id) 
   	geometry_msgs::Pose table_pose;
-  /*	table_pose.orientation.w = 1.0;
+  	table_pose.orientation.w = 1.0;
   	table_pose.position.x =  0.61;//0.825;
   	table_pose.position.y = 0;
   	table_pose.position.z =  -0.525;//-0.575;
 
   	co_table.primitives.push_back(cube);
   	co_table.primitive_poses.push_back(table_pose);
-  	co_table.operation = co_table.ADD; */
+  	co_table.operation = co_table.ADD;
 
   	//--- gameboard model
   	cube.dimensions.resize(3);
@@ -474,7 +474,7 @@ public:
   	cylinder_pose.orientation.w = 1.0;
   	cylinder_pose.position.x = gameboard_x+3*cell_size;//0.825;
   	cylinder_pose.position.y = -gameboard_w/2-dis_gb_storage_x-2*dis_sticks_y;
-  	cylinder_pose.position.z =  0;//-0.575;
+  	cylinder_pose.position.z =  gameboard_z;//-0.575;
 
   	co_cylinder.primitives.push_back(cylinder);
   	co_cylinder.primitive_poses.push_back(cylinder_pose);
