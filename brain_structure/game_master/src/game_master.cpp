@@ -9,6 +9,57 @@
 
 using namespace std;
 
+bool isdraw(vector<int> gameboard);
+bool isEOG(vector<int> gameboard);
+bool playerXwin(vector<int> gameboard, int player);
+
+const int winning_moves[32][5] = 
+  {
+        // 12 horizotal winning
+        {0, 1,  2,  3, 4},
+        {1, 2,  3,  4,  5},
+        {6, 7,  8,  9,  10},
+        {7, 8,  9,  10, 11},        
+        {12,  13,  14,  15,  16},
+        {13,  14,  15,  16,  17},
+        {18,  19,  20,  21,  22},
+        {19,  20,  21,  22,  23},
+        {24,  25,  26,  27,  28},
+        {25,  26,  27,  28,  29},        
+        {30,  31,  32,  33,  34},
+        {31,  32,  33,  34,  35},
+
+        // 12 vertical winning
+        {0,  6,   12,  18,  24},
+        {6,  12,  18,  24,  30},
+        {1,  7,   13,  19,  25},
+        {7,  13,  19,  25,  31},        
+        {2,  8,   14,  20,  26},
+        {8,  14,  20,  26,  32},
+        {3,  9,   15,  21,  27},
+        {9,  15,  21,  27,  33},
+        {4,  10,  16,  22,  28},
+        {10, 16,  22,  28,  34},        
+        {5,  11,  17,  23,  29},
+        {11, 17,  23,  29,  35},
+
+
+        // 4 maindiagonal winning
+
+        {0,  7,   14,  21,  28},
+        {7,  14,  21,  28,  35},        
+        {5,  10,  15,  20,  25},
+        {10, 15,  20,  25,  30},
+
+        // 4 other diagonal 
+
+
+        {1,  8,   15,  22,  29},
+        {6,  13,  20,  27,  34},
+        {4,  9,   14,  19,  24},
+        {11, 16,  21,  26,  31}
+  };
+
 class game_master_boss
 {
 protected:
@@ -235,14 +286,17 @@ int main(int argc, char** argv)
   
   //init gameboard
   gmb.gameboard.clear();
-  for (int i = 0; i < 49; ++i)
+  for (int i = 0; i < 36; ++i)
   {
     gmb.gameboard.push_back(0);
   }
 
+  //player 2 starts (baxtrer
+  gmb.gameboard.push_back(2);
   
 int EOG=false;
   //MAIN LOOP+++++++++++++++++
+int update;
 
 while(ros::ok() && !EOG)
 {
@@ -276,8 +330,11 @@ while(ros::ok() && !EOG)
   ROS_INFO_THROTTLE(1, "move done");
 
   //ask camera to perform an update
+  if(gmb.gameboard[36]==1)
+    update=1;
+  if(gmb.gameboard[36]==1)
+    update=2;
 
-  int update=1;
   gmb.request_update_camera(update);
 
   while(ros::ok() && !gmb.camera_done_flag ){
@@ -326,7 +383,10 @@ while(ros::ok() && !EOG)
 
 
   // ask camera for update
-  update=1;
+  if(gmb.gameboard[36]==1)
+    update=1;
+  if(gmb.gameboard[36]==1)
+    update=2;
   gmb.request_update_camera(update);
 
   while(ros::ok() && !gmb.camera_done_flag ){
@@ -359,6 +419,20 @@ while(ros::ok() && !EOG)
   //*************completed one circle
 
   //TODO:check for EOG and stuff
+  if(isEOG(gmb.gameboard)){
+    ROS_INFO("THE GAME IS OVER");
+    if(playerXwin(gmb.gameboard,2)){
+      ROS_INFO("BAXTER WINS!!! ");
+    }
+    if(playerXwin(gmb.gameboard,1)){
+      ROS_INFO("HUMAN WINS??? WTF!!!! ");
+    }
+    if(isdraw(gmb.gameboard)){
+      ROS_INFO("draw");
+    }
+    EOG=true;
+
+  }
 
 
 
@@ -368,3 +442,48 @@ while(ros::ok() && !EOG)
 
   return 0;
 }
+
+
+
+bool playerXwin(vector<int> gameboard, int player){
+  int win_count=0;
+
+  for(int i=0; i<32; i++)
+  { 
+    win_count=0;
+    for (int j=0; j<5;j++)
+    {
+      if( gameboard[winning_moves[i][j]]==player)
+      {
+
+        win_count++;
+      }
+
+      if(win_count==5)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+
+}
+
+ bool isdraw(vector<int> gameboard)
+ {
+  for(int i=0; i<gameboard.size()-1; i++)
+  {
+    if(gameboard[i]==0)
+      return false;
+  }
+  return true;
+ }
+
+
+ bool isEOG(vector<int> gameboard)
+ {
+  if(isdraw(gameboard) || playerXwin(gameboard,1) || playerXwin(gameboard,2))
+    return true;
+
+  return false;
+ }

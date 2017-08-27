@@ -104,7 +104,7 @@ public:
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
     action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.095),offset_p0_pose_y(+0.16),
     offset_p0_pose_z(0.11),offset_pick_up_pose_x(-0.28),offset_pick_up_pose_y(-0.26),offset_pick_up_pose_z(0.16),art_vec_count(0),
-    art_vec_position(0),ar_tag_pose_vector(99),debug_flag(false),num_game_pieces_left(18)
+    art_vec_position(0),ar_tag_pose_vector(100),debug_flag(false),num_game_pieces_left(18)
   {
     // start action server
     as_grasping_baxter.start();
@@ -115,6 +115,11 @@ public:
     pp_pub = nh_.advertise<geometry_msgs::PoseStamped>("/poses/pick_place", 1);
     ar_pose_sub = nh_.subscribe("/TTTgame/ar_tag/ar_pose", 1, &grasping_baxter_boss::ar_code_pose_callback, this);
     rightGripperPub = nh_.advertise<baxter_core_msgs::EndEffectorCommand>("/robot/end_effector/right_gripper/command",10, true);
+
+    //calibrate gripper
+    calibraterightGripper();
+
+    grasping_baxter_environment();
   }
 
   //deconstructor
@@ -176,81 +181,85 @@ public:
     //cout << "callbocko" << endl;
     geometry_msgs::PoseStamped ar_code_l_pose;
     geometry_msgs::PoseStamped ar_code_r_pose;
+    double theta;
     //check if there are 2 poses
     if(msg->markers.size()!=2){
       ROS_INFO("Not 2 Markers");
       return;
     }
 
-    //get left marker
-    if(msg->markers[0].pose.pose.position.y > msg->markers[1].pose.pose.position.y )
-      ar_code_l_pose=msg->markers[0].pose;
-
-    if(msg->markers[1].pose.pose.position.y > msg->markers[0].pose.pose.position.y)
-      ar_code_l_pose=msg->markers[1].pose;
-
-    //get right marker
-    if(msg->markers[0].pose.pose.position.y < msg->markers[1].pose.pose.position.y )
-      ar_code_r_pose=msg->markers[0].pose;
-
-    if(msg->markers[1].pose.pose.position.y < msg->markers[0].pose.pose.position.y)
-      ar_code_r_pose=msg->markers[1].pose;
-
     
-    //comine the two ar_code poses to one
-    ar_code_pose.header.frame_id="/world";
-    ar_code_pose.header.stamp = ros::Time::now();;
-    // we the abs diff of the markers and half them
-    if(ar_code_l_pose.pose.position.x>ar_code_r_pose.pose.position.x)
-      ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x - (ar_code_l_pose.pose.position.x-ar_code_r_pose.pose.position.x)/2;
+        //get left marker
+      if(msg->markers[0].pose.pose.position.y > msg->markers[1].pose.pose.position.y )
+        ar_code_l_pose=msg->markers[0].pose;
 
-    if(ar_code_l_pose.pose.position.x<=ar_code_r_pose.pose.position.x)
-      ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x + (ar_code_r_pose.pose.position.x-ar_code_l_pose.pose.position.x)/2;
+      if(msg->markers[1].pose.pose.position.y > msg->markers[0].pose.pose.position.y)
+        ar_code_l_pose=msg->markers[1].pose;
 
-    
-    ar_code_pose.pose.position.y = ar_code_r_pose.pose.position.y+(ar_code_l_pose.pose.position.y-ar_code_r_pose.pose.position.y)/2;
-    
-    ar_code_pose.pose.position.z = (ar_code_l_pose.pose.position.z +ar_code_r_pose.pose.position.z)/2;
+      //get right marker
+      if(msg->markers[0].pose.pose.position.y < msg->markers[1].pose.pose.position.y )
+        ar_code_r_pose=msg->markers[0].pose;
+
+      if(msg->markers[1].pose.pose.position.y < msg->markers[0].pose.pose.position.y)
+        ar_code_r_pose=msg->markers[1].pose;
+
+      
+      //comine the two ar_code poses to one
+      ar_code_pose.header.frame_id="/world";
+      ar_code_pose.header.stamp = ros::Time::now();;
+      // we the abs diff of the markers and half them
+      if(ar_code_l_pose.pose.position.x>ar_code_r_pose.pose.position.x)
+        ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x - (ar_code_l_pose.pose.position.x-ar_code_r_pose.pose.position.x)/2;
+
+      if(ar_code_l_pose.pose.position.x<=ar_code_r_pose.pose.position.x)
+        ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x + (ar_code_r_pose.pose.position.x-ar_code_l_pose.pose.position.x)/2;
+
+      
+      ar_code_pose.pose.position.y = ar_code_r_pose.pose.position.y+(ar_code_l_pose.pose.position.y-ar_code_r_pose.pose.position.y)/2;
+      
+      ar_code_pose.pose.position.z = (ar_code_l_pose.pose.position.z +ar_code_r_pose.pose.position.z)/2;
 
 
 
-    //cout << "ar code z: " << ar_code_pose.pose.position.z << " l : " << ar_code_l_pose.pose.position.z << " r : " << ar_code_r_pose.pose.position.z << endl;
-    
-    // get yaw
-    double theta_l = tf::getYaw(ar_code_l_pose.pose.orientation);
-    double theta_r = tf::getYaw(ar_code_r_pose.pose.orientation);
+      //cout << "ar code z: " << ar_code_pose.pose.position.z << " l : " << ar_code_l_pose.pose.position.z << " r : " << ar_code_r_pose.pose.position.z << endl;
+      
+      // get yaw
+      double theta_l = tf::getYaw(ar_code_l_pose.pose.orientation);
+      double theta_r = tf::getYaw(ar_code_r_pose.pose.orientation);
 
-    double theta = (theta_l+theta_r)/2;
-    ar_code_pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
+      theta = (theta_l+theta_r)/2;
+      ar_code_pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
 
 
-     //sliding avarage calculation vor ar-tag pose
-    ar_tag_pose_vector[art_vec_position]=ar_code_pose;
-    art_vec_position++;
-    if(art_vec_position>=100)
-      art_vec_position=0;
+       //sliding avarage calculation vor ar-tag pose
+      //cout << "vector pos: " << art_vec_position << "****************************" << endl;
+      ar_tag_pose_vector[art_vec_position]=ar_code_pose;
+      art_vec_position++;
+      if(art_vec_position>=100)
+        art_vec_position=0;
 
-    geometry_msgs::PoseStamped art_pose_temp=ar_tag_pose_vector[0];
-    if(art_vec_count<100)
-      art_vec_count++;
+      geometry_msgs::PoseStamped art_pose_temp=ar_tag_pose_vector[0];
+      if(art_vec_count<100)
+        art_vec_count++;
 
-    for(int i=1;i<art_vec_count;i++){
-      art_pose_temp.pose.position.x+=ar_tag_pose_vector[i].pose.position.x;
-      art_pose_temp.pose.position.y+=ar_tag_pose_vector[i].pose.position.y;
-      art_pose_temp.pose.position.z+=ar_tag_pose_vector[i].pose.position.z;
-      art_pose_temp.pose.orientation.x+=ar_tag_pose_vector[i].pose.orientation.x;
-      art_pose_temp.pose.orientation.y+=ar_tag_pose_vector[i].pose.orientation.y;
-      art_pose_temp.pose.orientation.z+=ar_tag_pose_vector[i].pose.orientation.z;
-      art_pose_temp.pose.orientation.w+=ar_tag_pose_vector[i].pose.orientation.w;      
-    }
+      for(int i=1;i<art_vec_count;i++){
+        art_pose_temp.pose.position.x+=ar_tag_pose_vector[i].pose.position.x;
+        art_pose_temp.pose.position.y+=ar_tag_pose_vector[i].pose.position.y;
+        art_pose_temp.pose.position.z+=ar_tag_pose_vector[i].pose.position.z;
+        art_pose_temp.pose.orientation.x+=ar_tag_pose_vector[i].pose.orientation.x;
+        art_pose_temp.pose.orientation.y+=ar_tag_pose_vector[i].pose.orientation.y;
+        art_pose_temp.pose.orientation.z+=ar_tag_pose_vector[i].pose.orientation.z;
+        art_pose_temp.pose.orientation.w+=ar_tag_pose_vector[i].pose.orientation.w;      
+      }
 
-    ar_code_pose.pose.position.x=art_pose_temp.pose.position.x/art_vec_count;
-    ar_code_pose.pose.position.y=art_pose_temp.pose.position.y/art_vec_count;
-    ar_code_pose.pose.position.z=art_pose_temp.pose.position.z/art_vec_count;
-    ar_code_pose.pose.orientation.x=art_pose_temp.pose.orientation.x/art_vec_count;
-    ar_code_pose.pose.orientation.y=art_pose_temp.pose.orientation.y/art_vec_count;
-    ar_code_pose.pose.orientation.z=art_pose_temp.pose.orientation.z/art_vec_count;
-    ar_code_pose.pose.orientation.w=art_pose_temp.pose.orientation.w/art_vec_count;
+      ar_code_pose.pose.position.x=art_pose_temp.pose.position.x/art_vec_count;
+      ar_code_pose.pose.position.y=art_pose_temp.pose.position.y/art_vec_count;
+      ar_code_pose.pose.position.z=art_pose_temp.pose.position.z/art_vec_count;
+      ar_code_pose.pose.orientation.x=art_pose_temp.pose.orientation.x/art_vec_count;
+      ar_code_pose.pose.orientation.y=art_pose_temp.pose.orientation.y/art_vec_count;
+      ar_code_pose.pose.orientation.z=art_pose_temp.pose.orientation.z/art_vec_count;
+      ar_code_pose.pose.orientation.w=art_pose_temp.pose.orientation.w/art_vec_count;
+
 
 
     // calculate p0 pose using x and y ofsset (known)
@@ -341,7 +350,7 @@ public:
       pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+2*offset_ss_x;
       pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+2*offset_ss_y;
     }
-  
+   
   }
   
   void publish_goalpose(){
@@ -353,6 +362,8 @@ public:
 //function to pick up a piece and place it where the Ai wants it
   void place_piece(){
 
+   
+
    //define target pose
     target_pose.header.stamp=ros::Time::now();
     target_pose.header.frame_id="/world";
@@ -363,7 +374,14 @@ public:
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
     //move it!!!
-    group.move() ;
+    //group.move() ;
+    //try execute
+
+    while(!group.execute(my_plan)){
+    ros::spinOnce();
+    ros::Duration(0.5).sleep();
+    ROS_INFO("Wait for exodus");
+    }
     sleep(0.1);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
@@ -374,7 +392,9 @@ public:
     int pieces_in_stack=num_game_pieces_left % 6;
     if(num_game_pieces_left % 6==0)
       pieces_in_stack=6;
-    
+    sleep(0.1);
+
+      
     // move down depeding on pieces ins tack
     target_pose.pose.position.z = target_pose.pose.position.z - (6-pieces_in_stack)*0.01;
     
@@ -410,6 +430,7 @@ public:
     else
       ROS_INFO("Fail");
 
+   
     //move to place pos with the pick up z  
     //calculate the field possition
     int row=target_field/6;
@@ -422,12 +443,18 @@ public:
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
     //move it!!!
-    group.move() ;
+    //group.move() ;
+    while(!group.execute(my_plan)){
+    ros::spinOnce();
+    ros::Duration(0.5).sleep();
+    ROS_INFO("Wait for exodus 2");
+    }
     sleep(1.0);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
       ROS_INFO("Fail");
+    sleep(0.1);
 
     // move down to p0 z pose
     target_pose.pose.position.z = p0_pose.pose.position.z;
@@ -451,13 +478,19 @@ public:
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
     //move it!!!
-    group.move() ;
+    //group.move() ;
+    while(!group.execute(my_plan)){
+    ros::spinOnce();
+    ros::Duration(0.5).sleep();
+    ROS_INFO("Wait for exodus3");
+    }
     sleep(1.0);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
       ROS_INFO("Fail");
-
+    sleep(0.1);
+ 
   }
 
 // picks up a pice and delivers it to evry position on the board
@@ -771,7 +804,7 @@ public:
   {
   	
     //make the enviroment
-    grasping_baxter_environment();
+    //grasping_baxter_environment();
     
     
     //wher do we want to go?
@@ -779,11 +812,9 @@ public:
     //use RRT 
     group.setPlannerId("RRTConnectkConfigDefault");
     ros::Duration(0.5).sleep();
-    //calibrate gripper
-    calibraterightGripper();
     
     //do a thing
-    place_piece();
+    //place_piece();
     //picking_test();
     
     //feedback
@@ -825,6 +856,6 @@ int main(int argc, char** argv)
   	ros::Duration(0.5).sleep(); 
   }
 
-  ros::spin();
+  //ros::spin();
 
 }

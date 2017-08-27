@@ -62,6 +62,7 @@ public:
   int cols;
   std::vector<int> gameboard; 
   int diff_threshold;
+  int player;
   //opencv help
   vector<vector<Point> > contours;
   vector<Vec4i> hierarchy;
@@ -132,6 +133,7 @@ public:
   {
 
     ROS_INFO("Preparing camera update");
+    player=goal->update;
     // helper variables
     ros::Rate r(1);
     bool success = false;
@@ -390,6 +392,7 @@ public:
   	  if(success)
       {
       	ROS_INFO("camera update done");
+        gameboard.push_back(player);
         result_camera.gameboard = gameboard;
         result_camera.fail =1;
         // set the action state to succeeded

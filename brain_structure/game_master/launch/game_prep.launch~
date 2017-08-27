@@ -12,7 +12,7 @@
 <node pkg="ai" type="ai" name="ai" output="screen" />
 
 <!-- starte grasping_baxter launch-->
-<!--include file="$(find grasping_baxter)/launch/grasping.launch"/-->
+<include file="$(find grasping_baxter)/launch/grasping.launch" launch-prefix="xterm -e gdb --args"/>
 
 <!-- starte camera launch-->
 <include file="$(find camera)/launch/camera.launch"/>
