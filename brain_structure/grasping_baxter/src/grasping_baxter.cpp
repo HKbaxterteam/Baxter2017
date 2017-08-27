@@ -77,6 +77,9 @@ public:
   //monitor game states
   int num_game_pieces_left;
 
+  //ofset yaw for ar codes
+  double offset_ar_tag_yaw;
+
   // offset for from ar to 
   double offset_p0_pose_x;
   double offset_p0_pose_y;
@@ -98,13 +101,13 @@ public:
   std::vector<geometry_msgs::PoseStamped> ar_tag_pose_vector;
   int art_vec_count;
   int art_vec_position;
-  
+  //offset_ar_tag_yaw(-12.3*3.1415926/180)
   //constructor
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.095),offset_p0_pose_y(+0.16),
-    offset_p0_pose_z(0.11),offset_pick_up_pose_x(-0.28),offset_pick_up_pose_y(-0.26),offset_pick_up_pose_z(0.16),art_vec_count(0),
-    art_vec_position(0),ar_tag_pose_vector(100),debug_flag(false),num_game_pieces_left(18)
+    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.115),offset_p0_pose_y(+0.16),
+    offset_p0_pose_z(0.05),offset_pick_up_pose_x(-0.27),offset_pick_up_pose_y(-0.26),offset_pick_up_pose_z(0.09),art_vec_count(0),
+    art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),offset_ar_tag_yaw(0*3.1415926/180)
   {
     // start action server
     as_grasping_baxter.start();
@@ -224,8 +227,8 @@ public:
       //cout << "ar code z: " << ar_code_pose.pose.position.z << " l : " << ar_code_l_pose.pose.position.z << " r : " << ar_code_r_pose.pose.position.z << endl;
       
       // get yaw
-      double theta_l = tf::getYaw(ar_code_l_pose.pose.orientation);
-      double theta_r = tf::getYaw(ar_code_r_pose.pose.orientation);
+      double theta_l = tf::getYaw(ar_code_l_pose.pose.orientation)+offset_ar_tag_yaw;
+      double theta_r = tf::getYaw(ar_code_r_pose.pose.orientation)+offset_ar_tag_yaw;
 
       theta = (theta_l+theta_r)/2;
       ar_code_pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
@@ -235,11 +238,11 @@ public:
       //cout << "vector pos: " << art_vec_position << "****************************" << endl;
       ar_tag_pose_vector[art_vec_position]=ar_code_pose;
       art_vec_position++;
-      if(art_vec_position>=100)
+      if(art_vec_position>=10)
         art_vec_position=0;
 
       geometry_msgs::PoseStamped art_pose_temp=ar_tag_pose_vector[0];
-      if(art_vec_count<100)
+      if(art_vec_count<10)
         art_vec_count++;
 
       for(int i=1;i<art_vec_count;i++){
@@ -814,7 +817,7 @@ public:
     ros::Duration(0.5).sleep();
     
     //do a thing
-    //place_piece();
+    place_piece();
     //picking_test();
     
     //feedback
