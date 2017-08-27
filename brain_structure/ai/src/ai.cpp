@@ -244,11 +244,24 @@ public:
 
   bool isdraw(vector<int> gameboard)
   {
-    for(int i=0; i<gameboard.size()-1; i++)
-    {
-      if(gameboard[i]==0)
-        return false;
+    int red;
+    int blue;
+    int count=0;
+    for(int i = 0; i < 32; ++i){
+      red = 0, blue = 0;
+      for(int j = 0; j < 5; ++j){
+        if(gameboard[winning_moves[i][j]]== 2){
+          red++;
+        } else if (gameboard[winning_moves[i][j]]==1){
+          blue++;
+        }
+      }
+      if (red > 0 && blue > 0)
+                count++;
     }
+    if(count<35)
+      return false;
+
     return true;
   }
 
