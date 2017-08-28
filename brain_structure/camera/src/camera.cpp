@@ -52,6 +52,7 @@ protected:
   // create messages that are used to published feedback/result
   camera::camera_game_masterFeedback feedback_camera; // create messages that are used to published feedback
   camera::camera_game_masterResult result_camera;    // create messages that are used to published result
+  image_transport::Publisher image_pub_gameboard_;
 
 public:
   //debug
@@ -82,6 +83,7 @@ public:
     as_camera.start();
     // Subscrive and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &camera_boss::imageCb, this);
+    image_pub_gameboard_ = it_.advertise("/TTTgame/only_gameboard", 1);
     
     //debug
         if(debug_flag){
@@ -246,26 +248,26 @@ public:
   
       //target points for homogentranform
       vector<Point2f> dest;
-      dest.push_back(Point2f(warpedCard.cols, 0.0));
       dest.push_back(Point2f(0,0));
       dest.push_back(Point2f(0, warpedCard.rows));
-      dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));
+      dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));        
+      dest.push_back(Point2f(warpedCard.cols, 0.0));       
 
       //inputpoints
       //make sure approx and dest are in the right order ALWAZS
       vector<Point2f> inpoint;
       for(int j=0; j<corners.size();j++){
         //check for first point
-        if(corners[j].x<canny_output.cols/2 && corners[j].y<canny_output.rows/2)
+        if(corners[j].x<org.cols/2 && corners[j].y<org.rows/2)
           inpoint.push_back(corners[j]);
         //check for second point
-        if(corners[j].x>canny_output.cols/2 && corners[j].y<canny_output.rows/2)
+        if(corners[j].x>org.cols/2 && corners[j].y<org.rows/2)
           inpoint.push_back(corners[j]);
         //check for 3 point
-        if(corners[j].x>canny_output.cols/2 && corners[j].y>canny_output.rows/2)
+        if(corners[j].x>org.cols/2 && corners[j].y>org.rows/2)
           inpoint.push_back(corners[j]);        
         //check for 4 point
-        if(corners[j].x<canny_output.cols/2 && corners[j].y>canny_output.rows/2)
+        if(corners[j].x<org.cols/2 && corners[j].y>org.rows/2)
           inpoint.push_back(corners[j]);
       }
 
@@ -397,6 +399,14 @@ public:
         result_camera.fail =1;
         // set the action state to succeeded
         as_camera.setSucceeded(result_camera);
+        //publish the image in ros
+      cv_bridge::CvImage out_msg;
+      out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
+      out_msg.header.stamp =ros::Time::now(); // new timestamp
+      out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
+      out_msg.image    = warpedCard; 
+      image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message  
+
       }
       else{
         //We failed

@@ -105,8 +105,8 @@ public:
   //constructor
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.115),offset_p0_pose_y(+0.16),
-    offset_p0_pose_z(0.05),offset_pick_up_pose_x(-0.27),offset_pick_up_pose_y(-0.26),offset_pick_up_pose_z(0.09),art_vec_count(0),
+    action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.08),offset_p0_pose_y(+0.16),
+    offset_p0_pose_z(0.02),offset_pick_up_pose_x(-0.285),offset_pick_up_pose_y(-0.24),offset_pick_up_pose_z(0.05),art_vec_count(0),
     art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),offset_ar_tag_yaw(0*3.1415926/180)
   {
     // start action server
@@ -190,49 +190,35 @@ public:
       ROS_INFO("Not 2 Markers");
       return;
     }
-
-    
         //get left marker
       if(msg->markers[0].pose.pose.position.y > msg->markers[1].pose.pose.position.y )
         ar_code_l_pose=msg->markers[0].pose;
-
       if(msg->markers[1].pose.pose.position.y > msg->markers[0].pose.pose.position.y)
         ar_code_l_pose=msg->markers[1].pose;
-
       //get right marker
       if(msg->markers[0].pose.pose.position.y < msg->markers[1].pose.pose.position.y )
         ar_code_r_pose=msg->markers[0].pose;
-
       if(msg->markers[1].pose.pose.position.y < msg->markers[0].pose.pose.position.y)
         ar_code_r_pose=msg->markers[1].pose;
 
-      
       //comine the two ar_code poses to one
       ar_code_pose.header.frame_id="/world";
       ar_code_pose.header.stamp = ros::Time::now();;
       // we the abs diff of the markers and half them
       if(ar_code_l_pose.pose.position.x>ar_code_r_pose.pose.position.x)
         ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x - (ar_code_l_pose.pose.position.x-ar_code_r_pose.pose.position.x)/2;
-
       if(ar_code_l_pose.pose.position.x<=ar_code_r_pose.pose.position.x)
         ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x + (ar_code_r_pose.pose.position.x-ar_code_l_pose.pose.position.x)/2;
-
       
       ar_code_pose.pose.position.y = ar_code_r_pose.pose.position.y+(ar_code_l_pose.pose.position.y-ar_code_r_pose.pose.position.y)/2;
-      
       ar_code_pose.pose.position.z = (ar_code_l_pose.pose.position.z +ar_code_r_pose.pose.position.z)/2;
 
-
-
-      //cout << "ar code z: " << ar_code_pose.pose.position.z << " l : " << ar_code_l_pose.pose.position.z << " r : " << ar_code_r_pose.pose.position.z << endl;
-      
       // get yaw
       double theta_l = tf::getYaw(ar_code_l_pose.pose.orientation)+offset_ar_tag_yaw;
       double theta_r = tf::getYaw(ar_code_r_pose.pose.orientation)+offset_ar_tag_yaw;
 
       theta = (theta_l+theta_r)/2;
       ar_code_pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
-
 
        //sliding avarage calculation vor ar-tag pose
       //cout << "vector pos: " << art_vec_position << "****************************" << endl;
@@ -263,9 +249,8 @@ public:
       ar_code_pose.pose.orientation.z=art_pose_temp.pose.orientation.z/art_vec_count;
       ar_code_pose.pose.orientation.w=art_pose_temp.pose.orientation.w/art_vec_count;
 
-
-
     // calculate p0 pose using x and y ofsset (known)
+    theta=tf::getYaw(ar_code_pose.pose.orientation);
     p0_pose.header.stamp=ros::Time::now();
     p0_pose.header.frame_id="/world";
 
@@ -283,7 +268,6 @@ public:
                     ar_code_pose.pose.position.x,
                     ar_code_pose.pose.position.y);
     p0=p0r+t;
-
     //set it to p0 pose (x,y)
     p0_pose.pose.position.x=p0.at<double>(0,0);
     p0_pose.pose.position.y=p0.at<double>(1,0);
@@ -292,7 +276,6 @@ public:
     //set oriantion
     //NOTE: not sure why baxter need this oriantation to grasp from the top ...
     p0_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
-
     //calculate offsets to other P (p1-58)
     t = (Mat_<double>(2,1)  <<
                     -0.065,
@@ -302,9 +285,7 @@ public:
     offset_ff_x =  t.at<double>(0,0);
     offset_ff_y =  t.at<double>(1,0);
 
-
     //calculate pickup pose pose dependig on how many pieces are left
-
     pick_up_pose.header.stamp=ros::Time::now();
     pick_up_pose.header.frame_id="/world";
 
@@ -343,15 +324,15 @@ public:
     offset_ss_y =  t.at<double>(1,0);
     
 
-    //second tower
+    //second stack
     if(num_game_pieces_left<13){
       pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
       pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
     }
-    //3 tower
+    //3 stack
     if(num_game_pieces_left<7){
-      pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+2*offset_ss_x;
-      pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+2*offset_ss_y;
+      pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
+      pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
     }
    
   }
@@ -365,27 +346,26 @@ public:
 //function to pick up a piece and place it where the Ai wants it
   void place_piece(){
 
-   
-
    //define target pose
     target_pose.header.stamp=ros::Time::now();
     target_pose.header.frame_id="/world";
     target_pose=pick_up_pose;
 
-    //move to pick up pose    
+    //move to pick up pose + some z magring
+    target_pose.pose.position.z +=0.05;    
     bool success=false;
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
     //move it!!!
-    //group.move() ;
+    group.move() ;
     //try execute
-
+/*
     while(!group.execute(my_plan)){
     ros::spinOnce();
     ros::Duration(0.5).sleep();
     ROS_INFO("Wait for exodus");
-    }
-    sleep(0.1);
+    }*/
+    sleep(1.0);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
@@ -395,23 +375,23 @@ public:
     int pieces_in_stack=num_game_pieces_left % 6;
     if(num_game_pieces_left % 6==0)
       pieces_in_stack=6;
-    sleep(0.1);
+    sleep(1.0);
 
       
     // move down depeding on pieces ins tack
-    target_pose.pose.position.z = target_pose.pose.position.z - (6-pieces_in_stack)*0.01;
+    target_pose.pose.position.z = pick_up_pose.pose.position.z - (6-pieces_in_stack)*0.01;
     
     success=false;
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
     //move it!!!
     group.move() ;
-    sleep(0.1);
+    sleep(1.0);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
       ROS_INFO("Fail");
-
+   sleep(1.0);
     //suck up the piece
     closerightGripper();
     ros::Duration(0.5).sleep();  
@@ -419,21 +399,21 @@ public:
     //decrese num of game pieces
     num_game_pieces_left--;  
 
-    //move up again?
-    target_pose.pose.position.z = pick_up_pose.pose.position.z;
+    //move up again
+    target_pose.pose.position.z = pick_up_pose.pose.position.z+0.05;
 
     success=false;
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
     //move it!!!
     group.move() ;
-    sleep(0.1);
+    sleep(1.0);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
       ROS_INFO("Fail");
 
-   
+   sleep(1.0);
     //move to place pos with the pick up z  
     //calculate the field possition
     int row=target_field/6;
@@ -457,10 +437,10 @@ public:
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
       ROS_INFO("Fail");
-    sleep(0.1);
+    sleep(1.1);
 
     // move down to p0 z pose
-    target_pose.pose.position.z = p0_pose.pose.position.z;
+    target_pose.pose.position.z = p0_pose.pose.position.z+0.02;
     success=false;
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
@@ -471,28 +451,45 @@ public:
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
       ROS_INFO("Fail");
+    sleep(1.1);
 
     //release the piece
     openrightGripper();
 
-    //move to pick up pose   
-    target_pose=pick_up_pose; 
+    //move up again
+    target_pose.pose.position.z=pick_up_pose.pose.position.z;
     success=false;
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
     //move it!!!
-    //group.move() ;
-    while(!group.execute(my_plan)){
-    ros::spinOnce();
-    ros::Duration(0.5).sleep();
-    ROS_INFO("Wait for exodus3");
-    }
+    group.move() ;
     sleep(1.0);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
       ROS_INFO("Fail");
-    sleep(0.1);
+    sleep(1.1);
+
+
+    //move to pick up pose   
+    target_pose=pick_up_pose; 
+    target_pose.pose.position.z +=0.05; 
+    success=false;
+    group.setPoseTarget(target_pose);
+    success = group.plan(my_plan);
+    //move it!!!
+    group.move() ;
+    /*while(!group.execute(my_plan)){
+    ros::spinOnce();
+    ros::Duration(0.5).sleep();
+    ROS_INFO("Wait for exodus3");
+    }*/
+    sleep(1.0);
+    if(success)
+      ROS_INFO("WE DID IT!!!!!!!!!!");
+    else
+      ROS_INFO("Fail");
+    sleep(1.1);
  
   }
 
@@ -610,11 +607,11 @@ public:
   void grasping_baxter_environment(){
 
   	// distances
-  	 double gameboard_l=0.60;	//length game board
-  	 double gameboard_w=0.60;	// width game board
+  	 double gameboard_l=0.385;	//length game board
+  	 double gameboard_w=0.405;	// width game board
   	 double gameboard_h=0.01;	// thickness
 
-  	 double gameboard_x=0.61; //0.825;		// x-pos of gameboard
+  	 double gameboard_x=0.51; //0.825;		// x-pos of gameboard
   	 double gameboard_y=0;//gameboard_w;		//
   	 double gameboard_z= -0.155; //-0.525;//-0.575;
   	 double dis_gb_storage_x=0.003;
@@ -632,9 +629,9 @@ public:
     }
   
     //tolerances
-    group.setGoalOrientationTolerance(0.005);
-    group.setGoalPositionTolerance(0.005);
-    group.setGoalTolerance(0.005);
+    group.setGoalOrientationTolerance(0.0005);
+    group.setGoalPositionTolerance(0.0005);
+    group.setGoalTolerance(0.0005);
     group.setNumPlanningAttempts(2);
     group.setPlanningTime(20);
     group.setStartStateToCurrentState();
@@ -862,9 +859,9 @@ public:
     ros::Duration(0.5).sleep();
     
     //do a thing
-    //place_piece();
+    place_piece();
     //picking_test();
-    tf_frame_test();
+    //tf_frame_test();
     
     //feedback
     feedback_grasping_baxter.progress=20; // progress in %

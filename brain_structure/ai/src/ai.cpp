@@ -281,9 +281,9 @@ public:
     int red;
     int blue;
     if(playerXwin(gameboard, 1))
-      return -1000000;
+      return -100000000;
     if(playerXwin(gameboard, 2))
-      return 1000000;
+      return 100000000;
     if(isdraw(gameboard))
       return 0;
     //eval not EOG board

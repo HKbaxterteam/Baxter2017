@@ -21,6 +21,7 @@
 		<remap from="camera_info"   to="$(arg cam_info_topic)" />
 		<remap from="/ar_pose_marker" to="/TTTgame/ar_tag/ar_pose"/>
 		<remap from="/visualization_marker" to="/TTTgame/ar_tag/visualization_marker"/>
+
 	</node>
 
 
