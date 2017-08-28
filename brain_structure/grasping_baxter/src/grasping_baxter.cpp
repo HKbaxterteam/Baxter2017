@@ -561,6 +561,51 @@ public:
 
   }
 
+
+   void tf_frame_test(){
+
+    //simulate callback
+    //ar_code_pose_callback();
+
+    target_pose.header.stamp=ros::Time::now();
+    target_pose.header.frame_id="/world";
+    target_pose=ar_code_pose;
+
+
+    //NOTE: not sure why baxter need this oriantation to grasp from the top ...
+    target_pose.pose.position.z +=0.0;
+    target_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
+
+   //move to ar -code
+      bool success=false;
+      group.setPoseTarget(target_pose);
+      success = group.plan(my_plan);
+      //move it!!!
+      group.move() ;
+      sleep(1.0);
+//          ros::spinOnce();
+      if(success)
+        ROS_INFO("WE DID IT!!!!!!!!!!");
+      else
+        ROS_INFO("Fail");
+
+    // wait
+    ros::Duration(10.5).sleep();
+    
+//move back
+    group.setPoseTarget(pick_up_pose);
+    success = group.plan(my_plan);
+    //move it!!!
+    group.move() ;
+    sleep(1.0);
+    if(success)
+      ROS_INFO("WE DID IT!!!!!!!!!!");
+    else
+      ROS_INFO("Fail");
+
+
+  }
+
 //define the starting envirorment
   void grasping_baxter_environment(){
 
@@ -571,7 +616,7 @@ public:
 
   	 double gameboard_x=0.61; //0.825;		// x-pos of gameboard
   	 double gameboard_y=0;//gameboard_w;		//
-  	 double gameboard_z= -0.14; //-0.525;//-0.575;
+  	 double gameboard_z= -0.155; //-0.525;//-0.575;
   	 double dis_gb_storage_x=0.003;
   	 //double dis_gb_storage_y=gameboard_y/3;
   	 double dis_sticks_x=0.05;
@@ -817,8 +862,9 @@ public:
     ros::Duration(0.5).sleep();
     
     //do a thing
-    place_piece();
+    //place_piece();
     //picking_test();
+    tf_frame_test();
     
     //feedback
     feedback_grasping_baxter.progress=20; // progress in %
