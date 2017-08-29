@@ -23,6 +23,10 @@
 
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <moveit_msgs/CollisionObject.h>
+#include <moveit_msgs/PlanningScene.h>
+#include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/GetStateValidity.h>
+#include <moveit_msgs/DisplayRobotState.h>
 
 #include  <tf/transform_datatypes.h>
 
@@ -371,21 +375,40 @@ public:
     else
       ROS_INFO("Fail");
 
+
     //move down depending on how many pieces are left
     int pieces_in_stack=num_game_pieces_left % 6;
     if(num_game_pieces_left % 6==0)
       pieces_in_stack=6;
     sleep(1.0);
 
+    //move down following a cartasian path
+    geometry_msgs::Pose car_target_pose;
+    //translate into pose
+    car_target_pose.position=target_pose.pose.position;
+    car_target_pose.orientation= target_pose.pose.orientation;
+    std::vector<geometry_msgs::Pose> waypoints;
+    waypoints.clear();
+    //add more points depending on how many pieces are left
+    for(int i =0; i<pieces_in_stack;i++){
+      car_target_pose.position.z -= 0.01;
+      waypoints.push_back(car_target_pose);
+    }
+    moveit_msgs::RobotTrajectory trajectory;
+    double fraction = group.computeCartesianPath(waypoints,
+                                             0.002,  // eef_step
+                                             0.0,   // jump_threshold
+                                             trajectory);
       
+    my_plan.trajectory_ = trajectory;
     // move down depeding on pieces ins tack
-    target_pose.pose.position.z = pick_up_pose.pose.position.z - (6-pieces_in_stack)*0.01;
+    //target_pose.pose.position.z = pick_up_pose.pose.position.z - (6-pieces_in_stack)*0.01;
     
     success=false;
-    group.setPoseTarget(target_pose);
-    success = group.plan(my_plan);
+    //group.setPoseTarget(target_pose);
+    success = group.execute(my_plan);
     //move it!!!
-    group.move() ;
+    //group.move() ;
     sleep(1.0);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
@@ -399,14 +422,29 @@ public:
     //decrese num of game pieces
     num_game_pieces_left--;  
 
-    //move up again
-    target_pose.pose.position.z = pick_up_pose.pose.position.z+0.05;
+
+
+    //move up again 
+    //move up following a cartasian path
+    waypoints.clear();
+    //add more points depending on how many pieces are left
+    for(int i =0; i<pieces_in_stack+5;i++){
+      car_target_pose.position.z += 0.01;
+      waypoints.push_back(car_target_pose);
+    }
+    fraction = group.computeCartesianPath(waypoints,
+                                             0.002,  // eef_step
+                                             0.0,   // jump_threshold
+                                             trajectory);
+      
+    my_plan.trajectory_ = trajectory;
+    //target_pose.pose.position.z = pick_up_pose.pose.position.z+0.05;
 
     success=false;
-    group.setPoseTarget(target_pose);
-    success = group.plan(my_plan);
+    //group.setPoseTarget(target_pose);
+    success = group.execute(my_plan);
     //move it!!!
-    group.move() ;
+    //group.move() ;
     sleep(1.0);
     if(success)
       ROS_INFO("WE DID IT!!!!!!!!!!");
@@ -421,6 +459,7 @@ public:
 
     target_pose.pose.position.x=p0_pose.pose.position.x+row*offset_ff_x;
     target_pose.pose.position.y=p0_pose.pose.position.y+col*offset_ff_y;
+    target_pose.pose.position.z=car_target_pose.position.z;
     std::cout << "reaching field n" << target_field << std::endl;
     success=false;
     group.setPoseTarget(target_pose);

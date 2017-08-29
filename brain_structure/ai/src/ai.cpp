@@ -34,7 +34,7 @@ public:
 
   ai_boss(std::string name) :
   as_ai(nh_, name, boost::bind(&ai_boss::ai_start_command, this, _1), false),
-  action_name_(name), ai_start_flag(false),maxdepth(3),bestmove(0)
+  action_name_(name), ai_start_flag(false),maxdepth(4),bestmove(0)
   {
     as_ai.start();
     //set up score map
