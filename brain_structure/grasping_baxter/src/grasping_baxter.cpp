@@ -61,6 +61,7 @@ public:
 
 	bool grasping_baxter_start_flag;
   bool debug_flag;
+  bool doarupdate;
   moveit::planning_interface::MoveGroup group;
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
   moveit::planning_interface::MoveGroup::Plan my_plan;
@@ -111,7 +112,7 @@ public:
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
     action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.08),offset_p0_pose_y(+0.17),
     offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.285),offset_pick_up_pose_y(-0.24),offset_pick_up_pose_z(0.04),art_vec_count(0),
-    art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),offset_ar_tag_yaw(0*3.1415926/180)
+    art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),offset_ar_tag_yaw(0*3.1415926/180),doarupdate(true)
   {
     // start action server
     as_grasping_baxter.start();
@@ -185,6 +186,8 @@ public:
   // and calculates pickup pose and p0 pose debending on it.
   void ar_code_pose_callback(const ar_track_alvar_msgs::AlvarMarkers::ConstPtr& msg)
   {
+    if(!doarupdate)
+      return;
     //cout << "callbocko" << endl;
     geometry_msgs::PoseStamped ar_code_l_pose;
     geometry_msgs::PoseStamped ar_code_r_pose;
@@ -349,6 +352,8 @@ public:
 
 //function to pick up a piece and place it where the Ai wants it
   void place_piece(){
+
+    doarupdate=false;
 
    //define target pose
     target_pose.header.stamp=ros::Time::now();
@@ -533,6 +538,8 @@ public:
     else
       ROS_INFO("Fail");
     sleep(1.1);
+
+    doarupdate=true;
  
   }
 

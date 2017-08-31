@@ -119,19 +119,41 @@ public:
   }
   
   //compare gameboard and say true if exactly one piece is diffrent (a blue one)
-  bool compare_gameboards(std::vector<int> gameboard,std::vector<int> gameboardold){
+  bool compare_gameboards(std::vector<int> gameboard1,std::vector<int> gameboard2, int player){
     ROS_INFO("Comparing");
     int count=0;
     int diffpos;
-    for(int i =0;i<gameboard.size()-1;i++){
-      if(gameboard[i]!=gameboardold[i]){
+    //debug
+    cout << "*********gameboard************" << endl;
+  for(int i=0;i<6;i++){
+    for(int j=0;j<6;j++){
+      cout << "|" << gameboard1[j+6*i];
+    }
+    cout << "|" << endl;
+    cout << "_______________" << endl;    
+  }
+  cout << "*********************************" << endl;
+
+  cout << "*********gameboard old************" << endl;
+  for(int i=0;i<6;i++){
+    for(int j=0;j<6;j++){
+      cout << "|" << gameboard2[j+6*i];
+    }
+    cout << "|" << endl;
+    cout << "_______________" << endl;    
+  }
+  cout << "*********************************" << endl;
+
+
+    for(int i =0;i<gameboard1.size()-1;i++){
+      if(gameboard1[i]!=gameboard2[i]){
         count++;
         diffpos=i;
         ROS_INFO("found diff");
       }
     }
     if(count==1){
-      if(gameboard[diffpos]==1)
+      if(gameboard1[diffpos]==player)
         return true;
       return false;
     }
@@ -191,6 +213,12 @@ void request_update_camera(int update)
     //ROS_INFO("Answer: %i", result->sequence.back());
     //get new gameboard here!!!
     gameboard=result->gameboard;
+    if(watch_dog_done_flag)
+    {
+      gameboardold=result->gameboard;
+      ROS_INFO("updateing to old gameboard********************************* ");
+    }
+      
     //TODO: check if only one piece and other stuff
     ROS_INFO("update_camera_done ");
     cout << "we got " << result->fail << endl;
@@ -224,7 +252,7 @@ void request_watch_dog(int start_watch_dog)
     ROS_INFO("Finished in state [%s]", state.toString().c_str());
     //ROS_INFO("Answer: %i", result->sequence.back());
     ROS_INFO("watch_dog_done ");
-    watch_dog_done_flag=true;
+    //watch_dog_done_flag=true;
   }
 
 
@@ -313,22 +341,25 @@ int main(int argc, char** argv)
   for (int i = 0; i < 36; ++i)
   {
     gmb.gameboard.push_back(0);
+    gmb.gameboardold.push_back(0);
   }
 
-  //player 2 starts (baxtrer
+  //player 2 starts (baxtre)
   gmb.gameboard.push_back(2);
+  gmb.gameboardold.push_back(2);
   
 int EOG=false;
   //MAIN LOOP+++++++++++++++++
 int update;
 
+//Baxter maxes the first move
 while(ros::ok() && !EOG)
 {
   //reset flags
   gmb.ai_received_move_flag=false;
   gmb.grasping_done_flag=false;
   gmb.camera_done_flag=false;
-  gmb.watch_dog_done_flag=false;
+  gmb.watch_dog_done_flag=true;
 
 
   // ask AI for a cool move 
@@ -353,11 +384,16 @@ while(ros::ok() && !EOG)
 
   ROS_INFO_THROTTLE(1, "move done");
 
-  //ask camera to perform an update
+  //ask camera to perform an update (send current plazer)
   if(gmb.gameboard[36]==1)
     update=1;
-  if(gmb.gameboard[36]==1)
+  if(gmb.gameboard[36]==2)
     update=2;
+
+  while(ros::ok() && !gmb.compare_gameboards(gmb.gameboard,gmb.gameboardold,2) ){
+    ROS_INFO_THROTTLE(5, "Waiting for baxter confirmation ");
+    ros::spinOnce();
+    ros::Duration(1.0).sleep();
 
   gmb.request_update_camera(update);
 
@@ -365,8 +401,7 @@ while(ros::ok() && !EOG)
     ROS_INFO_THROTTLE(5, "Waiting for camera ");
     if(gmb.camera_try_again_flag){
       ros::Duration(0.5).sleep();
-      //gmb.checkservers();
-      gmb.request_update_camera(2);
+      gmb.request_update_camera(update);
       ROS_INFO( "Ww try again for camera ");
       gmb.camera_try_again_flag=false;
     }
@@ -375,12 +410,13 @@ while(ros::ok() && !EOG)
   }
 
   gmb.camera_done_flag=false;
-
+}
+gmb.camera_done_flag=false;
   ROS_INFO_THROTTLE(1, "camera done");
   //Print gameboard
   int rows=6;
   int cols=6;
-  cout << "*********************************" << endl;
+  cout << "***************camera1******************" << endl;
   for(int i=0;i<rows;i++){
     for(int j=0;j<cols;j++){
       cout << "|" << gmb.gameboard[j+rows*i];
@@ -407,12 +443,13 @@ while(ros::ok() && !EOG)
 
   }
 
-
+  //ros::Duration(1.0).sleep();
   //save the gameboard 
-  gmb.gameboardold=gmb.gameboard;
+  //gmb.gameboardold=gmb.gameboard;
   bool playerdone=false;
+  gmb.watch_dog_done_flag=false;
   //game master watchdog
-  while(ros::ok() && !playerdone ){
+  while(ros::ok() && !gmb.compare_gameboards(gmb.gameboard,gmb.gameboardold,1) ){
     ROS_INFO_THROTTLE(5, "Waiting for watchdog ");
     ros::spinOnce();
     ros::Duration(1.0).sleep();
@@ -420,7 +457,7 @@ while(ros::ok() && !EOG)
     // ask camera for update
     if(gmb.gameboard[36]==1)
       update=1;
-    if(gmb.gameboard[36]==1)
+    if(gmb.gameboard[36]==2)
       update=2;
     gmb.request_update_camera(update);
 
@@ -429,7 +466,7 @@ while(ros::ok() && !EOG)
       if(gmb.camera_try_again_flag){
         ros::Duration(0.5).sleep();
         //gmb.checkservers();
-        gmb.request_update_camera(2);
+        gmb.request_update_camera(update);
         //ROS_INFO( "Ww try again for camera ");
         gmb.camera_try_again_flag=false;
       }
@@ -437,10 +474,14 @@ while(ros::ok() && !EOG)
     ros::Duration(1.0).sleep();
     }
 
+    gmb.camera_done_flag=false;
+
     //ROS_INFO_THROTTLE(1, "camera done");
-    playerdone= gmb.compare_gameboards(gmb.gameboard,gmb.gameboardold);
+    //playerdone= gmb.compare_gameboards(gmb.gameboard,gmb.gameboardold);
 
   }
+
+  gmb.watch_dog_done_flag=true ;
   
   // the plazer is on
   /*
@@ -462,7 +503,7 @@ while(ros::ok() && !EOG)
 
 
   //Print gameboard
-  cout << "*********************************" << endl;
+  cout << "**************camera2*******************" << endl;
   for(int i=0;i<rows;i++){
     for(int j=0;j<cols;j++){
       cout << "|" << gmb.gameboard[j+rows*i];
