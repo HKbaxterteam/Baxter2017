@@ -248,27 +248,45 @@ public:
   
       //target points for homogentranform
       vector<Point2f> dest;
-      dest.push_back(Point2f(0,0));
-      dest.push_back(Point2f(0, warpedCard.rows));
-      dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));        
-      dest.push_back(Point2f(warpedCard.cols, 0.0));       
+      
+      
+      dest.push_back(Point2f(0,0)); 
+      dest.push_back(Point2f(warpedCard.cols, 0.0));    
+      dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));  
+      dest.push_back(Point2f(0, warpedCard.rows));  
+       
 
       //inputpoints
       //make sure approx and dest are in the right order ALWAZS
       vector<Point2f> inpoint;
+      cout << " org cols/2: " << org.cols/2 << " org rows/2  " << org.rows/2 << endl;
       for(int j=0; j<corners.size();j++){
         //check for first point
-        if(corners[j].x<org.cols/2 && corners[j].y<org.rows/2)
+        if(corners[j].x<org.cols/2 && corners[j].y<org.rows/2){
           inpoint.push_back(corners[j]);
+          //cout << "detected corner 1 (0,0) : x: " << corners[j].x << " y: " << corners[j].y << endl;
+        }
+      }
+      for(int j=0; j<corners.size();j++){
         //check for second point
-        if(corners[j].x>org.cols/2 && corners[j].y<org.rows/2)
+        if(corners[j].x>org.cols/2 && corners[j].y<org.rows/2){
           inpoint.push_back(corners[j]);
+          //cout << "detected corner 2 (0,max) : x: " << corners[j].x << " y: " << corners[j].y << endl;
+        }
+      }
+      for(int j=0; j<corners.size();j++){
         //check for 3 point
-        if(corners[j].x>org.cols/2 && corners[j].y>org.rows/2)
-          inpoint.push_back(corners[j]);        
-        //check for 4 point
-        if(corners[j].x<org.cols/2 && corners[j].y>org.rows/2)
+        if(corners[j].x>org.cols/2 && corners[j].y>org.rows/2){
           inpoint.push_back(corners[j]);
+          //cout << "detected corner 3 (max,max) : x: " << corners[j].x << " y: " << corners[j].y << endl;
+        }
+      }
+      for(int j=0; j<corners.size();j++){
+        //check for 4 point
+        if(corners[j].x<org.cols/2 && corners[j].y>org.rows/2){
+          inpoint.push_back(corners[j]);
+          //cout << "detected corner 4 (max,0) : x: " << corners[j].x << " y: " << corners[j].y << endl;
+        }
       }
 
       if(debug_flag){

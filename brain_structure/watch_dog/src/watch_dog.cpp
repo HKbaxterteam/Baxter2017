@@ -1,4 +1,16 @@
+//************************************************
+//**********Baxter 2017 Tic-Tac-Toe***************
+//*******Nadine Drollinger & Michael Welle********
+//************************************************
+//*******Camera node - camera ********************
+//************************************************
 
+//************************************************
+//Description: detects game board from the cut out 
+// real board with the help of the outer boarder.
+// detects game pieces and fills in gameboard array
+// compares it to the last board we need to try again
+//************************************************
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <watch_dog/watch_dog_game_masterAction.h>

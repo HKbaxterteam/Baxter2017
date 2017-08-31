@@ -87,6 +87,7 @@ public:
   bool watch_dog_done_flag;
   int ai_move;
   std::vector<int> gameboard;
+  std::vector<int> gameboardold;
 
   game_master_boss(std::string name) :
     as_gui(nh_, name, boost::bind(&game_master_boss::gui_start_command, this, _1), false),
@@ -116,7 +117,30 @@ public:
   ~game_master_boss(void)
   {
   }
- //TODO: send whole gamboard
+  
+  //compare gameboard and say true if exactly one piece is diffrent (a blue one)
+  bool compare_gameboards(std::vector<int> gameboard,std::vector<int> gameboardold){
+    ROS_INFO("Comparing");
+    int count=0;
+    int diffpos;
+    for(int i =0;i<gameboard.size()-1;i++){
+      if(gameboard[i]!=gameboardold[i]){
+        count++;
+        diffpos=i;
+        ROS_INFO("found diff");
+      }
+    }
+    if(count==1){
+      if(gameboard[diffpos]==1)
+        return true;
+      return false;
+    }
+    else{
+      return false;
+    }
+  }
+
+
   void request_move_ai(std::vector<int> gameboard)
   {
     //Send the gameboard *******
@@ -366,8 +390,60 @@ while(ros::ok() && !EOG)
   }
   cout << "*********************************" << endl;
 
+  //check for EOG and stuff
+  if(isEOG(gmb.gameboard)){
+    ROS_INFO("THE GAME IS OVER");
+    if(playerXwin(gmb.gameboard,2)){
+      ROS_INFO("BAXTER WINS!!! ");
+    }
+    if(playerXwin(gmb.gameboard,1)){
+      ROS_INFO("HUMAN WINS??? WTF!!!! ");
+    }
+    if(isdraw(gmb.gameboard)){
+      ROS_INFO("draw");
+    }
+    EOG=true;
+    break;
 
+  }
+
+
+  //save the gameboard 
+  gmb.gameboardold=gmb.gameboard;
+  bool playerdone=false;
+  //game master watchdog
+  while(ros::ok() && !playerdone ){
+    ROS_INFO_THROTTLE(5, "Waiting for watchdog ");
+    ros::spinOnce();
+    ros::Duration(1.0).sleep();
+    //ask camera
+    // ask camera for update
+    if(gmb.gameboard[36]==1)
+      update=1;
+    if(gmb.gameboard[36]==1)
+      update=2;
+    gmb.request_update_camera(update);
+
+    while(ros::ok() && !gmb.camera_done_flag ){
+      //ROS_INFO_THROTTLE(5, "Waiting for camera ");
+      if(gmb.camera_try_again_flag){
+        ros::Duration(0.5).sleep();
+        //gmb.checkservers();
+        gmb.request_update_camera(2);
+        //ROS_INFO( "Ww try again for camera ");
+        gmb.camera_try_again_flag=false;
+      }
+    ros::spinOnce();
+    ros::Duration(1.0).sleep();
+    }
+
+    //ROS_INFO_THROTTLE(1, "camera done");
+    playerdone= gmb.compare_gameboards(gmb.gameboard,gmb.gameboardold);
+
+  }
+  
   // the plazer is on
+  /*
   int wuff=1;
   gmb.request_watch_dog(wuff);
 
@@ -378,31 +454,11 @@ while(ros::ok() && !EOG)
   }
 
   ROS_INFO_THROTTLE(1, "wauzi done");
-
+*/
   //player done
 
 
-  // ask camera for update
-  if(gmb.gameboard[36]==1)
-    update=1;
-  if(gmb.gameboard[36]==1)
-    update=2;
-  gmb.request_update_camera(update);
-
-  while(ros::ok() && !gmb.camera_done_flag ){
-    ROS_INFO_THROTTLE(5, "Waiting for camera ");
-    if(gmb.camera_try_again_flag){
-      ros::Duration(0.5).sleep();
-      //gmb.checkservers();
-      gmb.request_update_camera(2);
-      ROS_INFO( "Ww try again for camera ");
-      gmb.camera_try_again_flag=false;
-    }
-    ros::spinOnce();
-    ros::Duration(1.0).sleep();
-  }
-
-  ROS_INFO_THROTTLE(1, "camera done");
+  
 
 
   //Print gameboard
@@ -418,7 +474,7 @@ while(ros::ok() && !EOG)
 
   //*************completed one circle
 
-  //TODO:check for EOG and stuff
+  //check for EOG and stuff
   if(isEOG(gmb.gameboard)){
     ROS_INFO("THE GAME IS OVER");
     if(playerXwin(gmb.gameboard,2)){
