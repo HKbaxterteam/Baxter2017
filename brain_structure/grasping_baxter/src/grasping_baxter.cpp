@@ -614,13 +614,15 @@ public:
   	 double gameboard_x=0.51; //0.825;		// x-pos of gameboard
   	 double gameboard_y=0;//gameboard_w;		//
   	 double gameboard_z= -0.155; //-0.525;//-0.575;
-  	 double dis_gb_storage_x=0.003;
+  	 double dis_gb_storage_x=0.03;
   	 //double dis_gb_storage_y=gameboard_y/3;
   	 double dis_sticks_x=0.05;
   	 double dis_sticks_y=0.05;
-	 double radius_cylinder=0.004;
-	 double heigth_cylinder=0.12;
-	 double cell_size=0.065;
+  	 double radius_cylinder=0.004;
+  	 double heigth_cylinder=0.12;
+  	 double cell_size=0.065;
+     double wall_thickness=0.0075;
+     double piecebox_comp=0.055;
 
   	
     if(debug_flag){
@@ -695,6 +697,114 @@ public:
 
 	all_collision_objects.push_back(co_piece_box);
 
+// ------ Piece box baxter------//
+//--- wall 1
+
+  moveit_msgs::CollisionObject  co_piece_box_baxter;
+  co_piece_box_baxter.header.frame_id = group.getPlanningFrame();
+
+    // The id of the object is used to identify it. 
+    co_piece_box_baxter.id = "PieceBoxBaxter";
+
+    // Define a box to add to the world. 
+    //shape_msgs::SolidPrimitive cube;
+    cube.type = cube.BOX;
+    cube.dimensions.resize(3);
+    cube.dimensions[0] = 3*cell_size+0.01;
+    cube.dimensions[1] = 0.0075;
+    cube.dimensions[2] = 0.065;
+
+    // ---- wall 1
+    geometry_msgs::Pose piece_box_baxter_pose;
+    piece_box_baxter_pose.orientation.w = 1.0;
+    piece_box_baxter_pose.position.x = gameboard_x+cell_size/2; //piecebox_comp
+    piece_box_baxter_pose.position.y = -gameboard_w/2-dis_gb_storage_x-wall_thickness-piecebox_comp;
+    piece_box_baxter_pose.position.z =  -0.14;
+
+    co_piece_box_baxter.primitives.push_back(cube);
+    co_piece_box_baxter.primitive_poses.push_back(piece_box_baxter_pose);
+    co_piece_box_baxter.operation = co_piece_box_baxter.ADD;
+
+
+    // ---- wall 2
+    piece_box_baxter_pose.orientation.w = 1.0;
+    piece_box_baxter_pose.position.x = gameboard_x+cell_size/2;
+    piece_box_baxter_pose.position.y = -gameboard_w/2-dis_gb_storage_x;//-gameboard_w/2-dis_gb_storage_x-0.075;
+    piece_box_baxter_pose.position.z =  -0.14;
+
+     co_piece_box_baxter.primitives.push_back(cube);
+     co_piece_box_baxter.primitive_poses.push_back(piece_box_baxter_pose);
+     co_piece_box_baxter.operation = co_piece_box_baxter.ADD;
+
+  all_collision_objects.push_back(co_piece_box_baxter);
+
+
+
+
+  // ---- compartment walls -------------------
+
+  moveit_msgs::CollisionObject  co_wall_a;
+  co_wall_a.header.frame_id = group.getPlanningFrame();
+
+    // The id of the object is used to identify it. 
+    co_wall_a.id = "Wall_A";
+
+    // Define a box to add to the world. 
+    //shape_msgs::SolidPrimitive cube;
+    cube.type = cube.BOX;
+    cube.dimensions.resize(3);
+    cube.dimensions[0] = 0.0065; //height
+    cube.dimensions[1] = 0.055; // length
+    cube.dimensions[2] = cell_size+0.01; // thickness    
+
+    // ---- wall 1
+    geometry_msgs::Pose co_wall_a_pose;
+
+    co_wall_a_pose.orientation.w = 1.0;
+    co_wall_a_pose.position.x = gameboard_x-cell_size;
+    co_wall_a_pose.position.y = -gameboard_w/2-dis_gb_storage_x-wall_thickness/2- piecebox_comp/2;//-gameboard_w/2-dis_gb_storage_x-0.0075;
+    co_wall_a_pose.position.z =  -0.14;
+
+    co_wall_a.primitives.push_back(cube);
+    co_wall_a.primitive_poses.push_back(co_wall_a_pose);
+    co_wall_a.operation = co_wall_a.ADD;
+
+
+    // ---- wall 2
+    co_wall_a_pose.orientation.w = 1.0;
+    co_wall_a_pose.position.x = gameboard_x;
+    co_wall_a_pose.position.y = -gameboard_w/2-dis_gb_storage_x-wall_thickness/2- piecebox_comp/2;//-gameboard_w/2-dis_gb_storage_x-0.0075;
+    co_wall_a_pose.position.z =  -0.14;
+
+    co_wall_a.primitives.push_back(cube);
+    co_wall_a.primitive_poses.push_back(co_wall_a_pose);
+    co_wall_a.operation = co_wall_a.ADD;
+
+        // ---- wall 3
+
+    co_wall_a_pose.orientation.w = 1.0;
+    co_wall_a_pose.position.x = gameboard_x+2*cell_size;
+    co_wall_a_pose.position.y = -gameboard_w/2-dis_gb_storage_x-wall_thickness/2- piecebox_comp/2;//-gameboard_w/2-dis_gb_storage_x-0.0075;
+    co_wall_a_pose.position.z =  -0.14;
+
+    co_wall_a.primitives.push_back(cube);
+    co_wall_a.primitive_poses.push_back(co_wall_a_pose);
+    co_wall_a.operation = co_wall_a.ADD;
+
+
+  // ---- wall 4
+
+    co_wall_a_pose.orientation.w = 1.0;
+    co_wall_a_pose.position.x = gameboard_x+cell_size;
+    co_wall_a_pose.position.y = -gameboard_w/2-dis_gb_storage_x-wall_thickness/2- piecebox_comp/2;//-gameboard_w/2-dis_gb_storage_x-0.0075;
+    co_wall_a_pose.position.z =  -0.14;
+
+    co_wall_a.primitives.push_back(cube);
+    co_wall_a.primitive_poses.push_back(co_wall_a_pose);
+    co_wall_a.operation = co_wall_a.ADD;
+
+    all_collision_objects.push_back(co_wall_a);
+ 
  
 
   	/*++++++++++Table model ##############*/
@@ -738,7 +848,7 @@ public:
 
   	all_collision_objects.push_back(co_table);
 
-  //++++++++++Cylinder model ##############
+ /* //++++++++++Cylinder model ##############
   	
   	moveit_msgs::CollisionObject co_cylinder;
   	co_cylinder.header.frame_id = group.getPlanningFrame();
@@ -835,7 +945,7 @@ public:
 
   	all_collision_objects.push_back(co_cylinder); 
   	
-
+*/
 
 
 
