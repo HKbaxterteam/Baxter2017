@@ -17,8 +17,4 @@
 <!-- starte camera launch-->
 <include file="$(find camera)/launch/camera.launch"/>
 
-<!-- starte watch_dog node-->
-<node pkg="watch_dog" type="watch_dog" name="watch_dog" output="screen" />
-
-
 </launch>

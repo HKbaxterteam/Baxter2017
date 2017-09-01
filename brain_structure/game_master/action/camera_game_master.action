@@ -1,9 +1,9 @@
 #goal definition
-int32 update
+int32 next_player
 ---
 #result definition
 int32[] gameboard
-int32 fail
+int32 status
 ---
 #feedback
 int32 progress

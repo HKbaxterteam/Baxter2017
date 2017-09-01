@@ -134,8 +134,8 @@ public:
   void camera_start_command(const camera::camera_game_masterGoalConstPtr &goal)
   {
 
-    ROS_INFO("Preparing camera update");
-    player=goal->update;
+    //ROS_INFO("Preparing camera update");
+    player=goal->next_player;
     // helper variables
     ros::Rate r(1);
     bool success = false;
@@ -259,7 +259,7 @@ public:
       //inputpoints
       //make sure approx and dest are in the right order ALWAZS
       vector<Point2f> inpoint;
-      cout << " org cols/2: " << org.cols/2 << " org rows/2  " << org.rows/2 << endl;
+      //cout << " org cols/2: " << org.cols/2 << " org rows/2  " << org.rows/2 << endl;
       for(int j=0; j<corners.size();j++){
         //check for first point
         if(corners[j].x<org.cols/2 && corners[j].y<org.rows/2){
@@ -302,7 +302,7 @@ public:
         else{
           //we fail
           result_camera.gameboard = gameboard;
-          result_camera.fail =2;
+          result_camera.status =2;
           as_camera.setSucceeded(result_camera);
           ROS_INFO("Cornersize wrong");
           return;
@@ -404,17 +404,17 @@ public:
       }
       else{
         // feddback
-        ROS_INFO(" Found Contour to small");
+        //ROS_INFO(" Found Contour to small");
         feedback_camera.progress=-2; // progress in %    
         as_camera.publishFeedback(feedback_camera);
       }
 
   	  if(success)
       {
-      	ROS_INFO("camera update done");
+      	//ROS_INFO("camera update done");
         gameboard.push_back(player);
         result_camera.gameboard = gameboard;
-        result_camera.fail =1;
+        result_camera.status =1;
         // set the action state to succeeded
         as_camera.setSucceeded(result_camera);
         //publish the image in ros
@@ -429,9 +429,9 @@ public:
       else{
         //We failed
         result_camera.gameboard = gameboard;
-        result_camera.fail =2;
+        result_camera.status =2;
         as_camera.setSucceeded(result_camera);
-        ROS_INFO("send feedback");
+        //ROS_INFO("send feedback");
       }
 
       /*

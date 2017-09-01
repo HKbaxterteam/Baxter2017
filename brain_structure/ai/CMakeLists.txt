@@ -8,17 +8,21 @@ project(ai)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  game_master
   actionlib
   actionlib_msgs
   message_generation
   roscpp
   rospy
-  std_msgs
+  std_msgs   
 )
+
+
 
 ## System dependencies are found with CMake's conventions
  find_package(Boost REQUIRED COMPONENTS system)
 
+find_package(game_master REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -52,24 +56,30 @@ find_package(catkin REQUIRED COMPONENTS
 ## catkin specific configuration ##
 ###################################
 
-catkin_package(
+#catkin_package(
+#)
 
-)
-catkin_package(
-  CATKIN_DEPENDS actionlib_msgs
-)
+
+include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${game_master_INCLUDE_DIRS} )
 
 add_executable(ai src/ai.cpp)
 
 target_link_libraries(
   ai
   ${catkin_LIBRARIES}
+  
 )
 
 add_dependencies(
   ai
   ${ai_EXPORTED_TARGETS}
+  game_master
 )
+
+catkin_package(
+  CATKIN_DEPENDS actionlib_msgs game_master
+)
+
 
 ###########
 ## Build ##
@@ -77,12 +87,11 @@ add_dependencies(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
+#include_directories(
 # include
-  ${catkin_INCLUDE_DIRS}
-)
+#  ${catkin_INCLUDE_DIRS}
+#)
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 
 #

@@ -1019,7 +1019,7 @@ public:
     ros::Duration(0.5).sleep();
     
     //do a thing
-    place_piece();
+    //place_piece();
     //picking_test();
     //tf_frame_test();
     

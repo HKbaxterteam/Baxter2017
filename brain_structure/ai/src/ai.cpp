@@ -7,6 +7,8 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 
+#include <game_master/game_manager.h>
+
 #include <vector>
 
 using namespace std;
@@ -22,10 +24,10 @@ protected:
   ai::ai_game_masterResult result_ai;    // create messages that are used to published result
 
   int maxdepth;
-  int bestmove;
 
   std::vector<int> scoremap;
-  std::vector<std::vector<int> > winning_moves;
+  //std::vector<std::vector<int> > winning_moves;
+  std::vector<int> scoresafe;
   //const int winning_moves[32][5];
 
 public:
@@ -34,119 +36,10 @@ public:
 
   ai_boss(std::string name) :
   as_ai(nh_, name, boost::bind(&ai_boss::ai_start_command, this, _1), false),
-  action_name_(name), ai_start_flag(false),maxdepth(4),bestmove(0)
+  action_name_(name), ai_start_flag(false),maxdepth(4)
   {
     as_ai.start();
-    //set up score map
-    scoremap.push_back(0);
-    scoremap.push_back(1);
-    scoremap.push_back(10);
-    scoremap.push_back(1000);
-    scoremap.push_back(1000000);
-    scoremap.push_back(100000000);
-    //set up the winning moves
-    std::vector<int> temp;
-    // 12 horizontal lines
-    temp.push_back(0); temp.push_back(1); temp.push_back(2); temp.push_back(3);temp.push_back(4);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(1); temp.push_back(2); temp.push_back(3); temp.push_back(4);temp.push_back(5);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(6); temp.push_back(7); temp.push_back(8); temp.push_back(9);temp.push_back(10);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(7); temp.push_back(8); temp.push_back(9); temp.push_back(10);temp.push_back(11);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(12); temp.push_back(13); temp.push_back(14); temp.push_back(15);temp.push_back(16);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(13); temp.push_back(14); temp.push_back(15); temp.push_back(16);temp.push_back(17);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(18); temp.push_back(19); temp.push_back(20); temp.push_back(21);temp.push_back(22);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(19); temp.push_back(20); temp.push_back(21); temp.push_back(22);temp.push_back(23);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(24); temp.push_back(25); temp.push_back(26); temp.push_back(27);temp.push_back(28);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(25); temp.push_back(26); temp.push_back(27); temp.push_back(28);temp.push_back(29);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(30); temp.push_back(31); temp.push_back(32); temp.push_back(33);temp.push_back(34);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(31); temp.push_back(32); temp.push_back(33); temp.push_back(34);temp.push_back(35);
-    winning_moves.push_back(temp);
-    temp.clear();
-    // 12 vertical winning
-    temp.push_back(0); temp.push_back(6); temp.push_back(12); temp.push_back(18);temp.push_back(24);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(6); temp.push_back(12); temp.push_back(18); temp.push_back(24);temp.push_back(30);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(1); temp.push_back(7); temp.push_back(13); temp.push_back(14);temp.push_back(25);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(7); temp.push_back(13); temp.push_back(19); temp.push_back(25);temp.push_back(31);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(2); temp.push_back(8); temp.push_back(14); temp.push_back(15);temp.push_back(26);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(8); temp.push_back(14); temp.push_back(20); temp.push_back(26);temp.push_back(32);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(3); temp.push_back(9); temp.push_back(15); temp.push_back(21);temp.push_back(27);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(9); temp.push_back(15); temp.push_back(21); temp.push_back(27);temp.push_back(33);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(4); temp.push_back(10); temp.push_back(16); temp.push_back(22);temp.push_back(28);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(10); temp.push_back(16); temp.push_back(22); temp.push_back(28);temp.push_back(34);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(5); temp.push_back(11); temp.push_back(17); temp.push_back(23);temp.push_back(29);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(11); temp.push_back(17); temp.push_back(23); temp.push_back(29);temp.push_back(35);
-    winning_moves.push_back(temp);
-    temp.clear();
-    //4 main diagonal
-    temp.push_back(0); temp.push_back(7); temp.push_back(14); temp.push_back(21);temp.push_back(28);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(7); temp.push_back(14); temp.push_back(21); temp.push_back(28);temp.push_back(35);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(5); temp.push_back(10); temp.push_back(15); temp.push_back(20);temp.push_back(25);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(10); temp.push_back(15); temp.push_back(20); temp.push_back(25);temp.push_back(30);
-    winning_moves.push_back(temp);
-    temp.clear();
-    //4 other diagonal
-    temp.push_back(1); temp.push_back(8); temp.push_back(15); temp.push_back(22);temp.push_back(29);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(6); temp.push_back(13); temp.push_back(20); temp.push_back(27);temp.push_back(34);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(4); temp.push_back(9); temp.push_back(14); temp.push_back(19);temp.push_back(24);
-    winning_moves.push_back(temp);
-    temp.clear();
-    temp.push_back(11); temp.push_back(16); temp.push_back(21); temp.push_back(26);temp.push_back(31);
-    winning_moves.push_back(temp);
-    temp.clear();
-
+    
   }
 
   ~ai_boss(void)
@@ -161,22 +54,45 @@ public:
     bool success = true;
     vector<int> gameboard = goal->gameboard;
     vector<int> posMoves;
+    std::vector<int> bestmove;
 
     ROS_INFO("calculating move");
     //CALCULATE THE AI MOVE******************************
     //***************************************************
     
     //give me best move
+    scoresafe.clear();
 
     int score = alphabeta(gameboard,maxdepth,std::numeric_limits<int>::min(),numeric_limits<int>::max(), true);
     
     vector<vector<int> > nextgameboards =findposMoves(gameboard);
 
-    cout << "bestmove " << bestmove << endl;
+    //find best move
+    int max=scoresafe[0];
+    for(int i =0; i<scoresafe.size();i++){
+      cout << "score for: " << i << " is " << scoresafe[i] << endl;
+
+      if(scoresafe[i]>max){
+        max=scoresafe[i];
+      }
+    }
+    int countmax=0;
+    for(int i=0;i<scoresafe.size();i++){
+      if(scoresafe[i]==max){
+        bestmove.push_back(i);
+        countmax++;
+      }
+        
+    }
+    srand (time(NULL));
+    int choosenmove=bestmove[rand() % bestmove.size()];
+    cout << "we have: " << countmax << " best move " << endl;
+
+    cout << "choosenmove " << choosenmove << endl;
   //find real number
   int field;
   for(int i =0;i<gameboard.size()-1;i++){
-    if(gameboard[i]!=nextgameboards[bestmove][i])
+    if(gameboard[i]!=nextgameboards[choosenmove][i])
       field=i;
   }
   cout << "place piece on field " << field << endl;
@@ -225,65 +141,15 @@ public:
   } 
 
 
-  bool playerXwin(vector<int> gameboard, int player){
-    
-    int win_count=0;
-    for(int i=0; i<32; i++)
-    { 
-      win_count=0;
-      for (int j=0; j<5;j++)
-      {
-        if( gameboard[winning_moves[i][j]]==player)
-          win_count++; 
-        if(win_count==5) 
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool isdraw(vector<int> gameboard)
-  {
-    int red;
-    int blue;
-    int count=0;
-    for(int i = 0; i < 32; ++i){
-      red = 0, blue = 0;
-      for(int j = 0; j < 5; ++j){
-        if(gameboard[winning_moves[i][j]]== 2){
-          red++;
-        } else if (gameboard[winning_moves[i][j]]==1){
-          blue++;
-        }
-      }
-      if (red > 0 && blue > 0)
-                count++;
-    }
-    if(count<35)
-      return false;
-
-    return true;
-  }
-
-
-  bool isEOG(vector<int> gameboard)
-  {
-    if(isdraw(gameboard) || playerXwin(gameboard,1) || playerXwin(gameboard,2))
-      return true;
-
-    return false;
-  }
-
-
   int ScoringFunction(vector<int> gameboard)
   {
     int score=0;
     int red;
     int blue;
     if(playerXwin(gameboard, 1))
-      return -100000000;
+      return -10000000;
     if(playerXwin(gameboard, 2))
-      return 100000000;
+      return 10000000;
     if(isdraw(gameboard))
       return 0;
     //eval not EOG board
@@ -321,8 +187,9 @@ public:
       {
           v=alphabeta(nextgameboards[i],depth-1,alpha,beta,false);
           //save the best move to play it later
-          if(depth==maxdepth && v>bestValue)
-                bestmove= i;
+          if(depth==maxdepth){
+            scoresafe.push_back(v);
+          }
               //update bestval
           bestValue=std::max(bestValue,v);
           //update alpha

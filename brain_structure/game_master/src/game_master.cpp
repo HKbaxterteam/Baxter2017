@@ -1,4 +1,17 @@
+//************************************************
+//**********Baxter 2017 Tic-Tac-Toe***************
+//*******Nadine Drollinger & Michael Welle********
+//************************************************
+//*******Game master node - game_master **********
+//************************************************
+
+//************************************************
+//Description: The Main node that controlls the 
+// game. 
+//************************************************
+
 #include <ros/ros.h>
+#include <ros/console.h>
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 #include <game_master/ai_game_masterAction.h> 
@@ -6,59 +19,9 @@
 #include <game_master/grasping_baxter_game_masterAction.h> // links action file 
 #include <game_master/camera_game_masterAction.h>
 #include <game_master/watch_dog_game_masterAction.h>
+#include "game_master/game_manager.h"
 
 using namespace std;
-
-bool isdraw(vector<int> gameboard);
-bool isEOG(vector<int> gameboard);
-bool playerXwin(vector<int> gameboard, int player);
-
-const int winning_moves[32][5] = 
-  {
-        // 12 horizotal winning
-        {0, 1,  2,  3, 4},
-        {1, 2,  3,  4,  5},
-        {6, 7,  8,  9,  10},
-        {7, 8,  9,  10, 11},        
-        {12,  13,  14,  15,  16},
-        {13,  14,  15,  16,  17},
-        {18,  19,  20,  21,  22},
-        {19,  20,  21,  22,  23},
-        {24,  25,  26,  27,  28},
-        {25,  26,  27,  28,  29},        
-        {30,  31,  32,  33,  34},
-        {31,  32,  33,  34,  35},
-
-        // 12 vertical winning
-        {0,  6,   12,  18,  24},
-        {6,  12,  18,  24,  30},
-        {1,  7,   13,  19,  25},
-        {7,  13,  19,  25,  31},        
-        {2,  8,   14,  20,  26},
-        {8,  14,  20,  26,  32},
-        {3,  9,   15,  21,  27},
-        {9,  15,  21,  27,  33},
-        {4,  10,  16,  22,  28},
-        {10, 16,  22,  28,  34},        
-        {5,  11,  17,  23,  29},
-        {11, 17,  23,  29,  35},
-
-
-        // 4 maindiagonal winning
-
-        {0,  7,   14,  21,  28},
-        {7,  14,  21,  28,  35},        
-        {5,  10,  15,  20,  25},
-        {10, 15,  20,  25,  30},
-
-        // 4 other diagonal 
-
-
-        {1,  8,   15,  22,  29},
-        {6,  13,  20,  27,  34},
-        {4,  9,   14,  19,  24},
-        {11, 16,  21,  26,  31}
-  };
 
 class game_master_boss
 {
@@ -69,8 +32,7 @@ protected:
   actionlib::SimpleActionClient<game_master::ai_game_masterAction> ac_ai;
   actionlib::SimpleActionClient<game_master::grasping_baxter_game_masterAction> ac_grasping_baxter;
   actionlib::SimpleActionClient<game_master::camera_game_masterAction> ac_camera;
-  actionlib::SimpleActionClient<game_master::watch_dog_game_masterAction> ac_watch_dog;
-
+  
   std::string action_name_;
   // create messages that are used to published feedback/result
   game_master::gui_game_masterFeedback feedback_gui; // create messages that are used to published feedback
@@ -79,20 +41,20 @@ protected:
 
 
 public:
+  
+  bool baxter_starts;
   bool gui_start_flag;
-  bool ai_received_move_flag;
-  bool grasping_done_flag;
-  bool camera_done_flag;
-  bool camera_try_again_flag;
-  bool watch_dog_done_flag;
   int ai_move;
+  int baxter_piece;
+  int human_piece;
+  int camera_status;
   std::vector<int> gameboard;
-  std::vector<int> gameboardold;
+
 
   game_master_boss(std::string name) :
     as_gui(nh_, name, boost::bind(&game_master_boss::gui_start_command, this, _1), false),
     action_name_(name), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true), ac_camera("camera_game_master", true),
-    ac_watch_dog("watch_dog_game_master", true), gui_start_flag(false),ai_received_move_flag(false),grasping_done_flag(false),camera_try_again_flag(false)
+    baxter_piece(2),human_piece(1),baxter_starts(true),camera_status(0),gui_start_flag(false)
   {
     as_gui.start(); //start server that waits for gui
 
@@ -106,59 +68,54 @@ public:
 
     ROS_INFO("looking for  camera server.");
     ac_camera.waitForServer(); // wait for ai server to be active
-    ROS_INFO("found camera server.");
-
-    ROS_INFO("looking for  watch dog server server.");
-    ac_watch_dog.waitForServer(); // wait for ai server to be active
-    ROS_INFO("found wach dog server.");
+    ROS_INFO("found camera server.");    
 
   }
 
   ~game_master_boss(void)
   {
+  }  
+
+  void print_gameboard(){
+    //Print gameboard
+    int rows=6;
+    int cols=6;
+    cout << "*********************************" << endl;
+    cout << "************Gameboard************" << endl;
+    cout << "*********************************" << endl;
+    for(int i=0;i<rows;i++){
+      cout << "**";
+      for(int j=0;j<cols;j++){
+        cout << "|" << gameboard[j+rows*i];
+      }
+      cout << "|**" << endl;
+      cout << "_______________" << endl;    
+    }
+    cout << "*********************************" << endl;
   }
   
-  //compare gameboard and say true if exactly one piece is diffrent (a blue one)
-  bool compare_gameboards(std::vector<int> gameboard1,std::vector<int> gameboard2, int player){
-    ROS_INFO("Comparing");
-    int count=0;
-    int diffpos;
-    //debug
-    cout << "*********gameboard************" << endl;
-  for(int i=0;i<6;i++){
-    for(int j=0;j<6;j++){
-      cout << "|" << gameboard1[j+6*i];
+  bool player_move_detected(){
+    //check board for human pieces (must be same num as baxter pieces)
+    int count_baxter_p=0;
+    int count_human_p=0;
+    for(int i=0;i<gameboard.size()-1;i++){
+      if(gameboard[i]==baxter_piece)
+        count_baxter_p++;
+      if(gameboard[i]==human_piece)
+        count_human_p++;
     }
-    cout << "|" << endl;
-    cout << "_______________" << endl;    
-  }
-  cout << "*********************************" << endl;
-
-  cout << "*********gameboard old************" << endl;
-  for(int i=0;i<6;i++){
-    for(int j=0;j<6;j++){
-      cout << "|" << gameboard2[j+6*i];
-    }
-    cout << "|" << endl;
-    cout << "_______________" << endl;    
-  }
-  cout << "*********************************" << endl;
-
-
-    for(int i =0;i<gameboard1.size()-1;i++){
-      if(gameboard1[i]!=gameboard2[i]){
-        count++;
-        diffpos=i;
-        ROS_INFO("found diff");
-      }
-    }
-    if(count==1){
-      if(gameboard1[diffpos]==player)
+    cout << "move detecter got: baxter pieces: " << count_baxter_p << " human pieces: " << count_human_p << endl; 
+    if(baxter_starts){
+      if(count_human_p==count_baxter_p)
         return true;
-      return false;
+      else
+        return false;
     }
-    else{
-      return false;
+    else {
+      if(count_human_p==count_baxter_p+1)
+        return true;
+      else
+        return false;
     }
   }
 
@@ -168,7 +125,6 @@ public:
     //Send the gameboard *******
     game_master::ai_game_masterGoal goal;
     goal.gameboard = gameboard;
-
     // Need boost::bind to pass in the 'this' pointer
     ac_ai.sendGoal(goal,
                 boost::bind(&game_master_boss::received_move_ai, this, _1, _2),
@@ -182,20 +138,25 @@ public:
   void received_move_ai(const actionlib::SimpleClientGoalState& state,
               const game_master::ai_game_masterResultConstPtr& result)
   {
-    ROS_INFO("Finished in state [%s]", state.toString().c_str());
-    //ROS_INFO("Answer: %i", result->sequence.back());
+    //ROS_INFO("Finished in state [%s]", state.toString().c_str());
     ai_move =result->best_move;
-    std::cout << "best move is: " << ai_move << std::endl;
-    ai_received_move_flag=true;
+    //std::cout << "best move is: " << ai_move << std::endl;
+  }
+
+  bool wait_for_result_ai(){
+    if(ac_ai.waitForResult(ros::Duration(10.0)))
+      return true;
+    else
+      return false;
   }
 
 
-void request_update_camera(int update)
+void request_update_camera(int next_player)
   {
     //ask for camera update
-    ROS_INFO("I want an camera update");
+    //ROS_INFO("I want an camera update");
     game_master::camera_game_masterGoal goal;
-    goal.update = update;
+    goal.next_player = next_player;
 
     // Need boost::bind to pass in the 'this' pointer
     ac_camera.sendGoal(goal,
@@ -209,52 +170,26 @@ void request_update_camera(int update)
   void received_update_camera(const actionlib::SimpleClientGoalState& state,
               const game_master::camera_game_masterResultConstPtr& result)
   {
-    ROS_INFO("Finished in state [%s]", state.toString().c_str());
+    //ROS_INFO("Finished in state [%s]", state.toString().c_str());
     //ROS_INFO("Answer: %i", result->sequence.back());
     //get new gameboard here!!!
-    gameboard=result->gameboard;
-    if(watch_dog_done_flag)
-    {
-      gameboardold=result->gameboard;
-      ROS_INFO("updateing to old gameboard********************************* ");
-    }
+    camera_status=result->status;
+    if(camera_status==1)
+      gameboard=result->gameboard;
+    else
+      ROS_WARN("Camera update failed.");   
       
     //TODO: check if only one piece and other stuff
-    ROS_INFO("update_camera_done ");
-    cout << "we got " << result->fail << endl;
-    if(result->fail==1)
-      camera_done_flag=true;
-    else{
-        camera_try_again_flag=true;
-    }
+    //ROS_INFO("update_camera_done ");
+    //cout << " Status is " << result->fail << endl;    
   }
 
-
-
-void request_watch_dog(int start_watch_dog)
-  {
-    //Send the gmaeboard *******
-    game_master::watch_dog_game_masterGoal goal;
-    goal.start_watch_dog = start_watch_dog;
-
-    // Need boost::bind to pass in the 'this' pointer
-    ac_watch_dog.sendGoal(goal,
-                boost::bind(&game_master_boss::received_watch_dog, this, _1, _2),
-                actionlib::SimpleActionClient<game_master::watch_dog_game_masterAction>::SimpleActiveCallback(),
-                actionlib::SimpleActionClient<game_master::watch_dog_game_masterAction>::SimpleFeedbackCallback());
-
+  bool wait_for_result_camera(){
+    if(ac_camera.waitForResult(ros::Duration(10.0)))
+      return true;
+    else
+      return false;
   }
-
-
-  void received_watch_dog(const actionlib::SimpleClientGoalState& state,
-              const game_master::watch_dog_game_masterResultConstPtr& result)
-  {
-    ROS_INFO("Finished in state [%s]", state.toString().c_str());
-    //ROS_INFO("Answer: %i", result->sequence.back());
-    ROS_INFO("watch_dog_done ");
-    //watch_dog_done_flag=true;
-  }
-
 
 
 
@@ -275,10 +210,24 @@ void request_watch_dog(int start_watch_dog)
   void received_grasping_done(const actionlib::SimpleClientGoalState& state,
               const game_master::grasping_baxter_game_masterResultConstPtr& result)
   {
-    ROS_INFO("Finished in state [%s]", state.toString().c_str());
+    //ROS_INFO("Finished in state [%s]", state.toString().c_str());
     //ROS_INFO("Answer: %i", result->sequence.back());
-    ROS_INFO("got move: ");
-    grasping_done_flag=true;
+    //ROS_INFO("got move: ");
+  }
+
+  bool wait_for_result_grasping(){
+    if(ac_grasping_baxter.waitForResult(ros::Duration(30.0)))
+      return true;
+    else
+      return false;
+  }
+  //check if the move done by baxeter is performet correctly
+  bool baxter_move_correct(){
+    //TODO: check entire gameboard
+    if(gameboard[ai_move]==baxter_piece)
+      return true;
+    else
+      return false;
   }
 
 
@@ -310,13 +259,6 @@ void request_watch_dog(int start_watch_dog)
     }
   }
 
-  void checkservers(){
-    ROS_INFO( " Check server");
-    ac_camera.waitForResult(ros::Duration(5.0));
-    ac_camera.waitForServer(); 
-  }
-
-
 
 };
 
@@ -325,9 +267,11 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "gui_game_master");
   ROS_INFO("Start Programm");
-  //start action server
+  //start the boss
   game_master_boss gmb("gui_game_master");
 
+
+//wait for start from GUI TODO: make this in an rviz plugin
   while(ros::ok() && !gmb.gui_start_flag){
     ROS_INFO_THROTTLE(5, "Waiting for GUI");
     ros::spinOnce();
@@ -336,98 +280,131 @@ int main(int argc, char** argv)
 
   ROS_INFO_THROTTLE(1, "GUI OK");
   
-  //init gameboard
+
+//New game starts (Baxter has first move)
+
+
+  //init gameboard 
   gmb.gameboard.clear();
   for (int i = 0; i < 36; ++i)
   {
     gmb.gameboard.push_back(0);
-    gmb.gameboardold.push_back(0);
   }
-
   //player 2 starts (baxtre)
-  gmb.gameboard.push_back(2);
-  gmb.gameboardold.push_back(2);
+  if(gmb.baxter_starts)
+    gmb.gameboard.push_back(gmb.baxter_piece);
+  else
+    gmb.gameboard.push_back(gmb.human_piece);
   
-int EOG=false;
-  //MAIN LOOP+++++++++++++++++
-int update;
 
-//Baxter maxes the first move
+  int EOG=false;
+  //MAIN LOOP+++++++++++++++++
+  int next_player;
+
+
 while(ros::ok() && !EOG)
 {
-  //reset flags
-  gmb.ai_received_move_flag=false;
-  gmb.grasping_done_flag=false;
-  gmb.camera_done_flag=false;
-  gmb.watch_dog_done_flag=true;
-
-
-  // ask AI for a cool move 
+  
+  // ask a move from the AI (send the gameboard)
   gmb.request_move_ai(gmb.gameboard);
 
-  while(ros::ok() && !gmb.ai_received_move_flag){
-    ROS_INFO_THROTTLE(5, "Waiting for Ai");
-    ros::spinOnce();
-    ros::Duration(1.0).sleep();
+  //wait for the AI to provide the move
+  if(gmb.wait_for_result_ai()){
+    ROS_INFO("AI move: %i", gmb.ai_move);
+  }    
+  else{
+    ROS_ERROR("NO AI move in time.");
   }
 
-  ROS_INFO_THROTTLE(1, "Ai ok");
-
-  // send the cool move to the baxter_grasping
+  // send the move to the baxter_grasping
   gmb.request_grasping_baxter(gmb.ai_move);
-
-  while(ros::ok() && !gmb.grasping_done_flag){
-    ROS_INFO_THROTTLE(5, "Waiting for move ");
-    ros::spinOnce();
-    ros::Duration(1.0).sleep();
+  
+  //wait for the grasping node to performe the pick place taask
+  if(gmb.wait_for_result_grasping()){
+    ROS_INFO("Pick place performet");
+  }    
+  else{
+    ROS_ERROR("Failed to pick place in time.");
   }
 
-  ROS_INFO_THROTTLE(1, "move done");
-
-  //ask camera to perform an update (send current plazer)
+  //we check if baxter succesfullie placed the piece
   if(gmb.gameboard[36]==1)
-    update=1;
+    next_player=1;
   if(gmb.gameboard[36]==2)
-    update=2;
-
-  while(ros::ok() && !gmb.compare_gameboards(gmb.gameboard,gmb.gameboardold,2) ){
+    next_player=2;
+  int baxter_needs_help_counter=0;
+  while(ros::ok() && !gmb.baxter_move_correct()){
     ROS_INFO_THROTTLE(5, "Waiting for baxter confirmation ");
     ros::spinOnce();
-    ros::Duration(1.0).sleep();
-
-  gmb.request_update_camera(update);
-
-  while(ros::ok() && !gmb.camera_done_flag ){
-    ROS_INFO_THROTTLE(5, "Waiting for camera ");
-    if(gmb.camera_try_again_flag){
-      ros::Duration(0.5).sleep();
-      gmb.request_update_camera(update);
-      ROS_INFO( "Ww try again for camera ");
-      gmb.camera_try_again_flag=false;
+    //performe camera update
+    gmb.request_update_camera(next_player);
+    if(gmb.wait_for_result_camera()){
+      ROS_INFO("Camera update performed with status: %i",gmb.camera_status); 
+    }      
+    else{
+      ROS_ERROR("Failed to performe camera update n time");
     }
+
+    ros::Duration(1.0).sleep();
+    baxter_needs_help_counter++;
+    if(baxter_needs_help_counter>10)
+      ROS_INFO("It seems I missed it ... can you move my red piece to field num: %i",gmb.ai_move);
+  }
+  if(baxter_needs_help_counter>10)
+    ROS_INFO("Thanks !!!");
+
+  //print the gameboard
+  gmb.print_gameboard();
+
+  //check for EOG
+  if(isEOG(gmb.gameboard)){
+    ROS_INFO("THE GAME IS OVER");
+    if(playerXwin(gmb.gameboard,2)){
+      ROS_INFO("BAXTER WINS!!! ");
+    }
+    if(playerXwin(gmb.gameboard,1)){
+      ROS_INFO("HUMAN WINS??? WTF!!!! ");
+    }
+    if(isdraw(gmb.gameboard)){
+      ROS_INFO("draw");
+    }
+    EOG=true;
+    break;
+  }
+
+
+  //Now we wait for the player to make a move
+  if(gmb.gameboard[36]==1)
+    next_player=1;
+  if(gmb.gameboard[36]==2)
+    next_player=2;
+  int human_needs_help_counter=0;
+  while(ros::ok() && !gmb.player_move_detected()){
+    ROS_INFO_THROTTLE(5, "Waiting for baxter human move");
     ros::spinOnce();
-    ros::Duration(1.0).sleep();
-  }
-
-  gmb.camera_done_flag=false;
-}
-gmb.camera_done_flag=false;
-  ROS_INFO_THROTTLE(1, "camera done");
-  //Print gameboard
-  int rows=6;
-  int cols=6;
-  cout << "***************camera1******************" << endl;
-  for(int i=0;i<rows;i++){
-    for(int j=0;j<cols;j++){
-      cout << "|" << gmb.gameboard[j+rows*i];
+    gmb.request_update_camera(next_player);
+    if(gmb.wait_for_result_camera()){
+      ROS_INFO("Camera update performed with status: %i",gmb.camera_status); 
+    }      
+    else{
+      ROS_ERROR("Failed to performe camera update n time");
     }
-    cout << "|" << endl;
-    cout << "_______________" << endl;    
+    ros::Duration(1.0).sleep();
+    human_needs_help_counter++;
+
+    if(human_needs_help_counter>30)
+      ROS_INFO("What are you wating for Meatbag!!!");
+
   }
-  cout << "*********************************" << endl;
+  if(human_needs_help_counter>30)
+      ROS_INFO("Finnaly!!"); 
+
+ 
+  //print the gameboard
+  gmb.print_gameboard();  
 
   //check for EOG and stuff
-  if(isEOG(gmb.gameboard)){
+  if(game_manager::isEOG(gmb.gameboard)){
     ROS_INFO("THE GAME IS OVER");
     if(playerXwin(gmb.gameboard,2)){
       ROS_INFO("BAXTER WINS!!! ");
@@ -442,145 +419,11 @@ gmb.camera_done_flag=false;
     break;
 
   }
-
-  //ros::Duration(1.0).sleep();
-  //save the gameboard 
-  //gmb.gameboardold=gmb.gameboard;
-  bool playerdone=false;
-  gmb.watch_dog_done_flag=false;
-  //game master watchdog
-  while(ros::ok() && !gmb.compare_gameboards(gmb.gameboard,gmb.gameboardold,1) ){
-    ROS_INFO_THROTTLE(5, "Waiting for watchdog ");
-    ros::spinOnce();
-    ros::Duration(1.0).sleep();
-    //ask camera
-    // ask camera for update
-    if(gmb.gameboard[36]==1)
-      update=1;
-    if(gmb.gameboard[36]==2)
-      update=2;
-    gmb.request_update_camera(update);
-
-    while(ros::ok() && !gmb.camera_done_flag ){
-      //ROS_INFO_THROTTLE(5, "Waiting for camera ");
-      if(gmb.camera_try_again_flag){
-        ros::Duration(0.5).sleep();
-        //gmb.checkservers();
-        gmb.request_update_camera(update);
-        //ROS_INFO( "Ww try again for camera ");
-        gmb.camera_try_again_flag=false;
-      }
-    ros::spinOnce();
-    ros::Duration(1.0).sleep();
-    }
-
-    gmb.camera_done_flag=false;
-
-    //ROS_INFO_THROTTLE(1, "camera done");
-    //playerdone= gmb.compare_gameboards(gmb.gameboard,gmb.gameboardold);
-
-  }
-
-  gmb.watch_dog_done_flag=true ;
-  
-  // the plazer is on
-  /*
-  int wuff=1;
-  gmb.request_watch_dog(wuff);
-
-  while(ros::ok() && !gmb.watch_dog_done_flag ){
-    ROS_INFO_THROTTLE(5, "Waiting for watchdog ");
-    ros::spinOnce();
-    ros::Duration(1.0).sleep();
-  }
-
-  ROS_INFO_THROTTLE(1, "wauzi done");
-*/
-  //player done
-
-
-  
-
-
-  //Print gameboard
-  cout << "**************camera2*******************" << endl;
-  for(int i=0;i<rows;i++){
-    for(int j=0;j<cols;j++){
-      cout << "|" << gmb.gameboard[j+rows*i];
-    }
-    cout << "|" << endl;
-    cout << "_______________" << endl;    
-  }
-  cout << "*********************************" << endl;
-
-  //*************completed one circle
-
-  //check for EOG and stuff
-  if(isEOG(gmb.gameboard)){
-    ROS_INFO("THE GAME IS OVER");
-    if(playerXwin(gmb.gameboard,2)){
-      ROS_INFO("BAXTER WINS!!! ");
-    }
-    if(playerXwin(gmb.gameboard,1)){
-      ROS_INFO("HUMAN WINS??? WTF!!!! ");
-    }
-    if(isdraw(gmb.gameboard)){
-      ROS_INFO("draw");
-    }
-    EOG=true;
-
-  }
-
-
+  ros::spinOnce();
 
 }
-
-  
 
   return 0;
 }
 
 
-
-bool playerXwin(vector<int> gameboard, int player){
-  int win_count=0;
-
-  for(int i=0; i<32; i++)
-  { 
-    win_count=0;
-    for (int j=0; j<5;j++)
-    {
-      if( gameboard[winning_moves[i][j]]==player)
-      {
-
-        win_count++;
-      }
-
-      if(win_count==5)
-      {
-        return true;
-      }
-    }
-  }
-  return false;
-
-}
-
- bool isdraw(vector<int> gameboard)
- {
-  for(int i=0; i<gameboard.size()-1; i++)
-  {
-    if(gameboard[i]==0)
-      return false;
-  }
-  return true;
- }
-
-
- bool isEOG(vector<int> gameboard)
- {
-  if(isdraw(gameboard) || playerXwin(gameboard,1) || playerXwin(gameboard,2))
-    return true;
-
-  return false;
- }
