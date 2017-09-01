@@ -1,0 +1,11 @@
+<library path="lib/libgui">
+  <class name="gui/BaxterDashboard"
+         type="gui::BaxterPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      A panel widget allowing control of the Baxter TTT pipeline
+    </description>
+  </class>
+
+
+</library>

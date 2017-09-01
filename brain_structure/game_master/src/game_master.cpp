@@ -80,16 +80,16 @@ public:
     //Print gameboard
     int rows=6;
     int cols=6;
-    cout << "*********************************" << endl;
-    cout << "************Gameboard************" << endl;
-    cout << "*********************************" << endl;
+    cout << "*****************" << endl;
+    cout << "****Gameboard****" << endl;
+    cout << "*****************" << endl;
     for(int i=0;i<rows;i++){
       cout << "**";
       for(int j=0;j<cols;j++){
         cout << "|" << gameboard[j+rows*i];
       }
       cout << "|**" << endl;
-      cout << "_______________" << endl;    
+      cout << "**_____________**" << endl;    
     }
     cout << "*********************************" << endl;
   }
@@ -279,6 +279,11 @@ int main(int argc, char** argv)
   }
 
   ROS_INFO_THROTTLE(1, "GUI OK");
+
+
+  //TODO: set up the stuff thats specified in gui
+
+  
   
 
 //New game starts (Baxter has first move)
