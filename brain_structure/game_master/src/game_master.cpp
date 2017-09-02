@@ -44,6 +44,7 @@ public:
   
   bool baxter_starts;
   bool gui_start_flag;
+  bool stop_game;
   int ai_move;
   int baxter_piece;
   int human_piece;
@@ -54,7 +55,7 @@ public:
   game_master_boss(std::string name) :
     as_gui(nh_, name, boost::bind(&game_master_boss::gui_start_command, this, _1), false),
     action_name_(name), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true), ac_camera("camera_game_master", true),
-    baxter_piece(2),human_piece(1),baxter_starts(true),camera_status(0),gui_start_flag(false)
+    baxter_piece(2),human_piece(1),baxter_starts(true),camera_status(0),gui_start_flag(false),stop_game(false)
   {
     as_gui.start(); //start server that waits for gui
 
@@ -91,7 +92,21 @@ public:
       cout << "|**" << endl;
       cout << "**_____________**" << endl;    
     }
-    cout << "*********************************" << endl;
+    cout << "*****************" << endl;
+    if(gameboard[36]==baxter_piece)
+      cout << "**Next: Baxter***" << endl;
+    if(gameboard[36]==human_piece)
+      cout << "**Next: Human****" << endl;
+    cout << "*****************" << endl;
+
+  }
+
+  bool gameboard_empty(){
+    for(int i=0;i<gameboard.size()-1;i++){
+      if(gameboard[i]!=0)
+        return false;
+    }
+    return true;
   }
   
   bool player_move_detected(){
@@ -247,6 +262,26 @@ void request_update_camera(int next_player)
     
     //fedback that everything is ok
     as_gui.publishFeedback(feedback_gui);
+
+    //check if start or stop
+    if(goal->start_game==1){
+      stop_game=false;
+      gui_start_flag=true;
+    }
+      
+    if(goal->start_game==2){
+      gui_start_flag=false;
+      stop_game=true;
+    }
+      
+    
+  
+  ROS_INFO("First player: %i", goal->first_player);
+    //check first player
+    if(goal->first_player ==2)
+      baxter_starts=true;
+    if(goal->first_player==1)
+      baxter_starts=false;
     
 
     if(success)
@@ -271,162 +306,207 @@ int main(int argc, char** argv)
   game_master_boss gmb("gui_game_master");
 
 
-//wait for start from GUI TODO: make this in an rviz plugin
-  while(ros::ok() && !gmb.gui_start_flag){
-    ROS_INFO_THROTTLE(5, "Waiting for GUI");
+  //mega main loop
+  while(ros::ok()){
+    start_place:
+    int next_player=0;
+    gmb.gui_start_flag=false;
+    //wait for start from GUI 
+    while(ros::ok() && !gmb.gui_start_flag){
+      ROS_INFO_THROTTLE(5, "Waiting for GUI");
+      ros::spinOnce();
+      ros::Duration(1.0).sleep();
+    }
+
+    //select player and prepare board
+    //init gameboard 
+    gmb.gameboard.clear();
+    for (int i = 0; i < 36; ++i)
+    {
+      gmb.gameboard.push_back(0);
+    }
+    //player 2 starts (baxtre)
+    if(gmb.baxter_starts)
+      gmb.gameboard.push_back(gmb.baxter_piece);
+    else
+      gmb.gameboard.push_back(gmb.baxter_piece);
+
+    //check if gameboard is empty
+    if(gmb.gameboard[36]==1)
+      next_player=1;
+    if(gmb.gameboard[36]==2)
+      next_player=2;
+    bool temp_flag=true;
+    while(ros::ok() && !gmb.gameboard_empty() || temp_flag) {
+      temp_flag=false;
+      ROS_INFO_THROTTLE(5, "Checking if gameboard is empty");
+      ros::spinOnce();
+      //performe camera update
+      gmb.request_update_camera(next_player);
+      if(gmb.wait_for_result_camera()){
+        ROS_INFO("Camera update performed with status: %i",gmb.camera_status); 
+      }      
+      else{
+        ROS_ERROR("Failed to performe camera update n time");
+      }
+      if(!gmb.gameboard_empty())
+        break;
+
+      ros::Duration(1.0).sleep();
+    }
+    if(!gmb.gameboard_empty()){
+      ROS_WARN("No empty Gamboard!! please clean up and try again.");
+      goto start_place;
+    }
+
+    //The game can finnaly start
+    //print the gameboard
+    gmb.print_gameboard();
+
+    int EOG=false;
+    //MAIN game LOOP+++++++++++++++++
+    bool baxter_s=gmb.baxter_starts;
+    
+    while(ros::ok() && !EOG)
+    {
+      //check for stop
+      if(gmb.stop_game)
+        goto start_place;
+      if(baxter_s){
+        baxter_s=true;
+        // ask a move from the AI (send the gameboard)
+        gmb.request_move_ai(gmb.gameboard);
+
+        //wait for the AI to provide the move
+        if(gmb.wait_for_result_ai()){
+          ROS_INFO("AI move: %i", gmb.ai_move);
+        }    
+        else{
+          ROS_ERROR("NO AI move in time.");
+        }
+
+        // send the move to the baxter_grasping
+        gmb.request_grasping_baxter(gmb.ai_move);
+        
+        //wait for the grasping node to performe the pick place taask
+        if(gmb.wait_for_result_grasping()){
+          ROS_INFO("Pick place performet");
+        }    
+        else{
+          ROS_ERROR("Failed to pick place in time.");
+        }
+
+        //we check if baxter succesfullie placed the piece
+        if(gmb.gameboard[36]==1)
+          next_player=1;
+        if(gmb.gameboard[36]==2)
+          next_player=2;
+        int baxter_needs_help_counter=0;
+        while(ros::ok() && !gmb.baxter_move_correct()){
+          //check for stop
+          if(gmb.stop_game)
+            goto start_place;
+          ROS_INFO_THROTTLE(5, "Waiting for baxter confirmation ");
+          ros::spinOnce();
+          //performe camera update
+          gmb.request_update_camera(next_player);
+          if(gmb.wait_for_result_camera()){
+            ROS_INFO("Camera update performed with status: %i",gmb.camera_status); 
+          }      
+          else{
+            ROS_ERROR("Failed to performe camera update n time");
+          }
+
+          ros::Duration(1.0).sleep();
+          baxter_needs_help_counter++;
+          if(baxter_needs_help_counter>10)
+            ROS_INFO("It seems I missed it ... can you move my red piece to field num: %i",gmb.ai_move);
+        }
+        if(baxter_needs_help_counter>10)
+          ROS_INFO("Thanks !!!");
+
+        //print the gameboard
+        gmb.print_gameboard();
+
+        //check for EOG
+        if(isEOG(gmb.gameboard)){
+          ROS_INFO("THE GAME IS OVER");
+          if(playerXwin(gmb.gameboard,2)){
+            ROS_INFO("BAXTER WINS!!! ");
+          }
+          if(playerXwin(gmb.gameboard,1)){
+            ROS_INFO("HUMAN WINS??? WTF!!!! ");
+          }
+          if(isdraw(gmb.gameboard)){
+            ROS_INFO("draw");
+          }
+          EOG=true;
+          break;
+        }
+
+      }
+      //make sure baxter can play next time
+      baxter_s=true;
+
+      //check for stop
+      if(gmb.stop_game)
+        goto start_place;
+      //Now we wait for the player to make a move
+      if(gmb.gameboard[36]==1)
+        next_player=1;
+      if(gmb.gameboard[36]==2)
+        next_player=2;
+      int human_needs_help_counter=0;
+      while(ros::ok() && !gmb.player_move_detected()){
+        //check for stop
+        if(gmb.stop_game)
+        goto start_place;
+        ROS_INFO_THROTTLE(5, "Waiting for  human move");
+        ros::spinOnce();
+        gmb.request_update_camera(next_player);
+        if(gmb.wait_for_result_camera()){
+          ROS_INFO("Camera update performed with status: %i",gmb.camera_status); 
+        }      
+        else{
+          ROS_ERROR("Failed to performe camera update n time");
+        }
+        ros::Duration(1.0).sleep();
+        human_needs_help_counter++;
+
+        if(human_needs_help_counter>30)
+          ROS_INFO("What are you wating for Meatbag!!!");
+
+      }
+      if(human_needs_help_counter>30)
+          ROS_INFO("Finnaly!!"); 
+
+     
+      //print the gameboard
+      gmb.print_gameboard();  
+
+      //check for EOG and stuff
+      if(game_manager::isEOG(gmb.gameboard)){
+        ROS_INFO("THE GAME IS OVER");
+        if(playerXwin(gmb.gameboard,2)){
+          ROS_INFO("BAXTER WINS!!! ");
+        }
+        if(playerXwin(gmb.gameboard,1)){
+          ROS_INFO("HUMAN WINS??? WTF!!!! ");
+        }
+        if(isdraw(gmb.gameboard)){
+          ROS_INFO("draw");
+        }
+        EOG=true;
+        break;
+
+      }
+      ros::spinOnce();
+
+    }
+
     ros::spinOnce();
-    ros::Duration(1.0).sleep();
   }
 
-  ROS_INFO_THROTTLE(1, "GUI OK");
-
-
-  //TODO: set up the stuff thats specified in gui
-
-  
-  
-
-//New game starts (Baxter has first move)
-
-
-  //init gameboard 
-  gmb.gameboard.clear();
-  for (int i = 0; i < 36; ++i)
-  {
-    gmb.gameboard.push_back(0);
-  }
-  //player 2 starts (baxtre)
-  if(gmb.baxter_starts)
-    gmb.gameboard.push_back(gmb.baxter_piece);
-  else
-    gmb.gameboard.push_back(gmb.human_piece);
-  
-
-  int EOG=false;
-  //MAIN LOOP+++++++++++++++++
-  int next_player;
-
-
-while(ros::ok() && !EOG)
-{
-  
-  // ask a move from the AI (send the gameboard)
-  gmb.request_move_ai(gmb.gameboard);
-
-  //wait for the AI to provide the move
-  if(gmb.wait_for_result_ai()){
-    ROS_INFO("AI move: %i", gmb.ai_move);
-  }    
-  else{
-    ROS_ERROR("NO AI move in time.");
-  }
-
-  // send the move to the baxter_grasping
-  gmb.request_grasping_baxter(gmb.ai_move);
-  
-  //wait for the grasping node to performe the pick place taask
-  if(gmb.wait_for_result_grasping()){
-    ROS_INFO("Pick place performet");
-  }    
-  else{
-    ROS_ERROR("Failed to pick place in time.");
-  }
-
-  //we check if baxter succesfullie placed the piece
-  if(gmb.gameboard[36]==1)
-    next_player=1;
-  if(gmb.gameboard[36]==2)
-    next_player=2;
-  int baxter_needs_help_counter=0;
-  while(ros::ok() && !gmb.baxter_move_correct()){
-    ROS_INFO_THROTTLE(5, "Waiting for baxter confirmation ");
-    ros::spinOnce();
-    //performe camera update
-    gmb.request_update_camera(next_player);
-    if(gmb.wait_for_result_camera()){
-      ROS_INFO("Camera update performed with status: %i",gmb.camera_status); 
-    }      
-    else{
-      ROS_ERROR("Failed to performe camera update n time");
-    }
-
-    ros::Duration(1.0).sleep();
-    baxter_needs_help_counter++;
-    if(baxter_needs_help_counter>10)
-      ROS_INFO("It seems I missed it ... can you move my red piece to field num: %i",gmb.ai_move);
-  }
-  if(baxter_needs_help_counter>10)
-    ROS_INFO("Thanks !!!");
-
-  //print the gameboard
-  gmb.print_gameboard();
-
-  //check for EOG
-  if(isEOG(gmb.gameboard)){
-    ROS_INFO("THE GAME IS OVER");
-    if(playerXwin(gmb.gameboard,2)){
-      ROS_INFO("BAXTER WINS!!! ");
-    }
-    if(playerXwin(gmb.gameboard,1)){
-      ROS_INFO("HUMAN WINS??? WTF!!!! ");
-    }
-    if(isdraw(gmb.gameboard)){
-      ROS_INFO("draw");
-    }
-    EOG=true;
-    break;
-  }
-
-
-  //Now we wait for the player to make a move
-  if(gmb.gameboard[36]==1)
-    next_player=1;
-  if(gmb.gameboard[36]==2)
-    next_player=2;
-  int human_needs_help_counter=0;
-  while(ros::ok() && !gmb.player_move_detected()){
-    ROS_INFO_THROTTLE(5, "Waiting for baxter human move");
-    ros::spinOnce();
-    gmb.request_update_camera(next_player);
-    if(gmb.wait_for_result_camera()){
-      ROS_INFO("Camera update performed with status: %i",gmb.camera_status); 
-    }      
-    else{
-      ROS_ERROR("Failed to performe camera update n time");
-    }
-    ros::Duration(1.0).sleep();
-    human_needs_help_counter++;
-
-    if(human_needs_help_counter>30)
-      ROS_INFO("What are you wating for Meatbag!!!");
-
-  }
-  if(human_needs_help_counter>30)
-      ROS_INFO("Finnaly!!"); 
-
- 
-  //print the gameboard
-  gmb.print_gameboard();  
-
-  //check for EOG and stuff
-  if(game_manager::isEOG(gmb.gameboard)){
-    ROS_INFO("THE GAME IS OVER");
-    if(playerXwin(gmb.gameboard,2)){
-      ROS_INFO("BAXTER WINS!!! ");
-    }
-    if(playerXwin(gmb.gameboard,1)){
-      ROS_INFO("HUMAN WINS??? WTF!!!! ");
-    }
-    if(isdraw(gmb.gameboard)){
-      ROS_INFO("draw");
-    }
-    EOG=true;
-    break;
-
-  }
-  ros::spinOnce();
-
-}
 
   return 0;
 }

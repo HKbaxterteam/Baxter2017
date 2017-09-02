@@ -3,8 +3,7 @@
 
 using namespace std;
 
-const int scoremap[6] = {
-        0, 1, 10, 1000, 100000, 1000000 };
+const int scoremap[6] = {0, 1, 10, 1000, 100000, 10000000 };
 
 const int winning_moves[32][5] = 
   {

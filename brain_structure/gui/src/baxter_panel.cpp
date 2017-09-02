@@ -47,70 +47,62 @@
 #include <QGroupBox>
 #include <QSpinBox>
 
-#include <sensor_msgs/Joy.h>
+#include <std_msgs/Int8.h>
 
 #include "baxter_panel.h"
 
+#include <actionlib/client/simple_action_client.h>
+#include <gui/gui_game_masterAction.h>
+
 namespace gui
 {
-BaxterPanel::BaxterPanel(QWidget* parent) : rviz::Panel(parent)
+BaxterPanel::BaxterPanel(QWidget* parent) : rviz::Panel(parent), ac_gui("gui_game_master", true)
 {
+  //action cummunication
+  ROS_INFO("Waiting for action server to start.");
+  ac_gui.waitForServer();
+  ROS_INFO("Action server started, sending goal.");
   // Create a push button
-  btn_next_ = new QPushButton(this);
-  btn_next_->setText("Next");
-  connect(btn_next_, SIGNAL(clicked()), this, SLOT(moveNext()));
-
-  // Create a push button
-  btn_auto_ = new QPushButton(this);
-  btn_auto_->setText("Auto");
-  connect(btn_auto_, SIGNAL(clicked()), this, SLOT(moveAuto()));
-
-  // Create a push button
-  btn_full_auto_ = new QPushButton(this);
-  btn_full_auto_->setText("Full Auto");
-  connect(btn_full_auto_, SIGNAL(clicked()), this, SLOT(moveFullAuto()));
+  btn_start_ = new QPushButton(this);
+  btn_start_->setText("Start game");
+  connect(btn_start_, SIGNAL(clicked()), this, SLOT(gameStart()));
 
   // Create a push button
   btn_stop_ = new QPushButton(this);
-  btn_stop_->setText("Stop");
-  connect(btn_stop_, SIGNAL(clicked()), this, SLOT(moveStop()));
+  btn_stop_->setText("Stop game");
+  connect(btn_stop_, SIGNAL(clicked()), this, SLOT(gameStop()));
 
-  // Create a push button
-  btn_reset_ = new QPushButton(this);
-  btn_reset_->setText("Zero");
-  connect(btn_reset_, SIGNAL(clicked()), this, SLOT(zeroRobot()));
+  //create radio buttons
+  rb_baxter_start_ = new QRadioButton("Baxter starts", this);
+  rb_human_start_ = new QRadioButton("Human starts", this);
 
-  // Create a push button
-  btn_bringup_ = new QPushButton(this);
-  btn_bringup_->setText("Play");
-  connect(btn_bringup_, SIGNAL(clicked()), this, SLOT(playTrajectory()));
+  //layout radio buttons
+  QVBoxLayout* layoutrb = new QVBoxLayout;
+  layoutrb->addWidget(rb_baxter_start_);
+  layoutrb->addWidget(rb_human_start_);
 
-  // Create a push button
-  btn_home_ = new QPushButton(this);
-  btn_home_->setText("Home");
-  connect(btn_home_, SIGNAL(clicked()), this, SLOT(homeRobot()));
 
-  // Create a push button
-  btn_grip_ = new QPushButton(this);
-  btn_grip_->setText("Stop");
-  connect(btn_grip_, SIGNAL(clicked()), this, SLOT(stopTrajectory()));
 
   // Horizontal Layout
   QHBoxLayout* hlayout1 = new QHBoxLayout;
-  hlayout1->addWidget(btn_next_);
-  hlayout1->addWidget(btn_auto_);
-  hlayout1->addWidget(btn_full_auto_);
+  hlayout1->addWidget(btn_start_);
   hlayout1->addWidget(btn_stop_);
+  //hlayout1->addWidget(rb_baxter_start_);
+  //hlayout1->addWidget(rb_human_start_);
+
+  hlayout1->addLayout(layoutrb);
+
+  //create status lable
+  lbl_status_ =new QLabel(this);
+
+  
 
   // Horizontal Layout
   QHBoxLayout* hlayout2 = new QHBoxLayout;
-  hlayout2->addWidget(new QLabel(QString("Robot:")));
-  hlayout2->addWidget(btn_home_);
-  hlayout2->addWidget(btn_reset_);
-  hlayout2->addWidget(btn_bringup_);
-  hlayout2->addWidget(btn_grip_);
-  // hlayout2->addWidget(spin_box_);
-  // hlayout2->addWidget(combo_mode_);
+  hlayout2->addWidget(new QLabel(QString("Baxter status:")));
+  hlayout2->addWidget(lbl_status_);
+
+  
 
   // Horizontal Layout
   // QHBoxLayout* hlayout3 = new QHBoxLayout;
@@ -129,92 +121,67 @@ BaxterPanel::BaxterPanel(QWidget* parent) : rviz::Panel(parent)
   // layout->addLayout( hlayout3 );
   setLayout(layout);
 
-  joy_publisher_ = nh_.advertise<sensor_msgs::Joy>("/moveit_rviz_dashboard", 1);
+  //set the baxter radio button to on
+  rb_baxter_start_->setChecked(true);
 
-  btn_next_->setEnabled(true);
-  btn_auto_->setEnabled(true);
-  btn_full_auto_->setEnabled(true);
+  btn_publisher_ = nh_.advertise<std_msgs::Int8>("/TTTgame/guicontroll", 1);
+
 }
 
-void BaxterPanel::moveNext()
+void BaxterPanel::gameStart()
 {
-  ROS_INFO_STREAM_NAMED("moveit_dashboard", "Move to next step");
+  ROS_INFO_STREAM_NAMED("baxter_gui", "Starting the game ...");
+  std_msgs::Int8 msg;
+  msg.data = 1;
+  btn_publisher_.publish(msg);
+  lbl_status_->setText("starting");
 
-  sensor_msgs::Joy msg;
-  msg.buttons.resize(9);
-  msg.buttons[1] = 1;
-  joy_publisher_.publish(msg);
+  gui_game_masterGoal goal;
+  goal.first_player = 76;
+    goal.start_game = 1;
+    if(rb_baxter_start_->isChecked())
+      goal.first_player = 2;
+    if(rb_human_start_->isChecked())
+      goal.first_player=1;
+
+    // Need boost::bind to pass in the 'this' pointer
+    ac_gui.sendGoal(goal,
+                boost::bind(&BaxterPanel::received_game_started, this, _1, _2),
+                actionlib::SimpleActionClient<gui_game_masterAction>::SimpleActiveCallback(),
+                actionlib::SimpleActionClient<gui_game_masterAction>::SimpleFeedbackCallback());
 }
 
-void BaxterPanel::moveAuto()
+void BaxterPanel::gameStop()
 {
-  ROS_INFO_STREAM_NAMED("moveit_dashboard", "Running auto step");
+  ROS_INFO_STREAM_NAMED("baxter_gui", "Stopping the game ...");
+  
+  std_msgs::Int8 msg;
+  msg.data = 2;
+  btn_publisher_.publish(msg);
+  lbl_status_->setText("stoping");
+  gui_game_masterGoal goal;
+    goal.start_game = 2;
+    if(rb_baxter_start_->isChecked() )
+      goal.first_player = 2;
+    if(rb_human_start_->isChecked() )
+      goal.first_player=1;
 
-  sensor_msgs::Joy msg;
-  msg.buttons.resize(9);
-  msg.buttons[2] = 1;
-  joy_publisher_.publish(msg);
+    // Need boost::bind to pass in the 'this' pointer
+    ac_gui.sendGoal(goal,
+                boost::bind(&BaxterPanel::received_game_started, this, _1, _2),
+                actionlib::SimpleActionClient<gui_game_masterAction>::SimpleActiveCallback(),
+                actionlib::SimpleActionClient<gui_game_masterAction>::SimpleFeedbackCallback());
+
 }
 
-void BaxterPanel::moveFullAuto()
-{
-  ROS_INFO_STREAM_NAMED("moveit_dashboard", "Running full auto");
+void BaxterPanel::received_game_started(const actionlib::SimpleClientGoalState& state,
+              const gui_game_masterResultConstPtr& result)
+  {
+    ROS_INFO("Finished in state [%s]", state.toString().c_str());
+    //ROS_INFO("Answer: %i", result->sequence.back());
+    lbl_status_->setText("game started!!!");
+  }
 
-  sensor_msgs::Joy msg;
-  msg.buttons.resize(9);
-  msg.buttons[3] = 1;
-  joy_publisher_.publish(msg);
-}
-
-void BaxterPanel::moveStop()
-{
-  ROS_INFO_STREAM_NAMED("moveit_dashboard", "Stopping");
-
-  sensor_msgs::Joy msg;
-  msg.buttons.resize(9);
-  msg.buttons[4] = 1;
-  joy_publisher_.publish(msg);
-}
-
-void BaxterPanel::zeroRobot()
-{
-  ROS_INFO_STREAM_NAMED("moveit_dashboard", "Zero Pose");
-
-  sensor_msgs::Joy msg;
-  msg.buttons.resize(9);
-  msg.buttons[5] = 1;
-  joy_publisher_.publish(msg);
-}
-
-void BaxterPanel::playTrajectory()
-{
-  ROS_INFO_STREAM_NAMED("moveit_dashboard", "Play trajectory");
-
-  sensor_msgs::Joy msg;
-  msg.buttons.resize(9);
-  msg.buttons[6] = 1;
-  joy_publisher_.publish(msg);
-}
-
-void BaxterPanel::stopTrajectory()
-{
-  ROS_INFO_STREAM_NAMED("moveit_dashboard", "Stopping trajectory");
-
-  sensor_msgs::Joy msg;
-  msg.buttons.resize(9);
-  msg.buttons[7] = 1;
-  joy_publisher_.publish(msg);
-}
-
-void BaxterPanel::homeRobot()
-{
-  ROS_INFO_STREAM_NAMED("moveit_dashboard", "Home Pose");
-
-  sensor_msgs::Joy msg;
-  msg.buttons.resize(9);
-  msg.buttons[8] = 1;
-  joy_publisher_.publish(msg);
-}
 
 // Save all configuration data from this panel to the given
 // Config object.  It is important here that you call save()

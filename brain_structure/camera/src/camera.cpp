@@ -53,6 +53,7 @@ protected:
   camera::camera_game_masterFeedback feedback_camera; // create messages that are used to published feedback
   camera::camera_game_masterResult result_camera;    // create messages that are used to published result
   image_transport::Publisher image_pub_gameboard_;
+  image_transport::Publisher image_pub_contour_;
 
 public:
   //debug
@@ -84,6 +85,7 @@ public:
     // Subscrive and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &camera_boss::imageCb, this);
     image_pub_gameboard_ = it_.advertise("/TTTgame/only_gameboard", 1);
+    image_pub_contour_ = it_.advertise("/TTTgame/contour", 1);
     
     //debug
         if(debug_flag){
@@ -136,6 +138,7 @@ public:
 
     //ROS_INFO("Preparing camera update");
     player=goal->next_player;
+    cv_bridge::CvImage out_msgc;
     // helper variables
     ros::Rate r(1);
     bool success = false;
@@ -179,6 +182,24 @@ public:
     // Find contours
     findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
       
+
+      //publish contours to ros
+    drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
+      countourtest;
+      drawing.copyTo(countourtest);
+        
+      for( int i = 0; i< contours.size(); i++ )
+      {
+        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+        drawContours( drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
+      }
+      
+      out_msgc.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
+      out_msgc.header.stamp =ros::Time::now(); // new timestamp
+      out_msgc.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
+      out_msgc.image    = drawing; 
+      
+
     if(debug_flag){
       // Draw contours
       drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
@@ -423,7 +444,9 @@ public:
       out_msg.header.stamp =ros::Time::now(); // new timestamp
       out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
       out_msg.image    = warpedCard; 
-      image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message  
+      image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message 
+
+      image_pub_contour_.publish(out_msgc.toImageMsg()); //transfer to Ros image message   
 
       }
       else{

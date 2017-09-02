@@ -25,7 +25,7 @@ protected:
 
   int maxdepth;
 
-  std::vector<int> scoremap;
+  //std::vector<int> scoremap;
   //std::vector<std::vector<int> > winning_moves;
   std::vector<int> scoresafe;
   //const int winning_moves[32][5];
@@ -57,6 +57,13 @@ public:
     std::vector<int> bestmove;
 
     ROS_INFO("calculating move");
+    cout << gameboard[0] << endl;
+    cout << gameboard.size()<< endl;
+
+    for(int i = 0;i<gameboard.size();i++){
+      cout << gameboard[i] ;
+    }
+    ROS_INFO("calculating movesss");
     //CALCULATE THE AI MOVE******************************
     //***************************************************
     
@@ -85,7 +92,7 @@ public:
         
     }
     srand (time(NULL));
-    int choosenmove=bestmove[rand() % bestmove.size()];
+    int choosenmove= bestmove[rand() % bestmove.size()];
     cout << "we have: " << countmax << " best move " << endl;
 
     cout << "choosenmove " << choosenmove << endl;
@@ -188,14 +195,16 @@ public:
           v=alphabeta(nextgameboards[i],depth-1,alpha,beta,false);
           //save the best move to play it later
           if(depth==maxdepth){
-            scoresafe.push_back(v);
+            scoresafe.push_back(std::numeric_limits<int>::min());
+            cout << scoresafe.size() << endl;
+            scoresafe[i]=v;
           }
               //update bestval
           bestValue=std::max(bestValue,v);
           //update alpha
           alpha=std::max(alpha,bestValue);
           //beta cut-off
-          if(beta<=alpha)
+          if(beta<alpha)
             break;
       }
       return bestValue;
@@ -211,7 +220,7 @@ public:
           //update beta
           beta=std::min(beta,bestValue);
           //alpha cut off
-          if(beta<=alpha)
+          if(beta<alpha)
             break;
       }
       return bestValue;

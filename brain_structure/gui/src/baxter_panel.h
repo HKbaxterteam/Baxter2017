@@ -50,6 +50,11 @@
 
 #include <QPushButton>
 #include <QComboBox>
+#include <QLabel>
+#include <QRadioButton>
+
+   #include <actionlib/client/simple_action_client.h>
+#include <gui/gui_game_masterAction.h>
 
 class QLineEdit;
 class QSpinBox;
@@ -90,37 +95,25 @@ public Q_SLOTS:
   // Here we declare some internal slots.
 protected Q_SLOTS:
 
-  void moveNext();
+  void gameStart();
 
-  void moveAuto();
+  void gameStop();
 
-  void moveFullAuto();
-
-  void moveStop();
-
-  void zeroRobot();
-
-  void playTrajectory();
-
-  void stopTrajectory();
-
-  void homeRobot();
+  void received_game_started(const actionlib::SimpleClientGoalState& state,
+              const gui_game_masterResultConstPtr& result);
 
   // Then we finish up with protected member variables.
 protected:
-  QPushButton *btn_next_;
-  QPushButton *btn_auto_;
-  QPushButton *btn_full_auto_;
+  QPushButton *btn_start_;
   QPushButton *btn_stop_;
-  QPushButton *btn_reset_;
-  QPushButton *btn_bringup_;
-  QPushButton *btn_home_;
-  QPushButton *btn_grip_;
-  QSpinBox *spin_box_;
-  QComboBox *combo_mode_;
+  QLabel *lbl_status_;
+  QRadioButton *rb_baxter_start_;
+  QRadioButton *rb_human_start_;
 
+  //action client
+  actionlib::SimpleActionClient<gui_game_masterAction> ac_gui;
   // The ROS publishers
-  ros::Publisher joy_publisher_;
+  ros::Publisher btn_publisher_;
 
   // The ROS node handle.
   ros::NodeHandle nh_;
