@@ -6,9 +6,9 @@
 //************************************************
 
 //************************************************
-//Description: detects game board from the cut out 
-// real board with the help of the outer boarder.
-// detects game pieces and fills in gameboard array
+//Description: detects the game board from the cut-out of the
+// real board with the help of the outer contour.
+// Detects game pieces and fills in gameboard array
 // with a diff threshold (diffence between blue 
 // and red)
 //************************************************
@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//Namespace
+//namespace
 using namespace cv;
 using namespace std;
 
@@ -72,7 +72,7 @@ public:
   //debug output for rviz
   Mat tl_cut_board, tr_contours, bl_only_gameboard;
  
-  //NOTE:Debug camera only works if the debug imshow windows are closed before the next request ... it crasehes otherwise
+  //NOTE:Debug camera only works if the debug imshow windows are closed before the next request ... it crashes otherwise
 
   //constructor
   camera_boss(std::string name) :
@@ -81,7 +81,7 @@ public:
     diff_threshold(25),cut_board_ok(false)
   {
     as_camera.start();
-    // Subscrive and publisher
+    // Subscribe and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &camera_boss::imageCb, this);
     image_pub_gameboard_ = it_.advertise("/TTTgame/camera_views", 1);
     
@@ -132,7 +132,7 @@ public:
       }     
     }
 
-  //callback stgarte from actionlib (send from game_maste)
+  //callback start game from actionlib (send from game_master)
   void camera_start_command(const camera::camera_game_masterGoalConstPtr &goal)
   {
     ROS_DEBUG_NAMED("camera","Starting camera update");
@@ -143,7 +143,7 @@ public:
     // helper variables
     bool success = false;
 
-    //check if cut board is ok. If not send feedback
+    //check if cut board is ok,if not send feedback
     if(!cut_board_ok){
       ROS_WARN("Cutout of board is wrong.");
       feedback_camera.progress=-1;      
@@ -164,7 +164,7 @@ public:
     }
     */
 
-    //for rviz visulasation
+    //for rviz visualization
     Size rviz_sub_size(400,400);
     org.copyTo(tl_cut_board);
     resize(tl_cut_board,tl_cut_board,rviz_sub_size);//resize image
@@ -173,13 +173,13 @@ public:
     // process the cut out board and detect the pieces***
     //convert to gray scale
     cvtColor(org, input_grey, CV_BGR2GRAY);
-    // find contur in the image  
+    // find contour in the image  
     int thresh = 100;
     int max_thresh = 255;
     RNG rng(12345);
-    // blur the image with gausian
+    // blur the image with gaussian
     blur(input_grey, input_grey, Size(3, 3));
-    // Detect edges using canny
+    // detect edges using canny-edge-detector
     Canny( org, canny_output, thresh, thresh*2, 3 );
     // Find contours
     findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
@@ -209,11 +209,11 @@ public:
       waitKey(1);
     }
 
-    //find lagrest countur (gameboard boundingbox)
+    //find largest contour (game board bounding box)
     int largest_area=0;
     int largest_contour_index=0;
 
-    // get bigges conure
+    // get biggest contour
     for( size_t i = 0; i< contours.size(); i++ ) // iterate through each contour.
       {
         double area = contourArea( contours[i] );  //  Find the area of contour
@@ -224,7 +224,7 @@ public:
         }
       }
 
-    //output for sclicing up the thing
+    //output for slicing up the thing
     Mat warpedCard(rviz_sub_size, CV_8UC3);
     //check that the largest area is at least half of the image
     if(largest_area>org.rows*org.cols/2.5)
@@ -232,7 +232,7 @@ public:
       ROS_DEBUG_NAMED("camera","Found area.");
       if(debug_flag)
       {
-        //draw onlz bigges countur
+        //draw only biggest contour
         Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
         drawContours( countourtest, contours, largest_contour_index, color);
         waitKey(1);
@@ -251,14 +251,14 @@ public:
         
       contours.push_back(corners);
 
-      //target points for homogentranform
+      //target points for homogenous tranform
       vector<Point2f> dest;
       dest.push_back(Point2f(0,0)); 
       dest.push_back(Point2f(warpedCard.cols, 0.0));    
       dest.push_back(Point2f(warpedCard.cols, warpedCard.rows));  
       dest.push_back(Point2f(0, warpedCard.rows));  
       //inputpoints
-      //make sure approx and dest are in the right order ALWAZS
+      //make sure corner and dest are in the right order ALWAYS
       vector<Point2f> inpoint;
       for(int j=0; j<corners.size();j++){
         if(corners[j].x<org.cols/2 && corners[j].y<org.rows/2){
@@ -309,17 +309,17 @@ public:
         warpedCard.copyTo(bl_only_gameboard);
         resize(bl_only_gameboard,bl_only_gameboard,rviz_sub_size);//resize image
 
-        //slize it up!!!
+        //slice it up!!!
         int rowcount=0;
         int colcount=0;
         int image_width=warpedCard.size().width;
         int image_height=warpedCard.size().height;
-        //defult rect
+        //default rect
         Rect Rec(0, 0, 10, 10);
-        //clear the gameboard
+        //clear the game board
         gameboard.clear();
 
-        //Loop through all ROI and se if its red or blue
+        //Loop through all ROI and check if its red or blue
         for(int i=0;i<cols*rows;i++){
           //ROI
           Rec.x=image_width/cols*colcount;
@@ -343,7 +343,7 @@ public:
             cout << "diff blue: " << meancolor[0] - meancolor[2] <<  endl;
           }
 
-          // difference aproch to detect pieces
+          // difference approach to detect pieces
           if(meancolor[2] - meancolor[0] > diff_threshold ){
             ROS_DEBUG_NAMED("camera", "Red-piece detected");
             br_roi.setTo(cv::Scalar(0, 0, 255));
@@ -376,7 +376,7 @@ public:
         success=true;
         
         if(debug_flag){
-          //Print gameboard
+          //Print game board
           cout << "*********************************" << endl;
           for(int i=0;i<rows;i++){
           for(int j=0;j<cols;j++){

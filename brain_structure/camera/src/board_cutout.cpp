@@ -7,8 +7,7 @@
 
 //************************************************
 // Description: cuts out the board in a rough 
-// fashion to make finding the gameboard contour 
-// easier
+//fashion to make it easier finding the game board contour
 //************************************************
 
 //ros
@@ -20,11 +19,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/opencv.hpp"
 
-//Namespace
+//namespace
 using namespace cv;  
 using namespace std;  
 
-//Class board_cutout
+//class board_cutout
 class board_cutout
 {
   protected:
@@ -47,7 +46,7 @@ class board_cutout
     //constructor
     board_cutout() : it_(n_),debug_flag(false),cutout_x(10),cutout_y(80),cutout_width(450),cutout_height(350) 
     {
-      // Subscrive and publisher
+      // Subscriber and publisher
       image_sub_raw_ = it_.subscribe("/TTTgame/webcam/input_image_raw", 1, &board_cutout::imageCb, this);
       image_pub_cut_ = it_.advertise("/TTTgame/cut_board", 1);
       
@@ -100,7 +99,7 @@ class board_cutout
       out_msg.header.stamp =ros::Time::now(); // new timestamp
       out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
       out_msg.image    = cutorg; 
-      image_pub_cut_.publish(out_msg.toImageMsg()); //transfer to Ros image message  
+      image_pub_cut_.publish(out_msg.toImageMsg()); //transfer to ros image message  
 
       //debug output
       if(debug_flag){
