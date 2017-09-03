@@ -11,8 +11,9 @@
 // easier
 //************************************************
 
-//Includes
+//ros
 #include <ros/ros.h>
+//opencv
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -22,7 +23,6 @@
 //Namespace
 using namespace cv;  
 using namespace std;  
-
 
 //Class board_cutout
 class board_cutout
@@ -92,7 +92,7 @@ class board_cutout
       }
       // we cut out a smaller portion of the image
       Rect Rec(cutout_x, cutout_y, cutout_width, cutout_height);
-       Mat cutorg  = org(Rec).clone();
+      Mat cutorg  = org(Rec).clone();
 
       //publish the image in ros
       cv_bridge::CvImage out_msg;
@@ -108,17 +108,15 @@ class board_cutout
         imshow("Cut output", cutorg); //show the frame in "MyVideo" window
         waitKey(1);
       }
-
-
   }
 };
 
 //Main
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "board_tracker");
+  ros::init(argc, argv, "board_cut_out");
   board_cutout bc;
-  ROS_INFO("board tracker initilized");
+  ROS_INFO("board cutout initilized");
   ros::spin();
   return 0;
 }
