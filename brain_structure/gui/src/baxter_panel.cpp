@@ -1,12 +1,12 @@
 //************************************************
 //**********Baxter 2017 Tic-Tac-Toe***************
-//*******Nadine Drollinger & Michael Welle********
+//*******Nadine Drollinger & Michael C. Welle*****
 //************************************************
 //*******GUI node - gui *********
 //************************************************
 
 //************************************************
-//Description: The gui to controll the Baxter.
+//Description: The gui to control the Baxter.
 // Realised as plugin for rviz.
 //************************************************
 
@@ -39,7 +39,7 @@ BaxterPanel::BaxterPanel(QWidget* parent) : rviz::Panel(parent), ac_gui("gui_gam
 as_guistatus(nh_, "game_master_gui", boost::bind(&BaxterPanel::gui_status_reciver, this, _1), false),
 action_name_("game_master_gui")
 {
-  //action cummunication
+  //action communication
   ROS_DEBUG_NAMED("gui", "Waiting for action server to start.");
   ac_gui.waitForServer();
   ROS_DEBUG_NAMED("gui", "Action server started, sending goal.");
@@ -82,7 +82,7 @@ action_name_("game_master_gui")
   QGroupBox* group_box2 = new QGroupBox();
   group_box2->setLayout(hlayout3);
   group_box2->setFlat(false);
-  // Verticle layout
+  // Vertical layout
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addLayout(hlayout1);
   layout->addWidget(group_box);
@@ -92,7 +92,7 @@ action_name_("game_master_gui")
   //set the baxter radio button to on
   rb_baxter_start_->setChecked(true);
 
-  //action cummunication
+  //action communication
   ROS_DEBUG_NAMED("gui", "String gui action status server");
   as_guistatus.start();
   ROS_DEBUG_NAMED("gui", "Action server started");
@@ -102,7 +102,7 @@ action_name_("game_master_gui")
   ROS_DEBUG_NAMED("gui", "Action server started, sending goal.");
 }
 
-//recive status updates from game_master
+//receive status updates from game_master
 void BaxterPanel::gui_status_reciver(const gui::game_master_guiGoalConstPtr &goal)
   {
     ROS_DEBUG_NAMED("gui","Recived gui status from game_master.");
@@ -122,7 +122,7 @@ void BaxterPanel::gui_status_reciver(const gui::game_master_guiGoalConstPtr &goa
 void BaxterPanel::gameStart()
 {
   ROS_DEBUG_NAMED("gui", "Starting the game ...");
-  //send start and which player start to the game_master
+  //send start and which player starts to the game_master
   gui_game_masterGoal goal;
   goal.start_game = 1;
   if(rb_baxter_start_->isChecked())
@@ -152,7 +152,7 @@ void BaxterPanel::gameStop()
 
 }
 
-//sucedded in sendeing start or stop
+//sucedded in sending start or stop
 void BaxterPanel::received_game_started(const actionlib::SimpleClientGoalState& state,
               const gui_game_masterResultConstPtr& result)
   {
