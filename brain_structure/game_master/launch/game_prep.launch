@@ -12,9 +12,13 @@
 <node pkg="ai" type="ai" name="ai" output="screen" />
 
 <!-- starte grasping_baxter launch-->
-<include file="$(find grasping_baxter)/launch/grasping.launch" />
+<include file="$(find grasping_baxter)/launch/grasping.launch">
+ 
+</include>
 
 <!-- starte camera launch-->
-<include file="$(find camera)/launch/camera.launch"/>
+<include file="$(find camera)/launch/camera.launch">
+   <arg name="video_device" value="/dev/video1" />
+</include>
 
 </launch>

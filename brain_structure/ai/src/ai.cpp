@@ -1,136 +1,130 @@
+//************************************************
+//**********Baxter 2017 Tic-Tac-Toe***************
+//*******Nadine Drollinger & Michael Welle********
+//************************************************
+//*******AI node - ai ****************************
+//************************************************
 
+//************************************************
+//Description: getting the gameboard and using 
+// min-max search with alpha-beta pruning.
+// to make it more interesting baxter chooses 
+// randomly from the moveset if there are multiple 
+// best moves.
+//************************************************
+
+//ros
 #include <ros/ros.h>
+//action
 #include <actionlib/server/simple_action_server.h>
 #include <ai/ai_game_masterAction.h>
-
+//c++
 #include <stdio.h>      /* printf, scanf, puts, NULL */
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
-
+#include <vector>
+//shared header for game function
 #include <game_master/game_manager.h>
 
-#include <vector>
 
 using namespace std;
+//ai class
 class ai_boss
 {
 protected:
-
+  //node handler
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<ai::ai_game_masterAction> as_ai; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
+  //config action server
+  actionlib::SimpleActionServer<ai::ai_game_masterAction> as_ai; 
   std::string action_name_;
-  // create messages that are used to published feedback/result
-  ai::ai_game_masterFeedback feedback_ai; // create messages that are used to published feedback
-  ai::ai_game_masterResult result_ai;    // create messages that are used to published result
-
-  int maxdepth;
-
-  //std::vector<int> scoremap;
-  //std::vector<std::vector<int> > winning_moves;
-  std::vector<int> scoresafe;
-  //const int winning_moves[32][5];
+  ai::ai_game_masterFeedback feedback_ai; 
+  ai::ai_game_masterResult result_ai;    
+  
 
 public:
+  //vars
+  int maxdepth;
+  std::vector<int> scoresafe;
 
-	bool ai_start_flag;
-
+  //constructor
   ai_boss(std::string name) :
   as_ai(nh_, name, boost::bind(&ai_boss::ai_start_command, this, _1), false),
-  action_name_(name), ai_start_flag(false),maxdepth(4)
+  action_name_(name), maxdepth(4)
   {
+    ROS_DEBUG_NAMED("ai_node", "Initilizing ai boss");
+    //start the ai server
     as_ai.start();
     
   }
-
+  
+  //deconstructor
   ~ai_boss(void)
   {
   }
 
-
+  //function that gets called through the action goal
   void ai_start_command(const ai::ai_game_masterGoalConstPtr &goal)
   {
-    // helper variables
-    ros::Rate r(1);
-    bool success = true;
+    // publish info to the console for the user
+    ROS_DEBUG_NAMED("ai_node", "%s: start received", action_name_.c_str());
+    ROS_DEBUG_NAMED("ai_node", "Looking for the best move");
+    //extract gameboard
     vector<int> gameboard = goal->gameboard;
+    //helpvars
     vector<int> posMoves;
     std::vector<int> bestmove;
-
-    ROS_INFO("calculating move");
-    cout << gameboard[0] << endl;
-    cout << gameboard.size()<< endl;
-
-    for(int i = 0;i<gameboard.size();i++){
-      cout << gameboard[i] ;
-    }
-    ROS_INFO("calculating movesss");
-    //CALCULATE THE AI MOVE******************************
-    //***************************************************
-    
-    //give me best move
     scoresafe.clear();
-
+    //alphabeta search
     int score = alphabeta(gameboard,maxdepth,std::numeric_limits<int>::min(),numeric_limits<int>::max(), true);
-    
+    //get the next possible boards
     vector<vector<int> > nextgameboards =findposMoves(gameboard);
-
-    //find best move
+    //find the max score
     int max=scoresafe[0];
     for(int i =0; i<scoresafe.size();i++){
-      cout << "score for: " << i << " is " << scoresafe[i] << endl;
-
+      ROS_DEBUG_NAMED("ai_node", "Score for board: %i is %i",i,scoresafe[i]);
       if(scoresafe[i]>max){
         max=scoresafe[i];
       }
     }
+    //how many best moves?
     int countmax=0;
     for(int i=0;i<scoresafe.size();i++){
       if(scoresafe[i]==max){
         bestmove.push_back(i);
         countmax++;
-      }
-        
+      }        
     }
+    //seed rand
     srand (time(NULL));
+    //chose a random move from the bestmove set
     int choosenmove= bestmove[rand() % bestmove.size()];
-    cout << "we have: " << countmax << " best move " << endl;
+    ROS_DEBUG_NAMED("ai_node","Found %i best moves.",countmax);
 
-    cout << "choosenmove " << choosenmove << endl;
-  //find real number
-  int field;
-  for(int i =0;i<gameboard.size()-1;i++){
-    if(gameboard[i]!=nextgameboards[choosenmove][i])
-      field=i;
-  }
-  cout << "place piece on field " << field << endl;
-
-
-    feedback_ai.progress=100;	// progess in percentage
-
-    // publish info to the console for the user
-    ROS_INFO("%s: start received", action_name_.c_str());
-	  
-    //fedback that everything is ok
-    as_ai.publishFeedback(feedback_ai);
-    
-
-    if(success)
-    {
-    	ROS_INFO("calculating move done");
-      result_ai.best_move = field;	// retuŕn best move between 0...48
-      ROS_INFO("%s: Done", action_name_.c_str());
-      // set the action state to succeeded
-      as_ai.setSucceeded(result_ai);
-      ai_start_flag=true;
+    //find field number for move
+    int field;
+    for(int i =0;i<gameboard.size()-1;i++){
+      if(gameboard[i]!=nextgameboards[choosenmove][i])
+        field=i;
     }
+    ROS_DEBUG_NAMED("ai_node","Place piece on field: %i",field);
+    //send the best move as result back
+    result_ai.best_move = field;	// retuŕn best move between 0...48
+    ROS_DEBUG_NAMED("ai_node", "%s: Done", action_name_.c_str());
+    // set the action state to succeeded
+    as_ai.setSucceeded(result_ai);
   }
 
+  //function to find next gameboards
   vector<vector<int> > findposMoves(vector<int> gameboard)
-  { int i=0;
+  { 
+    //helpervar
+    int i=0;
     vector<vector<int> > nextgameboards;
     vector<int> gameboardtemp;
+    //loop through all fields
     for(int i =0; i<gameboard.size()-1;i++){
       gameboardtemp=gameboard;
+      //if empty switch players and place piece
       if(gameboardtemp[i]==0){
         if(gameboardtemp[36]==1){
           gameboardtemp[36]=2;
@@ -147,12 +141,13 @@ public:
     return nextgameboards;
   } 
 
-
+  //heuristik
   int ScoringFunction(vector<int> gameboard)
   {
     int score=0;
     int red;
     int blue;
+    //win scors
     if(playerXwin(gameboard, 1))
       return -10000000;
     if(playerXwin(gameboard, 2))
@@ -180,6 +175,7 @@ public:
     return score;
   }
 
+  //alphabeta search
   int alphabeta(vector<int> gameboard,int depth,int alpha, int beta, bool maximizingPlayer)
   {
     if (depth == 0 || isEOG(gameboard)) return ScoringFunction(gameboard);
@@ -196,10 +192,9 @@ public:
           //save the best move to play it later
           if(depth==maxdepth){
             scoresafe.push_back(std::numeric_limits<int>::min());
-            cout << scoresafe.size() << endl;
             scoresafe[i]=v;
           }
-              //update bestval
+          //update bestval
           bestValue=std::max(bestValue,v);
           //update alpha
           alpha=std::max(alpha,bestValue);
@@ -231,6 +226,7 @@ public:
 };
 
 
+//main
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "ai_game_master");
@@ -240,8 +236,7 @@ int main(int argc, char** argv)
 
   while(ros::ok()){
   ros::spinOnce();
-  //ROS_INFO("AIIIIIIIIIII Still alive");
-  ros::Duration(1.0).sleep();
+  ros::Duration(0.2).sleep();
  }
    
 

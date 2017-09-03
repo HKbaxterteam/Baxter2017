@@ -12,7 +12,7 @@
 
 <!-- starte joint_trajectory_action_server-->
 <include file="$(find baxter_moveit_config)/launch/baxter_grippers.launch">
-  <arg name="right_electric_gripper" value="false"/>
+  <!--arg name="right_electric_gripper" value="false"/-->
   <arg name="kinect2" value="true" />
 
 </include>

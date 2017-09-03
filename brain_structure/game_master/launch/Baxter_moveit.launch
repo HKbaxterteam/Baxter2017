@@ -14,6 +14,7 @@
 <include file="$(find baxter_moveit_config)/launch/baxter_grippers.launch">
   <!--arg name="right_electric_gripper" value="false"/-->
   <arg name="kinect2" value="true" />
+  <arg name="rviz_config" value="$(find game_master)/launch/baxter_TTT.rviz" />
 
 </include>
 
