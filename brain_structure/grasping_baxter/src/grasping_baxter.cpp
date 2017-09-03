@@ -1,6 +1,6 @@
 //************************************************
 //**********Baxter 2017 Tic-Tac-Toe***************
-//*******Nadine Drollinger & Michael Welle********
+//*******Nadine Drollinger & Michael C.Welle********
 //************************************************
 //*******Grasping node - grasping_baxter *********
 //************************************************
@@ -52,7 +52,7 @@ class grasping_baxter_boss
 protected:
   //nodehandler
   ros::NodeHandle nh_;
-  //action initilizang
+  //action initializing
   actionlib::SimpleActionServer<grasping_baxter::grasping_baxter_game_masterAction> as_grasping_baxter; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
   std::string action_name_;
   grasping_baxter::grasping_baxter_game_masterFeedback feedback_grasping_baxter; // create messages that are used to published feedback
@@ -83,7 +83,7 @@ public:
   geometry_msgs::PoseStamped p0_pose;
   geometry_msgs::PoseStamped pick_up_pose;
   
-  //ofset yaw for ar codes
+  //offset yaw for ar-codes
   double offset_ar_tag_yaw;
   // offset from ar to p0 (field(0)) 
   double offset_p0_pose_x;
@@ -93,13 +93,13 @@ public:
   double offset_pick_up_pose_x;
   double offset_pick_up_pose_y;
   double offset_pick_up_pose_z;
-  //x a y offset for field to field
+  //x & y offset for field to field
   double offset_ff_x;
   double offset_ff_y;
-  // x a y offset stack to stack
+  // x & y offset stack to stack
   double offset_ss_x;
   double offset_ss_y;
-  // x a y offset for center pose
+  // x & y offset for center pose
   double offset_bc_x;
   double offset_bc_y;
   double offset_bc_z;
@@ -136,7 +136,7 @@ public:
   {
   }
 
-  //calibrate right Gripper
+  //calibrate right gripper
   bool calibraterightGripper()
   {
     ROS_DEBUG_NAMED("grasping_baxter", "Calibrate right arm gripper");
@@ -150,7 +150,7 @@ public:
     return true;
   }
 
-  //close right Gripper (sucking)
+  //close right gripper (sucking)
   bool closerightGripper()
   {
     ROS_DEBUG_NAMED("grasping_baxter", "Closing right arm gripper");
@@ -178,7 +178,7 @@ public:
     return true;
   }
 
-  //Calback from ar-tag, takes the avarage of 10 poses (in sliding avarage mode) 
+  //Callback from ar-tag, takes the avarage of 10 poses (in sliding avarage mode) 
   // and calculates pickup pose and p0 pose debending on it.
   void ar_code_pose_callback(const ar_track_alvar_msgs::AlvarMarkers::ConstPtr& msg)
   {
@@ -205,7 +205,7 @@ public:
     if(msg->markers[1].pose.pose.position.y < msg->markers[0].pose.pose.position.y)
       ar_code_r_pose=msg->markers[1].pose;
 
-    //comine the two ar_code poses to one
+    //combine the two ar_code poses to one
     ar_code_pose.header.frame_id="/world";
     ar_code_pose.header.stamp = ros::Time::now();;
     // we take the abs diff of the markers and half them
@@ -224,7 +224,7 @@ public:
     theta = (theta_l+theta_r)/2;
     ar_code_pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
 
-    //sliding avarage calculation vor ar-tag pose
+    //sliding average calculation for ar-tag pose
     ar_tag_pose_vector[art_vec_position]=ar_code_pose;
     art_vec_position++;
     if(art_vec_position>=10)
@@ -254,7 +254,7 @@ public:
 
     //update the enviroment with the ar_code pose
     grasping_baxter_environment();
-    // calculate p0 pose using x and y ofsset (known)
+    // calculate p0 pose using x and y offset (known)
     theta=tf::getYaw(ar_code_pose.pose.orientation);
     p0_pose.header.stamp=ros::Time::now();
     p0_pose.header.frame_id="/world";
@@ -277,8 +277,8 @@ public:
     p0_pose.pose.position.y=p0.at<double>(1,0);
     //set z
     p0_pose.pose.position.z=ar_code_pose.pose.position.z+offset_p0_pose_z;
-    //set oriantion
-    //NOTE: not sure why baxter need this oriantation to grasp from the top ...
+    //set orientation
+    //NOTE: not sure why baxter need this orientation to grasp from the top ...
     p0_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
     //calculate offsets to other P (p1-58)
     t = (Mat_<double>(2,1)  <<
@@ -287,10 +287,10 @@ public:
     t = r*t;
     offset_ff_x =  t.at<double>(0,0);
     offset_ff_y =  t.at<double>(1,0);
-    //calculate pickup pose pose dependig on how many pieces are left
+    //calculate pickup pose  dependig on how many pieces are left
     pick_up_pose.header.stamp=ros::Time::now();
     pick_up_pose.header.frame_id="/world";
-    // calc Ppu with ar at origin
+    // calc pick up pose with ar at origin
     Mat ppu = (Mat_<double>(2,1) <<
                     offset_pick_up_pose_x,
                     offset_pick_up_pose_y);
@@ -310,9 +310,9 @@ public:
     //set z
     pick_up_pose.pose.position.z=ar_code_pose.pose.position.z+offset_pick_up_pose_z;
     //set oriantion
-    //NOTE: not sure why baxter need this oriantation to grasp from the top ...
+    //NOTE: not sure why baxter need this orientation to grasp from the top ...
     pick_up_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
-    //addjust pick up pose depending on on which tower we are emptieng
+    //adjust pick up pose depending on which tower we are picking from
     //calc tower offsets
     t = (Mat_<double>(2,1)  <<
                     0.065,
@@ -325,7 +325,7 @@ public:
       pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
       pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
     }
-    //3 stack
+    //third stack
     if(num_game_pieces_left<7){
       pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
       pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
@@ -351,7 +351,7 @@ public:
     target_pose=pick_up_pose;
 
     //TODO:find a nicer way to do this
-    //move to pick up pose + some z magring
+    //move to pick up pose + some z margin
     target_pose.pose.position.z +=0.05;    
     bool success=false;
     group.setPoseTarget(target_pose);
@@ -368,7 +368,7 @@ public:
     if(num_game_pieces_left % 6==0)
       pieces_in_stack=6;
     
-    //move down following a cartasian path
+    //move down following a cartesian path
     geometry_msgs::Pose car_target_pose;
     //translate into pose
     car_target_pose.position=pick_up_pose.pose.position;
@@ -409,7 +409,7 @@ public:
     ROS_DEBUG_NAMED("grasping_baxter", "Pieces left in game: %i",num_game_pieces_left);  
     
     //move up again 
-    //move up following a cartasian path
+    //move up following a cartesian path
     waypoints.clear();
     //add more points depending on how many pieces are left
     for(int i =0; i<6-pieces_in_stack+5;i++){
@@ -503,7 +503,7 @@ public:
 
 //NOTE: This is only for debug purposes 
   /*
-// picks up a pice and delivers it to evry position on the board
+// picks up a piece and delivers it to evrey position on the board
   void picking_test(){
 
     //simulate callback
@@ -615,7 +615,7 @@ public:
   */
 
 
-  //desinge the envirorment to avoid collisions
+  //designe the environrment to avoid collisions
   //NOTE: Musst be the same as the real world gameboard
   void grasping_baxter_environment(){
     ROS_DEBUG_NAMED("grasping_baxter","Updating grasping enviroment");
@@ -663,7 +663,7 @@ public:
     group.setPlanningTime(20);
     group.setStartStateToCurrentState();
 
-  	//store all collision object in this vector
+  	//store all collision objects in this vector
   	std::vector<moveit_msgs::CollisionObject> all_collision_objects;
 
   	//kinect object
@@ -700,7 +700,7 @@ public:
   	cube.dimensions[0] = 3*cell_size;
   	cube.dimensions[1] = 0.065;
   	cube.dimensions[2] = 0.065;
-    //difine pose
+    //define pose
   	geometry_msgs::Pose piece_box_pose;
     piece_box_pose.orientation.w = 1.0;
   	piece_box_pose.position.x = gameboard_x+cell_size;
@@ -827,7 +827,7 @@ public:
   void grasping_baxter_start_command(const grasping_baxter::grasping_baxter_game_masterGoalConstPtr &goal)
   {
     ROS_DEBUG_NAMED("grasping_baxter", "%s: start received", action_name_.c_str());
-    //wher do we want to go?
+    //where do we want to go?
     target_field =goal->move;
     //use RRT 
     group.setPlannerId("RRTConnectkConfigDefault");
