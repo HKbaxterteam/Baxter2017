@@ -51,6 +51,7 @@ set(SOURCE_FILES
     FILES
 	DIRECTORY action
     FILES gui_game_master.action
+    game_master_gui.action
  )
 
 ## Generate added messages and services with any dependencies listed here

@@ -6,7 +6,7 @@
 //************************************************
 
 //************************************************
-//Description: The Main node that controlls the 
+// Description: The Main node that controlls the 
 // game. 
 //************************************************
 
@@ -18,8 +18,9 @@
 #include <game_master/gui_game_masterAction.h>
 #include <game_master/grasping_baxter_game_masterAction.h> // links action file 
 #include <game_master/camera_game_masterAction.h>
-#include <game_master/watch_dog_game_masterAction.h>
+#include <game_master/game_master_guiAction.h>
 #include "game_master/game_manager.h"
+#include <std_msgs/String.h>
 
 using namespace std;
 
@@ -32,6 +33,7 @@ protected:
   actionlib::SimpleActionClient<game_master::ai_game_masterAction> ac_ai;
   actionlib::SimpleActionClient<game_master::grasping_baxter_game_masterAction> ac_grasping_baxter;
   actionlib::SimpleActionClient<game_master::camera_game_masterAction> ac_camera;
+  actionlib::SimpleActionClient<game_master::game_master_guiAction> ac_guistatus;
   
   std::string action_name_;
   // create messages that are used to published feedback/result
@@ -54,8 +56,9 @@ public:
 
   game_master_boss(std::string name) :
     as_gui(nh_, name, boost::bind(&game_master_boss::gui_start_command, this, _1), false),
-    action_name_(name), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true), ac_camera("camera_game_master", true),
-    baxter_piece(2),human_piece(1),baxter_starts(true),camera_status(0),gui_start_flag(false),stop_game(false)
+    action_name_(name), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true),
+    ac_camera("camera_game_master", true), ac_guistatus("game_master_gui", true), baxter_piece(2),human_piece(1),baxter_starts(true),
+    camera_status(0),gui_start_flag(false),stop_game(false)
   {
     as_gui.start(); //start server that waits for gui
 
@@ -69,7 +72,12 @@ public:
 
     ROS_INFO("looking for  camera server.");
     ac_camera.waitForServer(); // wait for ai server to be active
-    ROS_INFO("found camera server.");    
+    ROS_INFO("found camera server.");  
+
+    //action cummunication
+  ROS_INFO("Looking for gui server.");
+  ac_guistatus.waitForServer();
+  ROS_INFO("found gui server");  
 
   }
 
@@ -93,12 +101,7 @@ public:
       cout << "**_____________**" << endl;    
     }
     cout << "*****************" << endl;
-    if(gameboard[36]==baxter_piece)
-      cout << "**Next: Baxter***" << endl;
-    if(gameboard[36]==human_piece)
-      cout << "**Next: Human****" << endl;
-    cout << "*****************" << endl;
-
+    
   }
 
   bool gameboard_empty(){
@@ -119,7 +122,7 @@ public:
       if(gameboard[i]==human_piece)
         count_human_p++;
     }
-    cout << "move detecter got: baxter pieces: " << count_baxter_p << " human pieces: " << count_human_p << endl; 
+    cout << "move detector got: baxter pieces: " << count_baxter_p << " human pieces: " << count_human_p << endl; 
     if(baxter_starts){
       if(count_human_p==count_baxter_p)
         return true;
@@ -295,6 +298,33 @@ void request_update_camera(int next_player)
   }
 
 
+  void send_gui_status(std::string status, std::string baxter_says)
+  {
+    //Send the gameboard *******
+    //ROS_INFO("Sending away the status====");
+    game_master::game_master_guiGoal goal;
+    goal.status = status;
+    goal.baxter_says=baxter_says;
+    // Need boost::bind to pass in the 'this' pointer
+    ac_guistatus.sendGoal(goal,
+                boost::bind(&game_master_boss::received_gui_feedback, this, _1, _2),
+                actionlib::SimpleActionClient<game_master::game_master_guiAction>::SimpleActiveCallback(),
+                actionlib::SimpleActionClient<game_master::game_master_guiAction>::SimpleFeedbackCallback());
+
+  }
+
+
+
+  void received_gui_feedback(const actionlib::SimpleClientGoalState& state,
+              const game_master::game_master_guiResultConstPtr& result)
+  {
+    ROS_DEBUG("Gui Feedback receved");
+    //ROS_INFO("Finished in state [%s]", state.toString().c_str());
+    //ai_move =result->best_move;
+    //std::cout << "best move is: " << ai_move << std::endl;
+  }
+
+
 };
 
 
@@ -312,7 +342,10 @@ int main(int argc, char** argv)
     int next_player=0;
     gmb.gui_start_flag=false;
     //wait for start from GUI 
+    //send first words
+    
     while(ros::ok() && !gmb.gui_start_flag){
+      gmb.send_gui_status("Waiting for start.","Whats up man! do we play or what!?");
       ROS_INFO_THROTTLE(5, "Waiting for GUI");
       ros::spinOnce();
       ros::Duration(1.0).sleep();
@@ -332,6 +365,8 @@ int main(int argc, char** argv)
       gmb.gameboard.push_back(gmb.baxter_piece);
 
     //check if gameboard is empty
+    gmb.send_gui_status("Checking gameboard ...","Let's se if we can play.");
+      
     if(gmb.gameboard[36]==1)
       next_player=1;
     if(gmb.gameboard[36]==2)
@@ -355,7 +390,9 @@ int main(int argc, char** argv)
       ros::Duration(1.0).sleep();
     }
     if(!gmb.gameboard_empty()){
+      gmb.send_gui_status("Gamboard not empty","Clean the board man!");
       ROS_WARN("No empty Gamboard!! please clean up and try again.");
+      ros::Duration(3.0).sleep();
       goto start_place;
     }
 
@@ -367,12 +404,16 @@ int main(int argc, char** argv)
     //MAIN game LOOP+++++++++++++++++
     bool baxter_s=gmb.baxter_starts;
     
+    gmb.send_gui_status("Game start","Let's gooooo");
+      
     while(ros::ok() && !EOG)
     {
       //check for stop
       if(gmb.stop_game)
         goto start_place;
       if(baxter_s){
+        gmb.send_gui_status("Baxter AI","Let me think about a good move...");
+    
         baxter_s=true;
         // ask a move from the AI (send the gameboard)
         gmb.request_move_ai(gmb.gameboard);
@@ -385,6 +426,8 @@ int main(int argc, char** argv)
           ROS_ERROR("NO AI move in time.");
         }
 
+        gmb.send_gui_status("Baxter Grasping","Look at this cool move");
+    
         // send the move to the baxter_grasping
         gmb.request_grasping_baxter(gmb.ai_move);
         
@@ -397,6 +440,8 @@ int main(int argc, char** argv)
         }
 
         //we check if baxter succesfullie placed the piece
+        gmb.send_gui_status("Baxter checking move","Did I manage to do it?");
+    
         if(gmb.gameboard[36]==1)
           next_player=1;
         if(gmb.gameboard[36]==2)
@@ -419,11 +464,18 @@ int main(int argc, char** argv)
 
           ros::Duration(1.0).sleep();
           baxter_needs_help_counter++;
-          if(baxter_needs_help_counter>10)
-            ROS_INFO("It seems I missed it ... can you move my red piece to field num: %i",gmb.ai_move);
-        }
+          if(baxter_needs_help_counter>10){
+            std::ostringstream baxy;
+            baxy << "It seems I missed it ... can you move my red piece to field num: " << gmb.ai_move;
+            gmb.send_gui_status("Baxter move failed", baxy.str());
+            ROS_WARN("Baxter missed the target. Set piece to: %i",gmb.ai_move);        
+          }
+            }
         if(baxter_needs_help_counter>10)
-          ROS_INFO("Thanks !!!");
+        {
+          gmb.send_gui_status("Baxter move success","Thanks a lot!!");    
+        }
+          
 
         //print the gameboard
         gmb.print_gameboard();
@@ -445,10 +497,12 @@ int main(int argc, char** argv)
         }
 
       }
+      ros::Duration(1.0).sleep();
       //make sure baxter can play next time
       baxter_s=true;
 
       //check for stop
+      gmb.send_gui_status("Human move","Do your best!!!"); 
       if(gmb.stop_game)
         goto start_place;
       //Now we wait for the player to make a move
@@ -489,17 +543,21 @@ int main(int argc, char** argv)
         ROS_INFO("THE GAME IS OVER");
         if(playerXwin(gmb.gameboard,2)){
           ROS_INFO("BAXTER WINS!!! ");
+          gmb.send_gui_status("Baxter WINS","MUAHSHAHAHHAHHAHAHA"); 
         }
         if(playerXwin(gmb.gameboard,1)){
           ROS_INFO("HUMAN WINS??? WTF!!!! ");
+          gmb.send_gui_status("Baxter LOSSES","That can not be!!!!"); 
         }
         if(isdraw(gmb.gameboard)){
           ROS_INFO("draw");
+          gmb.send_gui_status("Game is a draw","Good game man"); 
         }
         EOG=true;
         break;
 
       }
+      ros::Duration(1.0).sleep();
       ros::spinOnce();
 
     }

@@ -53,8 +53,10 @@
 #include <QLabel>
 #include <QRadioButton>
 
-   #include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/server/simple_action_server.h>
 #include <gui/gui_game_masterAction.h>
+#include <gui/game_master_guiAction.h>
 
 class QLineEdit;
 class QSpinBox;
@@ -102,21 +104,31 @@ protected Q_SLOTS:
   void received_game_started(const actionlib::SimpleClientGoalState& state,
               const gui_game_masterResultConstPtr& result);
 
+  void gui_status_reciver(const gui::game_master_guiGoalConstPtr &goal);
+
   // Then we finish up with protected member variables.
 protected:
   QPushButton *btn_start_;
   QPushButton *btn_stop_;
   QLabel *lbl_status_;
+  QLabel *lbl_baxter_says_;
   QRadioButton *rb_baxter_start_;
   QRadioButton *rb_human_start_;
+  // The ROS node handle.
+  ros::NodeHandle nh_;
 
   //action client
   actionlib::SimpleActionClient<gui_game_masterAction> ac_gui;
+  
+  
   // The ROS publishers
   ros::Publisher btn_publisher_;
 
-  // The ROS node handle.
-  ros::NodeHandle nh_;
+  
+  actionlib::SimpleActionServer<gui::game_master_guiAction> as_guistatus; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
+  gui::game_master_guiFeedback feedback_game_master_gui; // create messages that are used to published feedback
+  gui::game_master_guiResult result_game_master_gui;    // create messages that are used to published result
+  std::string action_name_;
 };
 
 }  // end namespace gui

@@ -72,6 +72,9 @@ public:
   Mat org, subImage, input_grey;
   Mat filter_image_red, filter_image_blue;
   Mat canny_output, drawing, countourtest;
+  //debug output for rviz
+  Mat tl_cut_board, tr_contours, bl_only_gameboard;
+
   
   //NOTE:Debug camera only works if the debug imshow windows are closed before the next request ... it crasehes otherwise
 
@@ -84,8 +87,7 @@ public:
     as_camera.start();
     // Subscrive and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &camera_boss::imageCb, this);
-    image_pub_gameboard_ = it_.advertise("/TTTgame/only_gameboard", 1);
-    image_pub_contour_ = it_.advertise("/TTTgame/contour", 1);
+    image_pub_gameboard_ = it_.advertise("/TTTgame/camera_views", 1);
     
     //debug
         if(debug_flag){
@@ -117,6 +119,7 @@ public:
       }
       // process the image
       org = cv_ptr->image;
+
       //debug
       if(debug_flag){
         waitKey(1);
@@ -163,6 +166,12 @@ public:
       
     }
     */
+
+    //for rviz
+    Size rviz_sub_size(400,400);
+    org.copyTo(tl_cut_board);
+    resize(tl_cut_board,tl_cut_board,rviz_sub_size);//resize image
+    Mat br_detected_board(rviz_sub_size, CV_8UC3);
   
     // process the cut out board and detect the pieces***
     // feddback
@@ -184,22 +193,18 @@ public:
       
 
       //publish contours to ros
-    drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
-      countourtest;
-      drawing.copyTo(countourtest);
-        
-      for( int i = 0; i< contours.size(); i++ )
-      {
-        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-        drawContours( drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
-      }
-      
-      out_msgc.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
-      out_msgc.header.stamp =ros::Time::now(); // new timestamp
-      out_msgc.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
-      out_msgc.image    = drawing; 
-      
+    //for rviz
+    tr_contours = Mat::zeros( canny_output.size(), CV_8UC3 );
+         
+    for( int i = 0; i< contours.size(); i++ )
+    {
+      Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+      drawContours( tr_contours, contours, i, color, 2, 8, hierarchy, 0, Point() );
+    }
+    resize(tr_contours,tr_contours,rviz_sub_size);//resize image
 
+      
+      
     if(debug_flag){
       // Draw contours
       drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
@@ -233,7 +238,7 @@ public:
       }
 
     //output for sclicing up the thing
-    Mat warpedCard(400, 400, CV_8UC3);
+    Mat warpedCard(rviz_sub_size, CV_8UC3);
     //check that the largest area is at least half of the image
     if(largest_area>org.rows*org.cols/2.5)
     {
@@ -335,6 +340,12 @@ public:
           waitKey(1);
         }
 
+        //for rviz
+        warpedCard.copyTo(bl_only_gameboard);
+        resize(bl_only_gameboard,bl_only_gameboard,rviz_sub_size);//resize image
+
+        
+
         //slize it up!!!
         int rowcount=0;
         int colcount=0;
@@ -355,6 +366,7 @@ public:
           
           //copy to new sub image 
           subImage = warpedCard(Rec).clone();
+          Mat br_roi =br_detected_board(Rec);
           waitKey(10);
 
           //debug subimages  
@@ -377,17 +389,20 @@ public:
           if(meancolor[2] - meancolor[0] > diff_threshold ){
             if(debug_flag)
               ROS_INFO_STREAM( " Red-piece detected" );
+            br_roi.setTo(cv::Scalar(0, 0, 255));
             gameboard.push_back(2);
           }
           if(meancolor[0] - meancolor[2] > diff_threshold){
             if(debug_flag)
               ROS_INFO_STREAM( " Blue-piece detected" );  
+            br_roi.setTo(cv::Scalar(255, 0, 0));
             gameboard.push_back(1);
           }
           if(meancolor[2] - meancolor[0] < diff_threshold && meancolor[0] - meancolor[2] < diff_threshold){
             if(debug_flag)
               ROS_INFO_STREAM( " No-piece detected" );  
             gameboard.push_back(0);
+            br_roi.setTo(cv::Scalar(0, 0, 0));
           }
 
           //keep track of ROI
@@ -401,6 +416,10 @@ public:
           }
           
         }
+
+        //rviz
+        resize(br_detected_board,br_detected_board,rviz_sub_size);//resize image
+
 
         // feddback
         feedback_camera.progress=100; // progress in %    
@@ -438,16 +457,22 @@ public:
         result_camera.status =1;
         // set the action state to succeeded
         as_camera.setSucceeded(result_camera);
+
+        //rviz stitch it
+        Mat rviz_out(rviz_sub_size*2, CV_8UC3);
+        tl_cut_board.copyTo(rviz_out(Rect(0,0,rviz_sub_size.width,rviz_sub_size.height)));
+        tr_contours.copyTo(rviz_out(Rect(rviz_sub_size.width,0,rviz_sub_size.width,rviz_sub_size.height)));
+        bl_only_gameboard.copyTo(rviz_out(Rect(0,rviz_sub_size.height,rviz_sub_size.width,rviz_sub_size.height)));
+        br_detected_board.copyTo(rviz_out(Rect(rviz_sub_size.width,rviz_sub_size.height,rviz_sub_size.width,rviz_sub_size.height)));
+        
         //publish the image in ros
       cv_bridge::CvImage out_msg;
       out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
       out_msg.header.stamp =ros::Time::now(); // new timestamp
       out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
-      out_msg.image    = warpedCard; 
+      out_msg.image    = rviz_out; 
       image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message 
-
-      image_pub_contour_.publish(out_msgc.toImageMsg()); //transfer to Ros image message   
-
+      
       }
       else{
         //We failed

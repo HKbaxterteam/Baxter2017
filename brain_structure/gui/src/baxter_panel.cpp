@@ -46,17 +46,24 @@
 #include <QTimer>
 #include <QGroupBox>
 #include <QSpinBox>
+#include <QString>
 
 #include <std_msgs/Int8.h>
 
 #include "baxter_panel.h"
 
 #include <actionlib/client/simple_action_client.h>
+#include <actionlib/server/simple_action_server.h>
 #include <gui/gui_game_masterAction.h>
+#include <game_master/game_master_guiAction.h>
+
+#include <std_msgs/String.h>
 
 namespace gui
 {
-BaxterPanel::BaxterPanel(QWidget* parent) : rviz::Panel(parent), ac_gui("gui_game_master", true)
+BaxterPanel::BaxterPanel(QWidget* parent) : rviz::Panel(parent), ac_gui("gui_game_master", true),
+as_guistatus(nh_, "game_master_gui", boost::bind(&BaxterPanel::gui_status_reciver, this, _1), false),
+action_name_("game_master_gui")
 {
   //action cummunication
   ROS_INFO("Waiting for action server to start.");
@@ -94,6 +101,7 @@ BaxterPanel::BaxterPanel(QWidget* parent) : rviz::Panel(parent), ac_gui("gui_gam
 
   //create status lable
   lbl_status_ =new QLabel(this);
+  lbl_baxter_says_ =new QLabel(this);
 
   
 
@@ -101,6 +109,10 @@ BaxterPanel::BaxterPanel(QWidget* parent) : rviz::Panel(parent), ac_gui("gui_gam
   QHBoxLayout* hlayout2 = new QHBoxLayout;
   hlayout2->addWidget(new QLabel(QString("Baxter status:")));
   hlayout2->addWidget(lbl_status_);
+
+  QHBoxLayout* hlayout3 = new QHBoxLayout;
+  hlayout3->addWidget(new QLabel(QString("Baxter says:")));
+  hlayout3->addWidget(lbl_baxter_says_);
 
   
 
@@ -114,19 +126,54 @@ BaxterPanel::BaxterPanel(QWidget* parent) : rviz::Panel(parent), ac_gui("gui_gam
   group_box->setLayout(hlayout2);
   group_box->setFlat(false);
 
+  // Group box
+  QGroupBox* group_box2 = new QGroupBox();
+  group_box2->setLayout(hlayout3);
+  group_box2->setFlat(false);
+
   // Verticle layout
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addLayout(hlayout1);
   layout->addWidget(group_box);
+  layout->addWidget(group_box2);
+
   // layout->addLayout( hlayout3 );
   setLayout(layout);
 
   //set the baxter radio button to on
   rb_baxter_start_->setChecked(true);
 
+  //action cummunication
+  ROS_INFO("String gui action status server");
+  as_guistatus.start();
+  ROS_INFO("Action server started");
+
+  ROS_INFO("Waiting for action server to start.");
+  ac_gui.waitForServer();
+  ROS_INFO("Action server started, sending goal.");
+
+  
   btn_publisher_ = nh_.advertise<std_msgs::Int8>("/TTTgame/guicontroll", 1);
 
 }
+
+void BaxterPanel::gui_status_reciver(const gui::game_master_guiGoalConstPtr &goal)
+  {
+    //ROS_INFO_STREAM_NAMED("baxter_gui", "RECIVING status ... *************************************************************************");
+    //set the status     
+    QString qstr_status=QString::fromStdString(goal->status);
+    QString qstr_baxter_says=QString::fromStdString(goal->baxter_says);
+    //std_msgs::String str_baxtersays=goal->baxter_says.c_str();
+    lbl_status_->setText(qstr_status);
+    lbl_baxter_says_->setText(qstr_baxter_says);
+
+    //set succeded
+    result_game_master_gui.got_it = 1;  // retuŕn best move between 0...48
+      //ROS_INFO("%s: Done", action_name_.c_str());
+      // set the action state to succeeded
+      as_guistatus.setSucceeded(result_game_master_gui);
+
+    }
 
 void BaxterPanel::gameStart()
 {

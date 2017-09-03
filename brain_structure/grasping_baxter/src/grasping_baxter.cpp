@@ -101,6 +101,10 @@ public:
   // x a y offset stack to stack
   double offset_ss_x;
   double offset_ss_y;
+  // x a y offset for center pose
+  double offset_bc_x;
+  double offset_bc_y;
+  double offset_bc_z;
 
   //ar-tag var
   std::vector<geometry_msgs::PoseStamped> ar_tag_pose_vector;
@@ -112,7 +116,8 @@ public:
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
     action_name_(name), grasping_baxter_start_flag(false),group("right_arm"),offset_p0_pose_x(-0.08),offset_p0_pose_y(+0.17),
     offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.285),offset_pick_up_pose_y(-0.24),offset_pick_up_pose_z(0.04),art_vec_count(0),
-    art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),offset_ar_tag_yaw(0*3.1415926/180),doarupdate(true)
+    art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),offset_ar_tag_yaw(0*3.1415926/180),
+    doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0)
   {
     // start action server
     as_grasping_baxter.start();
@@ -256,6 +261,8 @@ public:
       ar_code_pose.pose.orientation.z=art_pose_temp.pose.orientation.z/art_vec_count;
       ar_code_pose.pose.orientation.w=art_pose_temp.pose.orientation.w/art_vec_count;
 
+      //update the enviroment
+      grasping_baxter_environment();
     // calculate p0 pose using x and y ofsset (known)
     theta=tf::getYaw(ar_code_pose.pose.orientation);
     p0_pose.header.stamp=ros::Time::now();
@@ -661,9 +668,28 @@ public:
   	 double gameboard_w=0.405;	// width game board
   	 double gameboard_h=0.01;	// thickness
 
-  	 double gameboard_x=0.51; //0.825;		// x-pos of gameboard
-  	 double gameboard_y=0;//gameboard_w;		//
-  	 double gameboard_z= -0.155; //-0.525;//-0.575;
+//depends on the ar code
+     // calculate p0 pose using x and y ofsset (known)
+    double theta=tf::getYaw(ar_code_pose.pose.orientation);
+
+    // calc P0 with ar at origin
+    Mat p0 = (Mat_<double>(2,1) <<
+                    offset_bc_x,
+                    offset_bc_y);
+    // rotate around theta
+    Mat r = (Mat_<double>(2,2) <<
+                    cos(theta), -sin(theta),
+                    sin(theta), cos(theta));
+    Mat p0r= r*p0;
+    //translate to get true pose
+    Mat t = (Mat_<double>(2,1)  <<
+                    ar_code_pose.pose.position.x,
+                    ar_code_pose.pose.position.y);
+    p0=p0r+t;
+    
+  	 double gameboard_x=p0.at<double>(0,0); //0.825;		// x-pos of gameboard
+  	 double gameboard_y=p0.at<double>(1,0);//gameboard_w;		//
+  	 double gameboard_z= ar_code_pose.pose.position.z+offset_bc_z;; //-0.525;//-0.575;
   	 double dis_gb_storage_x=0.03;
   	 //double dis_gb_storage_y=gameboard_y/3;
   	 double dis_sticks_x=0.05;
