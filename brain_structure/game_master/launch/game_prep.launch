@@ -18,7 +18,7 @@
 
 <!-- starte camera launch-->
 <include file="$(find camera)/launch/camera.launch">
-   <arg name="video_device" value="/dev/video1" />
+   <arg name="video_device" value="/dev/video0" />
 </include>
 
 </launch>
