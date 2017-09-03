@@ -62,25 +62,25 @@ public:
   {
     as_gui.start(); //start server that waits for gui
 
-    ROS_DEBUG_NAMED ("game_master","Waiting for  AI server." )
+    ROS_DEBUG_NAMED ("game_master","Waiting for  AI server." );
     ac_ai.waitForServer(); // wait for ai server to be active
-    ROS_DEBUG_NAMED ("game_master","AI server activated." )
+    ROS_DEBUG_NAMED ("game_master","AI server activated." );
 
     
-	ROS_DEBUG_NAMED ("game_master","Waiting for grasping baxter server." )
+	ROS_DEBUG_NAMED ("game_master","Waiting for grasping baxter server." );
     ac_grasping_baxter.waitForServer(); // wait for ai server to be active
-    ROS_DEBUG_NAMED ("game_master","Found grasping baxter server." )
+    ROS_DEBUG_NAMED ("game_master","Found grasping baxter server." );
 
-    ROS_DEBUG_NAMED ("game_master","Waiting for Camera." )
+    ROS_DEBUG_NAMED ("game_master","Waiting for Camera." );
     ac_camera.waitForServer(); // wait for ai server to be active
-    ROS_DEBUG_NAMED ("game_master","Found for Camera." )
+    ROS_DEBUG_NAMED ("game_master","Found for Camera." );
 
     //action communication
   //ROS_INFO("Looking for gui server.");
-  ROS_DEBUG_NAMED ("game_master","Waitung for GUI server" )
+  ROS_DEBUG_NAMED ("game_master","Waitung for GUI server" );
   ac_guistatus.waitForServer();
   //ROS_INFO("found gui server");  
-  ROS_DEBUG_NAMED ("game_master","found GUI server." )
+  ROS_DEBUG_NAMED ("game_master","found GUI server." );
   }
   //deconstructor
   ~game_master_boss(void)
