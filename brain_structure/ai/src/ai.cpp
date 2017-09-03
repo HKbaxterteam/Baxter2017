@@ -8,8 +8,8 @@
 //************************************************
 //Description: getting the gameboard and using 
 // min-max search with alpha-beta pruning.
-// to make it more interesting baxter chooses 
-// randomly from the moveset if there are multiple 
+// To make it more interesting, baxter chooses 
+// randomly from the possible move-set if there are multiple 
 // best moves.
 //************************************************
 
@@ -74,7 +74,7 @@ public:
     vector<int> posMoves;
     std::vector<int> bestmove;
     scoresafe.clear();
-    //alphabeta search
+    //alpha-beta search
     int score = alphabeta(gameboard,maxdepth,std::numeric_limits<int>::min(),numeric_limits<int>::max(), true);
     //get the next possible boards
     vector<vector<int> > nextgameboards =findposMoves(gameboard);
@@ -141,7 +141,7 @@ public:
     return nextgameboards;
   } 
 
-  //heuristik
+  //heuristics
   int ScoringFunction(vector<int> gameboard)
   {
     int score=0;
