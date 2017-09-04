@@ -689,6 +689,39 @@ public:
   	co_kinect.operation = co_kinect.ADD;
   	all_collision_objects.push_back(co_kinect);
 
+//------------webcam----
+
+
+
+  	  	//webcam object
+    moveit_msgs::CollisionObject co_webcam;
+	  co_webcam.header.frame_id = group.getPlanningFrame();
+  	// The id of the object is used to identify it. 
+	  co_webcam.id = "webcam";
+  	shape_msgs::SolidPrimitive cam;
+  	cam.type = cube.BOX;
+  	cam.dimensions.resize(3);
+  	cam.dimensions[0] = 0.1;
+  	cam.dimensions[1] = 0.1;
+  	cam.dimensions[2] = 0.05;
+    //POSE FOR KINECT
+  	geometry_msgs::Pose webcam_pose;
+  	webcam_pose.orientation.w = 1.0;
+  	webcam_pose.position.x =  0.1;
+  	webcam_pose.position.y = 0.0;
+  	webcam_pose.position.z =  0.55;
+    //add to collision objects
+  	co_webcam.primitives.push_back(cam);
+  	co_webcam.primitive_poses.push_back(webcam_pose);
+  	co_webcam.operation = co_webcam.ADD;
+  	all_collision_objects.push_back(co_webcam);
+
+
+
+
+
+
+
   	//------------------------------storage object
     moveit_msgs::CollisionObject co_piece_box;
   	co_piece_box.header.frame_id = group.getPlanningFrame();
