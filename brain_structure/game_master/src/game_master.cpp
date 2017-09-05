@@ -12,6 +12,7 @@
 
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <ros/package.h>
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 #include <game_master/ai_game_masterAction.h> 
@@ -21,7 +22,17 @@
 #include <game_master/game_master_guiAction.h>
 #include "game_master/game_manager.h"
 #include <std_msgs/String.h>
+//opencv for faces
+#include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
+#include "opencv2/video/background_segm.hpp"
+#include "opencv2/video/tracking.hpp"
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include "opencv2/opencv.hpp"
 
+using namespace cv;
 using namespace std;
 
 class game_master_boss
@@ -34,12 +45,12 @@ protected:
   actionlib::SimpleActionClient<game_master::grasping_baxter_game_masterAction> ac_grasping_baxter;
   actionlib::SimpleActionClient<game_master::camera_game_masterAction> ac_camera;
   actionlib::SimpleActionClient<game_master::game_master_guiAction> ac_guistatus;
-  
+  image_transport::ImageTransport it_;
   std::string action_name_;
   // create messages that are used to published feedback/result
   game_master::gui_game_masterFeedback feedback_gui; // create messages that are used to published feedback
   game_master::gui_game_masterResult result_gui;    // create messages that are used to published result
-
+  image_transport::Publisher image_pub_face_;
 
 
 public:
@@ -56,7 +67,7 @@ public:
  // define action server=as and action client =ac
   game_master_boss(std::string name) :
     as_gui(nh_, name, boost::bind(&game_master_boss::gui_start_command, this, _1), false),
-    action_name_(name), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true),
+    action_name_(name),it_(nh_), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true),
     ac_camera("camera_game_master", true), ac_guistatus("game_master_gui", true), baxter_piece(2),human_piece(1),baxter_starts(true),
     camera_status(0),gui_start_flag(false),stop_game(false)
   {
@@ -81,11 +92,103 @@ public:
   ac_guistatus.waitForServer();
   //ROS_INFO("found gui server");  
   ROS_DEBUG_NAMED ("game_master","found GUI server." );
+  //face puplisher (latch = true)
+  image_pub_face_ = it_.advertise("/robot/xdisplay", 1,true);
+    
   }
   //deconstructor
   ~game_master_boss(void)
   {
   }  
+
+  void eog_reaction(int result){
+    // win draw or lose?
+    switch(result){
+      //Baxter win
+      case 1: send_gui_status("Baxter WINS","MUAHHAHAHHAHHAHAHA YIPPPIIIEEE "); 
+              for(int i=0;i<20;i++){
+                show_face(12);
+                ros::Duration(0.25).sleep();
+                show_face(13);
+                ros::Duration(0.25).sleep();
+              }
+              break;
+      //Draw
+      case 2: send_gui_status("Game is a draw","Good game man");
+              for(int i=0;i<20;i++){
+                show_face(14);
+                ros::Duration(0.25).sleep();
+                show_face(15);
+                ros::Duration(0.25).sleep();
+              }
+              break;
+      //Baxter loses
+      case 3: send_gui_status("Baxter LOOSES","That cannot happen!!!! That is impossible, you cheated!!!!"); 
+              for(int i=0;i<20;i++){
+                show_face(16);
+                ros::Duration(0.25).sleep();
+                show_face(17);
+                ros::Duration(0.25).sleep();
+              }
+              break;
+    }
+
+  }
+
+  void show_face(int numofface){
+    Mat face;
+    //load the right face
+    switch(numofface) {
+      case 1 : face = imread(ros::package::getPath("game_master") + "/faces/01_face_waiting.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 2 : face = imread(ros::package::getPath("game_master") + "/faces/02_face_clean_board.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 3 : face = imread(ros::package::getPath("game_master") + "/faces/03_face_game_start.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 4 : face = imread(ros::package::getPath("game_master") + "/faces/04_face_ai_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 5 : face = imread(ros::package::getPath("game_master") + "/faces/05_face_grasping_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switc
+      case 6 : face = imread(ros::package::getPath("game_master") + "/faces/06_face_check_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 7 : face = imread(ros::package::getPath("game_master") + "/faces/07_face_missed_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 8 : face = imread(ros::package::getPath("game_master") + "/faces/08_face_thanks.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 9 : face = imread(ros::package::getPath("game_master") + "/faces/09_face_human_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 10 : face = imread(ros::package::getPath("game_master") + "/faces/10_face_human takes_long.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 11 : face = imread(ros::package::getPath("game_master") + "/faces/11_face_human_done.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 12 : face = imread(ros::package::getPath("game_master") + "/faces/12_face_baxter_win_a.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 13 : face = imread(ros::package::getPath("game_master") + "/faces/13_face_baxter_win_b.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 14 : face = imread(ros::package::getPath("game_master") + "/faces/14_face_draw_a.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 15 : face = imread(ros::package::getPath("game_master") + "/faces/15_face_draw_b.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 16 : face = imread(ros::package::getPath("game_master") + "/faces/16_face_baxter_loose_a.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 17 : face = imread(ros::package::getPath("game_master") + "/faces/17_face_baxter_loose_b.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+    }
+    //check if image is ok
+    if(! face.data ){                              // Check for invalid input
+      ROS_ERROR_NAMED("game_master", "Could not open or find the face at: ");
+      cout << ros::package::getPath("game_master") << endl;
+      return ;
+    }
+    //displaz face 
+        cv_bridge::CvImage out_msg;
+        out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
+        out_msg.header.stamp =ros::Time::now(); // new timestamp
+        out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
+        out_msg.image    = face; 
+        image_pub_face_.publish(out_msg.toImageMsg()); //transfer to Ros image message 
+      
+  }
 
   void print_gameboard(){
     //Print gameboard
@@ -347,10 +450,11 @@ int main(int argc, char** argv)
     //send first words
     
     while(ros::ok() && !gmb.gui_start_flag){
-      gmb.send_gui_status("Waiting for start.","Whats up man! do we play or what!?");
+      gmb.send_gui_status("Waiting for start.","What's up man! When do we play?");
       ROS_INFO_THROTTLE(5, "Waiting for GUI");
       ros::spinOnce();
       ros::Duration(1.0).sleep();
+      gmb.show_face(1);
     }
 
     //select player and prepare board
@@ -392,7 +496,8 @@ int main(int argc, char** argv)
       ros::Duration(1.0).sleep();
     }
     if(!gmb.gameboard_empty()){
-      gmb.send_gui_status("Gamboard not empty","Clean the board man!");
+      gmb.send_gui_status("Gamboard not empty","Clean the board first!!");
+      gmb.show_face(2);
       ROS_WARN("No empty Gamboard!! please clean up and try again.");
       ros::Duration(3.0).sleep();
       goto start_place;
@@ -407,6 +512,8 @@ int main(int argc, char** argv)
     bool baxter_s=gmb.baxter_starts;
     
     gmb.send_gui_status("Game start","Let's gooooo");
+    gmb.show_face(3);
+    ros::Duration(3.0).sleep();
       
     while(ros::ok() && !EOG)
     {
@@ -415,6 +522,7 @@ int main(int argc, char** argv)
         goto start_place;
       if(baxter_s){
         gmb.send_gui_status("Baxter AI","Let me think about a good move...");
+        gmb.show_face(4);
     
         baxter_s=true;
         // ask a move from the AI (send the gameboard)
@@ -429,6 +537,7 @@ int main(int argc, char** argv)
         }
 
         gmb.send_gui_status("Baxter Grasping","Look at this cool move");
+        gmb.show_face(5);
     
         // send the move to the baxter_grasping
         gmb.request_grasping_baxter(gmb.ai_move);
@@ -443,6 +552,7 @@ int main(int argc, char** argv)
 
         //we check if baxter succesfully placed the piece
         gmb.send_gui_status("Baxter checking move","Did I manage to do it?");
+        gmb.show_face(6);
     
         if(gmb.gameboard[36]==1)
           next_player=1;
@@ -472,12 +582,14 @@ int main(int argc, char** argv)
             std::ostringstream baxy;
             baxy << "It seems I missed it ... can you move my red piece to field num: " << gmb.ai_move;
             gmb.send_gui_status("Baxter move failed", baxy.str());
+            gmb.show_face(7);
             ROS_WARN("Baxter missed the target. Set piece to: %i",gmb.ai_move);        
           }
             }
         if(baxter_needs_help_counter>10)
         {
-          gmb.send_gui_status("Baxter move success","Thanks a lot!!");    
+          gmb.send_gui_status("Baxter move success","Thanks a lot!!");
+          gmb.show_face(8);    
         }
           
 
@@ -489,12 +601,15 @@ int main(int argc, char** argv)
           ROS_INFO("THE GAME IS OVER");
           if(playerXwin(gmb.gameboard,2)){
             ROS_INFO("BAXTER WINS!!! ");
+            gmb.eog_reaction(1);
           }
           if(playerXwin(gmb.gameboard,1)){
             ROS_INFO("HUMAN WINS??? WTF!!!! ");
+            gmb.eog_reaction(3);
           }
           if(isdraw(gmb.gameboard)){
             ROS_INFO("draw");
+            gmb.eog_reaction(2);
           }
           EOG=true;
           break;
@@ -507,6 +622,7 @@ int main(int argc, char** argv)
 
       //check for stop
       gmb.send_gui_status("Human move","Do your best!!!"); 
+      gmb.show_face(9); 
       if(gmb.stop_game)
         goto start_place;
       //Now we wait for the player to make a move
@@ -531,36 +647,44 @@ int main(int argc, char** argv)
         ros::Duration(1.0).sleep();
         human_needs_help_counter++;
 
-        if(human_needs_help_counter>30)
+        if(human_needs_help_counter>30){
           ROS_INFO("What are you wating for Meatbag!!!");
+          gmb.send_gui_status("Human move ... still waiting","What are you wating for Meatbag!!!");
+          gmb.show_face(10);  
+        }
+          
+
 
       }
-      if(human_needs_help_counter>30)
-          ROS_INFO("Finnaly!!"); 
+      if(human_needs_help_counter>30){
+        ROS_INFO("Finnaly!!"); 
+        gmb.show_face(11); 
+      }
+          
 
      
       //print the game board
       gmb.print_gameboard();  
 
-      //check for EOG and stuff
-      if(game_manager::isEOG(gmb.gameboard)){
-        ROS_INFO("THE GAME IS OVER");
-        if(playerXwin(gmb.gameboard,2)){
-          ROS_INFO("BAXTER WINS!!! ");
-          gmb.send_gui_status("Baxter WINS","MUAHHAHAHHAHHAHAHA YIPPPIIIEEE "); 
+      //check for EOG
+        if(isEOG(gmb.gameboard)){
+          ROS_INFO("THE GAME IS OVER");
+          if(playerXwin(gmb.gameboard,2)){
+            ROS_INFO("BAXTER WINS!!! ");
+            gmb.eog_reaction(1);
+          }
+          if(playerXwin(gmb.gameboard,1)){
+            ROS_INFO("HUMAN WINS??? WTF!!!! ");
+            gmb.eog_reaction(3);
+          }
+          if(isdraw(gmb.gameboard)){
+            ROS_INFO("draw");
+            gmb.eog_reaction(2);
+          }
+          EOG=true;
+          break;
         }
-        if(playerXwin(gmb.gameboard,1)){
-          ROS_INFO("HUMAN WINS??? WTF!!!! ");
-          gmb.send_gui_status("Baxter LOOSES","That cannot happen!!!! That is impossible, you cheated!!!!"); 
-        }
-        if(isdraw(gmb.gameboard)){
-          ROS_INFO("draw");
-          gmb.send_gui_status("Game is a draw","Good game man"); 
-        }
-        EOG=true;
-        break;
 
-      }
       ros::Duration(1.0).sleep();
       ros::spinOnce();
 

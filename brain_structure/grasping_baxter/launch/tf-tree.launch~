@@ -11,7 +11,8 @@
 <!--node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.081 -0.131 0.871 0.137 0.528 0.055 /world /kinect2_link 10" /-->
 
 <!-- Tf transform X,y,z, yaw,pitch,roll-->
-<node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.155 -0.107 1.168 0.097 0.65 0.002 /world /kinect2_help 10" />
+<!--node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.155 -0.107 1.163 0.097 0.65 0.002 /world /kinect2_help 10" /-->
+<node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.155 -0.107 1.163 0.05 0.7 0.046 /world /kinect2_help 10" />
 <!-- Tf transform X,y,z, yaw,pitch,roll-->
 <!--node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.138 -0.219 0.920 0.29 0.571 0.002 /world /kinect2_help 10" /-->
 

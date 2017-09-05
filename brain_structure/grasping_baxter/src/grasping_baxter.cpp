@@ -848,14 +848,14 @@ public:
   	co_table.header.frame_id = group.getPlanningFrame();
   	co_table.id = "Table";
   	cube.dimensions.resize(3);
-  	cube.dimensions[0] = 0.65;
-  	cube.dimensions[1] = 0.65;
-  	cube.dimensions[2] = 0.85;
+  	cube.dimensions[0] = 0.80;
+  	cube.dimensions[1] = 1.0;
+  	cube.dimensions[2] = 0.74;
   	geometry_msgs::Pose table_pose;
     table_pose.orientation.w = 1.0;
-  	table_pose.position.x =  0.61;//0.825;
+  	table_pose.position.x =  0.75;//0.825;
   	table_pose.position.y = 0;
-  	table_pose.position.z =  -0.525;//-0.575;
+  	table_pose.position.z =  -0.43;//-0.575;-0.16
   	co_table.primitives.push_back(cube);
   	co_table.primitive_poses.push_back(table_pose);
   	co_table.operation = co_table.ADD;
@@ -889,7 +889,7 @@ public:
     ros::Duration(0.5).sleep();
     
     //do a thing
-    place_piece();
+    //place_piece();
     //picking_test();
     //tf_frame_test();
     result_grasping_baxter.done_grasping = 1;
