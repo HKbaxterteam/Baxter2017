@@ -110,8 +110,8 @@ public:
   //NOTE: this is where the hardware constant need to be entered
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name),group("right_arm"),offset_p0_pose_x(-0.08),offset_p0_pose_y(+0.17),
-    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.285),offset_pick_up_pose_y(-0.24),offset_pick_up_pose_z(0.04),art_vec_count(0),
+    action_name_(name),group("right_arm"),offset_p0_pose_x(-0.09),offset_p0_pose_y(+0.125),
+    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.285),offset_pick_up_pose_y(-0.26),offset_pick_up_pose_z(0.04),art_vec_count(0),
     art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),offset_ar_tag_yaw(0*3.1415926/180),
     doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0)
   {
@@ -185,6 +185,7 @@ public:
     if(!doarupdate)
       return;
 
+
     ROS_DEBUG_NAMED("grasping_baxter","performing ar-tag calculations");
     geometry_msgs::PoseStamped ar_code_l_pose;
     geometry_msgs::PoseStamped ar_code_r_pose;
@@ -194,6 +195,12 @@ public:
       ROS_WARN_NAMED("grasping_baxter", "Not 2 Markers");
       return;
     }
+    //check if there is a minimum x
+    if(msg->markers[0].pose.pose.position.x<0.4 || msg->markers[1].pose.pose.position.x<0.4){
+      ROS_WARN_NAMED("grasping_baxter", "to close to be true");
+      return;
+    }
+
     //get left marker
     if(msg->markers[0].pose.pose.position.y > msg->markers[1].pose.pose.position.y )
       ar_code_l_pose=msg->markers[0].pose;
@@ -402,7 +409,7 @@ public:
     sleep(0.5);
     //suck up the piece
     closerightGripper();
-    sleep(0.5);  
+    sleep(1.5);  
 
     //decrese num of game pieces
     num_game_pieces_left--;
@@ -481,9 +488,24 @@ public:
       ROS_ERROR_NAMED("grasping_baxter", "Failed to reach place pose + some margin after dropping piece");
     sleep(1.1);
 
-    //move to pick up pose   
-    target_pose=pick_up_pose; 
+    //move to pick up pose + some y maggin   
+    target_pose=pick_up_pose;
     target_pose.pose.position.z +=0.05; 
+    success=false;
+    group.setPoseTarget(target_pose);
+    success = group.plan(my_plan);
+    //move it!!!
+    group.move() ;
+    sleep(0.1);
+    if(success)
+      ROS_DEBUG_NAMED("grasping_baxter", "reached pick and place pose again");
+    else
+      ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick and place pose again");
+    sleep(0.1);
+
+    //move to pick up pose + some y maggin   
+    target_pose=pick_up_pose; 
+    target_pose.pose.position.y -=0.25;
     success=false;
     group.setPoseTarget(target_pose);
     success = group.plan(my_plan);
