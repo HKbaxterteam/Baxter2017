@@ -83,8 +83,6 @@ public:
   geometry_msgs::PoseStamped p0_pose;
   geometry_msgs::PoseStamped pick_up_pose;
   
-  //offset yaw for ar-codes
-  double offset_ar_tag_yaw;
   // offset from ar to p0 (field(0)) 
   double offset_p0_pose_x;
   double offset_p0_pose_y;
@@ -110,9 +108,9 @@ public:
   //NOTE: this is where the hardware constant need to be entered
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name),group("right_arm"),offset_p0_pose_x(-0.09),offset_p0_pose_y(+0.125),
-    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.285),offset_pick_up_pose_y(-0.26),offset_pick_up_pose_z(0.04),art_vec_count(0),
-    art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),offset_ar_tag_yaw(0*3.1415926/180),
+    action_name_(name),group("right_arm"),offset_p0_pose_x(-0.091),offset_p0_pose_y(+0.1625),
+    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.316),offset_pick_up_pose_y(-0.2675),offset_pick_up_pose_z(0.05),art_vec_count(0),
+    art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),
     doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0)
   {
     ROS_DEBUG_NAMED("grasping_baxter","Initilzing Grasping baxter boss");
@@ -187,48 +185,61 @@ public:
 
 
     ROS_DEBUG_NAMED("grasping_baxter","performing ar-tag calculations");
-    geometry_msgs::PoseStamped ar_code_l_pose;
-    geometry_msgs::PoseStamped ar_code_r_pose;
+    geometry_msgs::PoseStamped ar_code_7_pose;
+    geometry_msgs::PoseStamped ar_code_13_pose;
+    geometry_msgs::PoseStamped ar_code_10_pose;
+    geometry_msgs::PoseStamped ar_code_0_pose;
     double theta;
     //check if there are 2 poses
-    if(msg->markers.size()!=2){
-      ROS_WARN_NAMED("grasping_baxter", "Not 2 Markers");
+    if(msg->markers.size()!=4){
+      ROS_WARN_NAMED("grasping_baxter", "Not 4 Markers");
       return;
     }
     //check if there is a minimum x
-    if(msg->markers[0].pose.pose.position.x<0.4 || msg->markers[1].pose.pose.position.x<0.4){
-      ROS_WARN_NAMED("grasping_baxter", "to close to be true");
-      return;
+    for(int i=0;i<msg->markers.size();i++){
+      if(msg->markers[i].pose.pose.position.x<0.3){
+        ROS_WARN_NAMED("grasping_baxter", "to close to be true");
+        return;
+      }
+    }
+    
+    //loop through the 4 marker to get marker id
+    //---7---13-----10---0---
+    //_________________________   
+    //|   |   |   |   |   |   |
+    for(int i=0;i<msg->markers.size();i++){
+      if(msg->markers[i].id==7){
+        ar_code_7_pose=msg->markers[i].pose;
+      }
+      if(msg->markers[i].id==13){
+        ar_code_13_pose=msg->markers[i].pose;
+      }
+      if(msg->markers[i].id==10){
+        ar_code_10_pose=msg->markers[i].pose;
+      }
+      if(msg->markers[i].id==0){
+        ar_code_0_pose=msg->markers[i].pose;
+      }
     }
 
-    //get left marker
-    if(msg->markers[0].pose.pose.position.y > msg->markers[1].pose.pose.position.y )
-      ar_code_l_pose=msg->markers[0].pose;
-    if(msg->markers[1].pose.pose.position.y > msg->markers[0].pose.pose.position.y)
-      ar_code_l_pose=msg->markers[1].pose;
-    //get right marker
-    if(msg->markers[0].pose.pose.position.y < msg->markers[1].pose.pose.position.y )
-      ar_code_r_pose=msg->markers[0].pose;
-    if(msg->markers[1].pose.pose.position.y < msg->markers[0].pose.pose.position.y)
-      ar_code_r_pose=msg->markers[1].pose;
-
-    //combine the two ar_code poses to one
+    //combine the 4 ar_code poses to one
     ar_code_pose.header.frame_id="/world";
     ar_code_pose.header.stamp = ros::Time::now();;
-    // we take the abs diff of the markers and half them
-    if(ar_code_l_pose.pose.position.x>ar_code_r_pose.pose.position.x)
-      ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x - (ar_code_l_pose.pose.position.x-ar_code_r_pose.pose.position.x)/2;
-    if(ar_code_l_pose.pose.position.x<=ar_code_r_pose.pose.position.x)
-      ar_code_pose.pose.position.x = ar_code_l_pose.pose.position.x + (ar_code_r_pose.pose.position.x-ar_code_l_pose.pose.position.x)/2;
-      
-    ar_code_pose.pose.position.y = ar_code_r_pose.pose.position.y+(ar_code_l_pose.pose.position.y-ar_code_r_pose.pose.position.y)/2;
-    ar_code_pose.pose.position.z = (ar_code_l_pose.pose.position.z +ar_code_r_pose.pose.position.z)/2;
-
+    // x=(7x+13x+10x+0x)/4
+    ar_code_pose.pose.position.x=(ar_code_7_pose.pose.position.x+ar_code_13_pose.pose.position.x+ar_code_10_pose.pose.position.x+ar_code_0_pose.pose.position.x)/4;
+    // y=((7y+13y+10y+0y)/4)
+    ar_code_pose.pose.position.y=(ar_code_7_pose.pose.position.y+ar_code_13_pose.pose.position.y+ar_code_10_pose.pose.position.y+ar_code_0_pose.pose.position.y)/4;
+    // z=((7z+13z+10z+0z)/4)
+    ar_code_pose.pose.position.z=(ar_code_7_pose.pose.position.z+ar_code_13_pose.pose.position.z+ar_code_10_pose.pose.position.z+ar_code_0_pose.pose.position.z)/4;
+        
     // get yaw
-    double theta_l = tf::getYaw(ar_code_l_pose.pose.orientation)+offset_ar_tag_yaw;
-    double theta_r = tf::getYaw(ar_code_r_pose.pose.orientation)+offset_ar_tag_yaw;
+    double theta_7 = tf::getYaw(ar_code_7_pose.pose.orientation);
+    double theta_13 = tf::getYaw(ar_code_13_pose.pose.orientation);
+    double theta_10 = tf::getYaw(ar_code_10_pose.pose.orientation);
+    double theta_0 = tf::getYaw(ar_code_0_pose.pose.orientation);
 
-    theta = (theta_l+theta_r)/2;
+    //theta=(7t+13t+10t+0t)/4
+    theta = (theta_7+theta_13+theta_10+theta_0)/4;
     ar_code_pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
 
     //sliding average calculation for ar-tag pose
@@ -294,6 +305,7 @@ public:
     t = r*t;
     offset_ff_x =  t.at<double>(0,0);
     offset_ff_y =  t.at<double>(1,0);
+
     //calculate pickup pose  dependig on how many pieces are left
     pick_up_pose.header.stamp=ros::Time::now();
     pick_up_pose.header.frame_id="/world";
@@ -322,7 +334,7 @@ public:
     //adjust pick up pose depending on which tower we are picking from
     //calc tower offsets
     t = (Mat_<double>(2,1)  <<
-                    0.065,
+                    0.0625,
                     0.0);
     t = r*t;
     offset_ss_x =  t.at<double>(0,0);
@@ -362,8 +374,8 @@ public:
     target_pose.pose.position.z +=0.05;    
     bool success=false;
     group.setPoseTarget(target_pose);
-    success = group.plan(my_plan);
-    group.move() ;
+    group.plan(my_plan);
+    success = group.execute(my_plan);
     sleep(0.1);
     if(success)
       ROS_DEBUG_NAMED("grasping_baxter", "Reached pick_up_pose + some margin");
@@ -418,11 +430,14 @@ public:
     //move up again 
     //move up following a cartesian path
     waypoints.clear();
+    waypoints.push_back(car_target_pose);
     //add more points depending on how many pieces are left
     for(int i =0; i<6-pieces_in_stack+5;i++){
       car_target_pose.position.z += 0.01;
       waypoints.push_back(car_target_pose);
     }
+    car_target_pose.position.z += 0.05;
+    waypoints.push_back(car_target_pose);
     fraction = group.computeCartesianPath(waypoints,
                                              0.002,  // eef_step
                                              0.0,   // jump_threshold
@@ -449,6 +464,7 @@ public:
     ROS_DEBUG_NAMED("grasping_baxter","Move to field num: %i",target_field);
     success=false;
     group.setPoseTarget(target_pose);
+    group.plan(my_plan);
     success = group.execute(my_plan);
     sleep(0.1);
     if(success)
@@ -461,9 +477,9 @@ public:
     target_pose.pose.position.z = p0_pose.pose.position.z;
     success=false;
     group.setPoseTarget(target_pose);
-    success = group.plan(my_plan);
+    group.plan(my_plan);
     //move it!!!
-    group.move() ;
+    success = group.execute(my_plan);
     sleep(1.0);
     if(success)
       ROS_DEBUG_NAMED("grasping_baxter", "Reached place pose.");
@@ -475,12 +491,12 @@ public:
     openrightGripper();
 
     //move up again
-    target_pose.pose.position.z=pick_up_pose.pose.position.z;
+    target_pose.pose.position.z=pick_up_pose.pose.position.z+0.05;
     success=false;
     group.setPoseTarget(target_pose);
-    success = group.plan(my_plan);
+    group.plan(my_plan);
     //move it!!!
-    group.move() ;
+    success = group.execute(my_plan);
     sleep(0.1);
     if(success)
       ROS_DEBUG_NAMED("grasping_baxter", "Reached place pose + some margin after dropping piece");
@@ -488,14 +504,14 @@ public:
       ROS_ERROR_NAMED("grasping_baxter", "Failed to reach place pose + some margin after dropping piece");
     sleep(1.1);
 
-    //move to pick up pose + some y maggin   
+    //move to pick up pose    
     target_pose=pick_up_pose;
     target_pose.pose.position.z +=0.05; 
     success=false;
     group.setPoseTarget(target_pose);
-    success = group.plan(my_plan);
+    group.plan(my_plan);
     //move it!!!
-    group.move() ;
+    success = group.execute(my_plan);
     sleep(0.1);
     if(success)
       ROS_DEBUG_NAMED("grasping_baxter", "reached pick and place pose again");
@@ -505,12 +521,12 @@ public:
 
     //move to pick up pose + some y maggin   
     target_pose=pick_up_pose; 
-    target_pose.pose.position.y -=0.25;
+    target_pose.pose.position.y -=0.15;
     success=false;
     group.setPoseTarget(target_pose);
-    success = group.plan(my_plan);
+    group.plan(my_plan);
     //move it!!!
-    group.move() ;
+    success = group.execute(my_plan);
     sleep(0.1);
     if(success)
       ROS_DEBUG_NAMED("grasping_baxter", "reached pick and place pose again");
@@ -667,6 +683,7 @@ public:
   	double gameboard_x=p0.at<double>(0,0); //0.825;		// x-pos of gameboard
   	double gameboard_y=p0.at<double>(1,0);//gameboard_w;		//
   	double gameboard_z= ar_code_pose.pose.position.z+offset_bc_z;; //-0.525;//-0.575;
+
   	double dis_gb_storage_x=0.03;
   	//double dis_gb_storage_y=gameboard_y/3;
   	double dis_sticks_x=0.05;
@@ -742,7 +759,7 @@ public:
 
 
 
-
+/*
 
   	//------------------------------storage object
     moveit_msgs::CollisionObject co_piece_box;
@@ -842,7 +859,7 @@ public:
     co_wall_a.primitive_poses.push_back(co_wall_a_pose);
     co_wall_a.operation = co_wall_a.ADD;
     all_collision_objects.push_back(co_wall_a);
-
+*/
   	/*++++++++++Table model ##############*/
   	moveit_msgs::CollisionObject co_table;
   	co_table.header.frame_id = group.getPlanningFrame();
@@ -855,11 +872,12 @@ public:
     table_pose.orientation.w = 1.0;
   	table_pose.position.x =  0.75;//0.825;
   	table_pose.position.y = 0;
-  	table_pose.position.z =  -0.43;//-0.575;-0.16
+  	table_pose.position.z =  -0.51;//-0.575;-0.16
   	co_table.primitives.push_back(cube);
   	co_table.primitive_poses.push_back(table_pose);
   	co_table.operation = co_table.ADD;
-
+    all_collision_objects.push_back(co_table);
+/*
   	//--- gameboard model
   	cube.dimensions.resize(3);
   	cube.dimensions[0] = gameboard_l;
@@ -872,9 +890,12 @@ public:
   	co_table.primitives.push_back(cube);
   	co_table.primitive_poses.push_back(table_pose);
   	co_table.operation = co_table.ADD;
-  	all_collision_objects.push_back(co_table);
+  	
+
+    */
     //add all the object to the world
 	  planning_scene_interface.addCollisionObjects(all_collision_objects);
+
 	
   }
 
@@ -889,7 +910,7 @@ public:
     ros::Duration(0.5).sleep();
     
     //do a thing
-    //place_piece();
+    place_piece();
     //picking_test();
     //tf_frame_test();
     result_grasping_baxter.done_grasping = 1;

@@ -9,6 +9,8 @@ Panels:
         - /MotionPlanning1/Planning Request1
         - /MotionPlanning1/Planning Metrics1
         - /MotionPlanning1/Planned Path1
+        - /TF1
+        - /TF1/Frames1
       Splitter Ratio: 0.74256
     Tree Height: 156
   - Class: rviz/Help
@@ -138,14 +140,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          left_gripper_mass:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          left_gripper_object_mass:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           left_hand:
             Alpha: 1
             Show Axes: false
@@ -241,14 +235,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          right_gripper_mass:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          right_gripper_object_mass:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           right_hand:
             Alpha: 1
             Show Axes: false
@@ -451,14 +437,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          left_gripper_mass:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          left_gripper_object_mass:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           left_hand:
             Alpha: 1
             Show Axes: false
@@ -554,14 +532,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          right_gripper_mass:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          right_gripper_object_mass:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           right_hand:
             Alpha: 1
             Show Axes: false
@@ -717,6 +687,7 @@ Visualization Manager:
       Unreliable: false
       Value: false
       Visibility:
+        "": true
         Ar-tag pose: true
         Ar-tags: true
         Grid: true
@@ -738,6 +709,264 @@ Visualization Manager:
       Transport Hint: raw
       Unreliable: false
       Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        ar_marker_0:
+          Value: false
+        ar_marker_10:
+          Value: false
+        ar_marker_13:
+          Value: false
+        ar_marker_7:
+          Value: false
+        base:
+          Value: true
+        camera_link:
+          Value: false
+        collision_head_link_1:
+          Value: false
+        collision_head_link_2:
+          Value: false
+        display:
+          Value: false
+        dummyhead1:
+          Value: false
+        head:
+          Value: false
+        head_camera:
+          Value: false
+        kinect2_help:
+          Value: false
+        kinect2_rgb_optical_frame:
+          Value: true
+        l_gripper_l_finger:
+          Value: false
+        l_gripper_l_finger_tip:
+          Value: false
+        l_gripper_r_finger:
+          Value: false
+        l_gripper_r_finger_tip:
+          Value: false
+        left_arm_itb:
+          Value: false
+        left_arm_mount:
+          Value: false
+        left_gripper:
+          Value: false
+        left_gripper_base:
+          Value: false
+        left_hand:
+          Value: false
+        left_hand_accelerometer:
+          Value: false
+        left_hand_camera:
+          Value: false
+        left_hand_camera_axis:
+          Value: false
+        left_hand_range:
+          Value: false
+        left_lower_elbow:
+          Value: false
+        left_lower_forearm:
+          Value: false
+        left_lower_shoulder:
+          Value: false
+        left_torso_itb:
+          Value: false
+        left_upper_elbow:
+          Value: false
+        left_upper_elbow_visual:
+          Value: false
+        left_upper_forearm:
+          Value: false
+        left_upper_forearm_visual:
+          Value: false
+        left_upper_shoulder:
+          Value: false
+        left_wrist:
+          Value: false
+        pedestal:
+          Value: false
+        right_arm_itb:
+          Value: false
+        right_arm_mount:
+          Value: false
+        right_gripper:
+          Value: false
+        right_gripper_base:
+          Value: false
+        right_hand:
+          Value: false
+        right_hand_accelerometer:
+          Value: false
+        right_hand_camera:
+          Value: false
+        right_hand_camera_axis:
+          Value: false
+        right_hand_range:
+          Value: false
+        right_lower_elbow:
+          Value: false
+        right_lower_forearm:
+          Value: false
+        right_lower_shoulder:
+          Value: false
+        right_torso_itb:
+          Value: false
+        right_upper_elbow:
+          Value: false
+        right_upper_elbow_visual:
+          Value: false
+        right_upper_forearm:
+          Value: false
+        right_upper_forearm_visual:
+          Value: false
+        right_upper_shoulder:
+          Value: false
+        right_wrist:
+          Value: false
+        screen:
+          Value: false
+        sonar_ring:
+          Value: false
+        torso:
+          Value: false
+        world:
+          Value: false
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          base:
+            collision_head_link_1:
+              {}
+            collision_head_link_2:
+              {}
+            torso:
+              camera_link:
+                {}
+              head:
+                dummyhead1:
+                  {}
+                head_camera:
+                  {}
+                screen:
+                  display:
+                    {}
+              left_arm_mount:
+                left_upper_shoulder:
+                  left_lower_shoulder:
+                    left_upper_elbow:
+                      left_lower_elbow:
+                        left_upper_forearm:
+                          left_arm_itb:
+                            {}
+                          left_lower_forearm:
+                            left_wrist:
+                              left_hand:
+                                left_gripper_base:
+                                  l_gripper_l_finger:
+                                    l_gripper_l_finger_tip:
+                                      {}
+                                  l_gripper_r_finger:
+                                    l_gripper_r_finger_tip:
+                                      {}
+                                  left_gripper:
+                                    {}
+                                left_hand_accelerometer:
+                                  {}
+                                left_hand_camera:
+                                  {}
+                                left_hand_camera_axis:
+                                  {}
+                                left_hand_range:
+                                  {}
+                        left_upper_forearm_visual:
+                          {}
+                    left_upper_elbow_visual:
+                      {}
+              left_torso_itb:
+                {}
+              pedestal:
+                {}
+              right_arm_mount:
+                right_upper_shoulder:
+                  right_lower_shoulder:
+                    right_upper_elbow:
+                      right_lower_elbow:
+                        right_upper_forearm:
+                          right_arm_itb:
+                            {}
+                          right_lower_forearm:
+                            right_wrist:
+                              right_hand:
+                                right_gripper_base:
+                                  right_gripper:
+                                    {}
+                                right_hand_accelerometer:
+                                  {}
+                                right_hand_camera:
+                                  {}
+                                right_hand_camera_axis:
+                                  {}
+                                right_hand_range:
+                                  {}
+                        right_upper_forearm_visual:
+                          {}
+                    right_upper_elbow_visual:
+                      {}
+              right_torso_itb:
+                {}
+              sonar_ring:
+                {}
+          kinect2_help:
+            kinect2_rgb_optical_frame:
+              ar_marker_0:
+                {}
+              ar_marker_10:
+                {}
+              ar_marker_13:
+                {}
+              ar_marker_7:
+                {}
+      Update Interval: 0
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Flat Squares
+      Topic: /kinect2/hd/points
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -753,7 +982,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.12194
+      Distance: 2.98117
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -765,10 +994,10 @@ Visualization Manager:
         Z: 2.87737e-05
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.520202
+      Pitch: 0.315202
       Target Frame: base_link
       Value: XYOrbit (rviz)
-      Yaw: 6.01494
+      Yaw: 4.53492
     Saved: ~
 Window Geometry:
   BaxterDashboard:
@@ -786,7 +1015,7 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b8000003dafc020000000cfb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000001600fffffffb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e0067010000022b000001d70000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000010b000001d7000001cc00fffffffb0000001e00420061007800740065007200440061007300680062006f006100720064010000010b000000b0000000b000fffffffb0000000a0049006d006100670065000000039e000000640000000000000000fb0000000e006b0069006e006500630074003201000001c10000009b0000001600fffffffb0000000c00430061006d0065007200610000000350000000b20000000000000000fb0000000c00630061006d0065007200610100000262000001a00000001600ffffff00000481000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002a2000003dafc020000000cfb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000001600fffffffb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e0067010000022b000001d70000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000010b000001d7000001cc00fffffffb0000001e00420061007800740065007200440061007300680062006f00610072006401000002e8000000b0000000b000fffffffb0000000a0049006d006100670065000000039e000000640000000000000000fb0000000e006b0069006e0065006300740032010000039e0000001a0000001600fffffffb0000000c00430061006d0065007200610000000350000000b20000000000000000fb0000000c00630061006d00650072006101000003be000000440000001600ffffff00000497000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1855
