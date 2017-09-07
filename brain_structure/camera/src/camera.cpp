@@ -84,6 +84,7 @@ public:
     // Subscribe and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &camera_boss::imageCb, this);
     image_pub_gameboard_ = it_.advertise("/TTTgame/camera_views", 1);
+    image_pub_contour_=it_.advertise("/TTTgame/camera_contour", 1);
     
     //debug
         if(debug_flag){
@@ -427,6 +428,16 @@ public:
         result_camera.gameboard = gameboard;
         result_camera.status =2;
         as_camera.setSucceeded(result_camera);
+
+        //publish the contour
+        //publish the image in ros
+        cv_bridge::CvImage out_msg;
+        out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
+        out_msg.header.stamp =ros::Time::now(); // new timestamp
+        out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
+        out_msg.image    = tr_contours; 
+        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message 
+      
       }
 
       /*
