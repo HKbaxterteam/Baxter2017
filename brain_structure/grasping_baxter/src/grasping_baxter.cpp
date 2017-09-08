@@ -384,6 +384,121 @@ public:
     pp_pub.publish(pick_up_pose);
   }
 
+  void pick_up_firs_piece(){
+    ROS_DEBUG_NAMED("grasping_baxter", "Performing Pick up the first piece.");
+    //stop updating the ar-tag pose while we are moving
+    doarupdate=false;
+
+    //define target pose
+    target_pose.header.stamp=ros::Time::now();
+    target_pose.header.frame_id="/world";
+    target_pose=pick_up_pose;
+
+    //TODO:find a nicer way to do this
+    //move to pick up pose + some z margin
+    target_pose.pose.position.z +=0.05;    
+    bool success=false;
+    int moveitcounter=0;
+    group.setStartStateToCurrentState();
+    while(!success && moveitcounter <5){
+      group.setPoseTarget(target_pose);
+      group.plan(my_plan);
+      success = group.execute(my_plan);
+      sleep(0.1);
+      if(success)
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached pick_up_pose + some margin");
+      else
+        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick_up_pose + some margin");
+      ros::spinOnce();
+      moveitcounter++;
+    }
+    if(moveitcounter>=5){
+      ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach pick_up_pose + some margin 5x");
+    }
+    
+       
+    //move down following a cartesian path
+    geometry_msgs::Pose car_target_pose;
+    //translate into pose
+    car_target_pose.position=pick_up_pose.pose.position;
+    car_target_pose.orientation= pick_up_pose.pose.orientation;
+    std::vector<geometry_msgs::Pose> waypoints;
+    waypoints.clear();
+    car_target_pose.position.z+=0.01;
+    //add more points depending on how many pieces are left
+    waypoints.push_back(car_target_pose);
+    car_target_pose.position.z-=0.01;
+    waypoints.push_back(car_target_pose);
+    
+    moveit_msgs::RobotTrajectory trajectory;
+    double fraction = group.computeCartesianPath(waypoints,
+                                             0.002,  // eef_step
+                                             0.0,   // jump_threshold
+                                             trajectory);
+      
+    
+    success=false;
+    moveitcounter=0;
+    group.setStartStateToCurrentState();
+    while(!success && moveitcounter <5){
+      my_plan.trajectory_ = trajectory;
+      success = group.execute(my_plan);
+      sleep(0.1);
+      if(success)
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached Pick up pose for piece.");
+      else
+        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach Pick up pose for piece.");
+      ros::spinOnce();
+      moveitcounter++;
+    }
+    if(moveitcounter>=5){
+      ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach Pick up pose for piece. 5x");
+    }
+    
+    
+    sleep(0.8);
+    //suck up the piece
+    closerightGripper();
+    sleep(0.8);
+
+    ROS_DEBUG_NAMED("grasping_baxter", "Pieces left in game: %i",num_game_pieces_left);  
+    
+    //move up again 
+    //move up following a cartesian path
+    waypoints.clear();
+    waypoints.push_back(car_target_pose);
+    
+    car_target_pose.position.z += 0.05;
+    waypoints.push_back(car_target_pose);
+    fraction = group.computeCartesianPath(waypoints,
+                                             0.002,  // eef_step
+                                             0.0,   // jump_threshold
+                                             trajectory);
+    
+    
+    success=false;
+    moveitcounter=0;
+    group.setStartStateToCurrentState();
+    while(!success && moveitcounter <5){
+      my_plan.trajectory_ = trajectory;
+      success = group.execute(my_plan);
+      sleep(0.1);
+      if(success)
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached pick_up_pose + some margin with a piece");
+      else
+        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick_up_pose + some margin with a piece");
+      ros::spinOnce();
+      moveitcounter++;
+    }
+    if(moveitcounter>=5){
+      ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach pick_up_pose + some margin with a piece. 5x");
+    }
+
+    sleep(0.1);
+
+
+  }
+
   //function to pick up a piece and place it where the Ai wants it
   void place_piece(){
     ROS_DEBUG_NAMED("grasping_baxter", "Performing Pick and Place.");
@@ -395,6 +510,7 @@ public:
     target_pose.header.frame_id="/world";
     target_pose=pick_up_pose;
 
+/* slow *********
     //TODO:find a nicer way to do this
     //move to pick up pose + some z margin
     target_pose.pose.position.z +=0.05;    
@@ -469,6 +585,7 @@ public:
     //suck up the piece
     closerightGripper();
     sleep(2.0);  
+    
 
     //decrese num of game pieces
     //num_game_pieces_left--;
@@ -510,7 +627,9 @@ public:
     }
 
     sleep(0.1);
-    
+    */
+
+    //fast strat
     //move to place pos with the pick up z  
     //calculate the field possition
     int row=target_field/6;
@@ -614,6 +733,159 @@ public:
     }
     sleep(0.1);
 
+    //down again depending on how many pieces
+    //move down depending on how many pieces are left
+    int pieces_in_stack=num_game_pieces_left % 6;
+    if(num_game_pieces_left % 6==0)
+      pieces_in_stack=6;
+    
+    // it is one less
+    pieces_in_stack--;
+
+    //extra trip to next stack if pieces are 0
+    if(pieces_in_stack==0){
+      //calculate offsets
+      double theta=tf::getYaw(ar_code_pose.pose.orientation);
+      Mat r = (Mat_<double>(2,2) <<
+                      cos(theta), -sin(theta),
+                      sin(theta), cos(theta));
+      
+      //translate to get true pose
+      Mat t = (Mat_<double>(2,1)  <<
+                      0.0625,
+                      0.0);
+      
+      t = r*t;
+      offset_ss_x =  t.at<double>(0,0);
+      offset_ss_y =  t.at<double>(1,0);
+      //second stack
+      if(num_game_pieces_left<13){
+        pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
+        pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
+      }
+      //third stack
+      if(num_game_pieces_left<7){
+        pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
+        pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
+      }
+
+
+      //move to pick up pose    
+      target_pose=pick_up_pose;
+      target_pose.pose.position.z +=0.05; 
+      success=false;
+      moveitcounter=0;
+      while(!success && moveitcounter <5){
+        group.setPoseTarget(target_pose);
+        group.plan(my_plan);
+        success = group.execute(my_plan);
+        sleep(0.1);
+      if(success)
+        ROS_DEBUG_NAMED("grasping_baxter", "reached pick and place pose again");
+      else
+        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick and place pose again");
+      ros::spinOnce();
+      moveitcounter++;
+      }
+      if(moveitcounter>=5){
+        ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach place pose + some margin after dropping piece 5x");
+      }
+      sleep(0.1);
+      pieces_in_stack=6;
+
+    }
+
+    //move down following a cartesian path
+    geometry_msgs::Pose car_target_pose;
+    //translate into pose
+    car_target_pose.position=pick_up_pose.pose.position;
+    car_target_pose.orientation= pick_up_pose.pose.orientation;
+    std::vector<geometry_msgs::Pose> waypoints;
+    waypoints.clear();
+    car_target_pose.position.z+=0.01;
+    //add more points depending on how many pieces are left
+    waypoints.push_back(car_target_pose);
+    car_target_pose.position.z-=0.01;
+    waypoints.push_back(car_target_pose);
+    for(int i =0; i<6-pieces_in_stack;i++){
+      car_target_pose.position.z -= 0.01;
+      waypoints.push_back(car_target_pose);
+    }
+    moveit_msgs::RobotTrajectory trajectory;
+    double fraction = group.computeCartesianPath(waypoints,
+                                             0.002,  // eef_step
+                                             0.0,   // jump_threshold
+                                             trajectory);
+      
+    
+    success=false;
+    moveitcounter=0;
+    group.setStartStateToCurrentState();
+    while(!success && moveitcounter <5){
+      my_plan.trajectory_ = trajectory;
+      success = group.execute(my_plan);
+      sleep(0.1);
+      if(success)
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached Pick up pose for piece.");
+      else
+        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach Pick up pose for piece.");
+      ros::spinOnce();
+      moveitcounter++;
+    }
+    if(moveitcounter>=5){
+      ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach Pick up pose for piece. 5x");
+    }
+    
+    
+    sleep(0.5);
+    sleep(1.1);
+    //suck up the piece
+    closerightGripper();
+    sleep(2.0);  
+    
+
+    //decrese num of game pieces
+    //num_game_pieces_left--;
+    ROS_DEBUG_NAMED("grasping_baxter", "Pieces left in game: %i",num_game_pieces_left);  
+    
+    //move up again 
+    //move up following a cartesian path
+    waypoints.clear();
+    waypoints.push_back(car_target_pose);
+    //add more points depending on how many pieces are left
+    for(int i =0; i<6-pieces_in_stack+5;i++){
+      car_target_pose.position.z += 0.01;
+      waypoints.push_back(car_target_pose);
+    }
+    car_target_pose.position.z += 0.05;
+    waypoints.push_back(car_target_pose);
+    fraction = group.computeCartesianPath(waypoints,
+                                             0.002,  // eef_step
+                                             0.0,   // jump_threshold
+                                             trajectory);
+    
+    
+    success=false;
+    moveitcounter=0;
+    group.setStartStateToCurrentState();
+    while(!success && moveitcounter <5){
+      my_plan.trajectory_ = trajectory;
+      success = group.execute(my_plan);
+      sleep(0.1);
+      if(success)
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached pick_up_pose + some margin with a piece");
+      else
+        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick_up_pose + some margin with a piece");
+      ros::spinOnce();
+      moveitcounter++;
+    }
+    if(moveitcounter>=5){
+      ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach pick_up_pose + some margin with a piece. 5x");
+    }
+
+    sleep(0.1);
+
+/* slowwww
     //move to pick up pose + some y maggin   
     //target_pose=pick_up_pose; 
     target_pose.pose.position.y -=0.15;
@@ -636,7 +908,7 @@ public:
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach pick and place pose again 5x");
     }
     sleep(0.1);
-
+*/
     //enable ar-tag updates again
     doarupdate=true;
   }
@@ -1044,6 +1316,11 @@ public:
     
     //do a thing
     //target_field=30;
+    //fast strat
+    if(num_game_pieces_left==18)
+    {
+      pick_up_firs_piece();
+    }
     place_piece();
     //picking_test();
     //tf_frame_test();

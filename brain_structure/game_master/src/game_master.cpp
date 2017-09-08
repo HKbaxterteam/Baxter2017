@@ -138,7 +138,13 @@ public:
 
   void show_face(int numofface){
     Mat face;
+    int fieldnums=0;
     //load the right face
+    if(numofface>=100 && numofface<=135){
+      fieldnums=numofface;
+      numofface=100;
+    }
+      
     switch(numofface) {
       case 1 : face = imread(ros::package::getPath("game_master") + "/faces/01_face_waiting.png", CV_LOAD_IMAGE_COLOR);   // Read the file
                break;       // and exits the switch
@@ -174,6 +180,27 @@ public:
                break;       // and exits the switch
       case 17 : face = imread(ros::package::getPath("game_master") + "/faces/17_face_baxter_loose_b.png", CV_LOAD_IMAGE_COLOR);   // Read the file
                break;       // and exits the switch
+      case 17 : face = imread(ros::package::getPath("game_master") + "/faces/20_face_baxter_mean.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      
+      case 100 : face = imread(ros::package::getPath("game_master") + "/faces/fieldnums/" + fieldnums + "_face_missed_move_" + (numofface-100) +"0.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      
+      case 200 : face = imread(ros::package::getPath("game_master") + "/faces/200_face_baxter_countdown_0.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 201 : face = imread(ros::package::getPath("game_master") + "/faces/201_face_baxter_countdown_1.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 202 : face = imread(ros::package::getPath("game_master") + "/faces/202_face_baxter_countdown_2.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 203 : face = imread(ros::package::getPath("game_master") + "/faces/203_face_baxter_countdown_3.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 204 : face = imread(ros::package::getPath("game_master") + "/faces/204_face_baxter_countdown_4.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      case 205 : face = imread(ros::package::getPath("game_master") + "/faces/205_face_baxter_countdown_5.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+               break;       // and exits the switch
+      
+               
+      
     }
     //check if image is ok
     if(! face.data ){                              // Check for invalid input
@@ -547,12 +574,16 @@ int main(int argc, char** argv)
         gmb.request_grasping_baxter(gmb.ai_move,gmb.game_pieces_baxter);
         
         //wait for the grasping node to performe the pick place taask
+
+        //faster!!!
+        /*
         if(gmb.wait_for_result_grasping()){
           ROS_INFO("Pick place performet");
         }    
         else{
           ROS_ERROR("Failed to pick place in time.");
         }
+        */
 
         //we check if baxter succesfully placed the piece
         gmb.send_gui_status("Baxter checking move","Did I manage to do it?");
@@ -578,7 +609,7 @@ int main(int argc, char** argv)
             ROS_ERROR("Failed to performe camera update n time");
           }
 
-          ros::Duration(1.0).sleep();
+          ros::Duration(0.2).sleep();
           baxter_needs_help_counter++;
 
           // Baxter missed to place piece -> asks human to place it
@@ -635,7 +666,7 @@ int main(int argc, char** argv)
         next_player=1;
       if(gmb.gameboard[36]==2)
         next_player=2;
-      int human_needs_help_counter=0;
+      int human_too_slow_counter=5;
       while(ros::ok() && !gmb.player_move_detected()){
         //check for stop
         if(gmb.stop_game)
@@ -650,19 +681,56 @@ int main(int argc, char** argv)
           ROS_ERROR("Failed to performe camera update n time");
         }
         ros::Duration(1.0).sleep();
-        human_needs_help_counter++;
 
-        if(human_needs_help_counter>30){
-          ROS_INFO("What are you wating for Meatbag!!!");
-          gmb.send_gui_status("Human move ... still waiting","What are you wating for Meatbag!!!");
-          gmb.show_face(10);  
+        //count down from 5
+        if(human_too_slow_counter=5){
+          ROS_INFO("Only 5 sec left for human!");
+          gmb.send_gui_status("Human move ... still waiting","Only 5 sec left for human!");
+          gmb.show_face(205);  
         }
+        if(human_too_slow_counter=4){
+          ROS_INFO("Only 4 sec left for human!");
+          gmb.send_gui_status("Human move ... still waiting","Only 4 sec left for human!");
+          gmb.show_face(204);  
+        }
+        if(human_too_slow_counter=3){
+          ROS_INFO("Only 3 sec left for human!");
+          gmb.send_gui_status("Human move ... still waiting","Only 3 sec left for human!");
+          gmb.show_face(203); 
+          //make noise 
+        }
+        if(human_too_slow_counter=2){
+          ROS_INFO("Only 2 sec left for human!");
+          gmb.send_gui_status("Human move ... still waiting","Only 2 sec left for human!");
+          gmb.show_face(202);  
+          //make noise 
+        }
+        if(human_too_slow_counter=1){
+          ROS_INFO("Only 1 sec left for human!");
+          gmb.send_gui_status("Human move ... still waiting","Only 2 sec left for human!");
+          gmb.show_face(201);  
+          //make noise 
+        }
+        if(human_too_slow_counter<=0){
+          ROS_INFO("Human to Slow!!");
+          gmb.send_gui_status("Human move ... still waiting","Human to Slow!!");
+          gmb.show_face(200);  
+          //make noise 
+        }
+
+        //decrese it
+        human_too_slow_counter--;
           
 
 
       }
-      if(human_needs_help_counter>30){
-        ROS_INFO("Finnaly!!"); 
+      if(human_too_slow_counter<=0){
+        ROS_INFO("Human was to slow, bonus point for me!");
+        gmb.send_gui_status("Human move done","Human was to slow, bonus point for me!");
+        gmb.show_face(20); 
+      }
+      if(human_too_slow_counter>0){
+        ROS_INFO("Nice!!"); 
         gmb.show_face(11); 
       }
           
@@ -689,8 +757,15 @@ int main(int argc, char** argv)
           EOG=true;
           break;
         }
+        //fast strat
+        if(gmb.wait_for_result_grasping()){
+          ROS_INFO("Pick place performet");
+        }    
+        else{
+          ROS_ERROR("Failed to pick place in time.");
+        }
 
-      ros::Duration(1.0).sleep();
+      ros::Duration(0.2).sleep();
       ros::spinOnce();
 
     }
