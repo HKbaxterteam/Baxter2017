@@ -32,6 +32,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/opencv.hpp"
 
+#include <string> 
+
 using namespace cv;
 using namespace std;
 
@@ -139,8 +141,14 @@ public:
   void show_face(int numofface){
     Mat face;
     int fieldnums=0;
+    stringstream ss_num;
+    stringstream ss_move;
     //load the right face
     if(numofface>=100 && numofface<=135){
+      
+      ss_num << numofface;
+      int temp=(numofface-100);
+      ss_move << temp;
       fieldnums=numofface;
       numofface=100;
     }
@@ -180,10 +188,10 @@ public:
                break;       // and exits the switch
       case 17 : face = imread(ros::package::getPath("game_master") + "/faces/17_face_baxter_loose_b.png", CV_LOAD_IMAGE_COLOR);   // Read the file
                break;       // and exits the switch
-      case 17 : face = imread(ros::package::getPath("game_master") + "/faces/20_face_baxter_mean.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 20 : face = imread(ros::package::getPath("game_master") + "/faces/20_face_baxter_mean.png", CV_LOAD_IMAGE_COLOR);   // Read the file
                break;       // and exits the switch
       
-      case 100 : face = imread(ros::package::getPath("game_master") + "/faces/fieldnums/" + fieldnums + "_face_missed_move_" + (numofface-100) +"0.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 100 : face = imread(ros::package::getPath("game_master") + "/faces/fieldnums/" + ss_num.str() + "_face_missed_move_" + ss_move.str()  +"0.png", CV_LOAD_IMAGE_COLOR);   // Read the file
                break;       // and exits the switch
       
       case 200 : face = imread(ros::package::getPath("game_master") + "/faces/200_face_baxter_countdown_0.png", CV_LOAD_IMAGE_COLOR);   // Read the file

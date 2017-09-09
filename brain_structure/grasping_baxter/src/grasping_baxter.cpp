@@ -637,10 +637,10 @@ public:
 
     target_pose.pose.position.x=p0_pose.pose.position.x+row*offset_ff_x;
     target_pose.pose.position.y=p0_pose.pose.position.y+col*offset_ff_y;
-    target_pose.pose.position.z=car_target_pose.position.z;
+    target_pose.pose.position.z=pick_up_pose.pose.position.z;
     ROS_DEBUG_NAMED("grasping_baxter","Move to field num: %i",target_field);
-    success=false;
-    moveitcounter=0;
+    bool success=false;
+    int moveitcounter=0;
     group.setStartStateToCurrentState();
     while(!success && moveitcounter <5){
       group.setPoseTarget(target_pose);
