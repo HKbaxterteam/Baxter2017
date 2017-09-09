@@ -1,5 +1,5 @@
 #goal definition
-int32 start_game
+int32 command
 int32 first_player
 ---
 #result definition

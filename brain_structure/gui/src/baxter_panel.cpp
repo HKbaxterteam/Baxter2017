@@ -53,6 +53,15 @@ action_name_("game_master_gui")
   btn_stop_ = new QPushButton(this);
   btn_stop_->setText("Stop game");
   connect(btn_stop_, SIGNAL(clicked()), this, SLOT(gameStop()));
+  // Create a push button
+  btn_ground_state_ = new QPushButton(this);
+  btn_ground_state_->setText("Ground state");
+  connect(btn_ground_state_, SIGNAL(clicked()), this, SLOT(groundState()));
+  // Create a push button
+  btn_check_reach_ = new QPushButton(this);
+  btn_check_reach_->setText("Check reach");
+  connect(btn_check_reach_, SIGNAL(clicked()), this, SLOT(checkReach()));
+  
   //create radio buttons
   rb_baxter_start_ = new QRadioButton("Baxter starts", this);
   rb_human_start_ = new QRadioButton("Human starts", this);
@@ -60,11 +69,17 @@ action_name_("game_master_gui")
   QVBoxLayout* layoutrb = new QVBoxLayout;
   layoutrb->addWidget(rb_baxter_start_);
   layoutrb->addWidget(rb_human_start_);
+  //layout extra buttons
+  QVBoxLayout* layoutexb = new QVBoxLayout;
+  layoutexb->addWidget(btn_ground_state_);
+  layoutexb->addWidget(btn_check_reach_);
+
   // Horizontal Layout
   QHBoxLayout* hlayout1 = new QHBoxLayout;
   hlayout1->addWidget(btn_start_);
   hlayout1->addWidget(btn_stop_);
   hlayout1->addLayout(layoutrb);
+  hlayout1->addLayout(layoutexb);
   //create status and baxter says lable
   lbl_status_ =new QLabel(this);
   lbl_baxter_says_ =new QLabel(this);
@@ -72,6 +87,7 @@ action_name_("game_master_gui")
   QHBoxLayout* hlayout2 = new QHBoxLayout;
   hlayout2->addWidget(new QLabel(QString("Baxter status:")));
   hlayout2->addWidget(lbl_status_);
+
   QHBoxLayout* hlayout3 = new QHBoxLayout;
   hlayout3->addWidget(new QLabel(QString("Baxter says:")));
   hlayout3->addWidget(lbl_baxter_says_);
@@ -126,7 +142,7 @@ void BaxterPanel::gameStart()
   ROS_DEBUG_NAMED("gui", "Starting the game ...");
   //send start and which player starts to the game_master
   gui_game_masterGoal goal;
-  goal.start_game = 1;
+  goal.command = 1;
   if(rb_baxter_start_->isChecked())
     goal.first_player = 2;
   if(rb_human_start_->isChecked())
@@ -143,7 +159,7 @@ void BaxterPanel::gameStop()
   ROS_DEBUG_NAMED("gui", "Stopping the game ...");
   //send stop to game_master
   gui_game_masterGoal goal;
-  goal.start_game = 2;
+  goal.command = 2;
   goal.first_player = 0;
   
   // Need boost::bind to pass in the 'this' pointer
@@ -152,6 +168,32 @@ void BaxterPanel::gameStop()
                 actionlib::SimpleActionClient<gui_game_masterAction>::SimpleActiveCallback(),
                 actionlib::SimpleActionClient<gui_game_masterAction>::SimpleFeedbackCallback());
 
+}
+
+void BaxterPanel::groundState()
+{
+  ROS_DEBUG_NAMED("gui", "Requesting ground state");
+  //send start and which player starts to the game_master
+  gui_game_masterGoal goal;
+  goal.command = 100;
+  // Need boost::bind to pass in the 'this' pointer
+  ac_gui.sendGoal(goal,
+              boost::bind(&BaxterPanel::received_game_started, this, _1, _2),
+              actionlib::SimpleActionClient<gui_game_masterAction>::SimpleActiveCallback(),
+              actionlib::SimpleActionClient<gui_game_masterAction>::SimpleFeedbackCallback());
+}
+
+void BaxterPanel::checkReach()
+{
+  ROS_DEBUG_NAMED("gui", "Checking the reach");
+  //send start and which player starts to the game_master
+  gui_game_masterGoal goal;
+  goal.command = 200;  
+  // Need boost::bind to pass in the 'this' pointer
+  ac_gui.sendGoal(goal,
+              boost::bind(&BaxterPanel::received_game_started, this, _1, _2),
+              actionlib::SimpleActionClient<gui_game_masterAction>::SimpleActiveCallback(),
+              actionlib::SimpleActionClient<gui_game_masterAction>::SimpleFeedbackCallback());
 }
 
 //sucedded in sending start or stop

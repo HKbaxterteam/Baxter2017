@@ -72,6 +72,10 @@ protected Q_SLOTS:
 
   void gameStop();
 
+  void groundState();
+  
+  void checkReach();
+
   void received_game_started(const actionlib::SimpleClientGoalState& state,
               const gui_game_masterResultConstPtr& result);
 
@@ -81,6 +85,8 @@ protected Q_SLOTS:
 protected:
   QPushButton *btn_start_;
   QPushButton *btn_stop_;
+  QPushButton *btn_ground_state_;
+  QPushButton *btn_check_reach_;
   QLabel *lbl_status_;
   QLabel *lbl_baxter_says_;
   QRadioButton *rb_baxter_start_;

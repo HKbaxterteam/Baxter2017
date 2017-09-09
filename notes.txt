@@ -17,3 +17,6 @@ roslaunch kinect2_bridge kinect2_bridge.launch tf_frame:="true"
 roslaunch baxter_kinect_calibration baxter_bundle_calibrate.launch 
 rosrun tf tf_echo /reference/base /kinect2_rgb_tical_frame
 
+clock skew bullshit...
+find . -exec touch {} +
+

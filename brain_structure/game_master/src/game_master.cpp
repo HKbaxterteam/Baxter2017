@@ -59,7 +59,10 @@ public:
   
   bool baxter_starts;
   bool gui_start_flag;
+  bool gui_ground_state_flag;
+  bool gui_check_reach_flag;
   bool stop_game;
+  bool feedback_grasping;
   int ai_move;
   int baxter_piece;
   int human_piece;
@@ -72,7 +75,8 @@ public:
     as_gui(nh_, name, boost::bind(&game_master_boss::gui_start_command, this, _1), false),
     action_name_(name),it_(nh_), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true),
     ac_camera("camera_game_master", true), ac_guistatus("game_master_gui", true), baxter_piece(2),human_piece(1),baxter_starts(true),
-    camera_status(0),gui_start_flag(false),stop_game(false),game_pieces_baxter(18)
+    camera_status(0),gui_start_flag(false),stop_game(false),game_pieces_baxter(18),feedback_grasping(false),
+    gui_ground_state_flag(false), gui_check_reach_flag(false)
   {
     as_gui.start(); //start server that waits for gui
 
@@ -143,6 +147,7 @@ public:
     int fieldnums=0;
     stringstream ss_num;
     stringstream ss_move;
+    string path;
     //load the right face
     if(numofface>=100 && numofface<=135){
       
@@ -154,66 +159,69 @@ public:
     }
       
     switch(numofface) {
-      case 1 : face = imread(ros::package::getPath("game_master") + "/faces/01_face_waiting.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 1 : path = ros::package::getPath("game_master") + "/faces/01_face_waiting.png";   // Read the file
                break;       // and exits the switch
-      case 2 : face = imread(ros::package::getPath("game_master") + "/faces/02_face_clean_board.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 2 : path = ros::package::getPath("game_master") + "/faces/02_face_clean_board.png";   // Read the file
                break;       // and exits the switch
-      case 3 : face = imread(ros::package::getPath("game_master") + "/faces/03_face_game_start.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 3 : path = ros::package::getPath("game_master") + "/faces/03_face_game_start.png";   // Read the file
                break;       // and exits the switch
-      case 4 : face = imread(ros::package::getPath("game_master") + "/faces/04_face_ai_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 4 : path = ros::package::getPath("game_master") + "/faces/04_face_ai_move.png";   // Read the file
                break;       // and exits the switch
-      case 5 : face = imread(ros::package::getPath("game_master") + "/faces/05_face_grasping_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 5 : path = ros::package::getPath("game_master") + "/faces/05_face_grasping_move.png";   // Read the file
                break;       // and exits the switc
-      case 6 : face = imread(ros::package::getPath("game_master") + "/faces/06_face_check_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 6 : path = ros::package::getPath("game_master") + "/faces/06_face_check_move.png";   // Read the file
                break;       // and exits the switch
-      case 7 : face = imread(ros::package::getPath("game_master") + "/faces/07_face_missed_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 7 : path = ros::package::getPath("game_master") + "/faces/07_face_missed_move.png";   // Read the file
                break;       // and exits the switch
-      case 8 : face = imread(ros::package::getPath("game_master") + "/faces/08_face_thanks.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 8 : path = ros::package::getPath("game_master") + "/faces/08_face_thanks.png";   // Read the file
                break;       // and exits the switch
-      case 9 : face = imread(ros::package::getPath("game_master") + "/faces/09_face_human_move.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 9 : path = ros::package::getPath("game_master") + "/faces/09_face_human_move.png";   // Read the file
                break;       // and exits the switch
-      case 10 : face = imread(ros::package::getPath("game_master") + "/faces/10_face_human takes_long.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 10 : path = ros::package::getPath("game_master") + "/faces/10_face_human takes_long.png";   // Read the file
                break;       // and exits the switch
-      case 11 : face = imread(ros::package::getPath("game_master") + "/faces/11_face_human_done.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 11 : path = ros::package::getPath("game_master") + "/faces/11_face_human_done.png";   // Read the file
                break;       // and exits the switch
-      case 12 : face = imread(ros::package::getPath("game_master") + "/faces/12_face_baxter_win_a.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 12 : path = ros::package::getPath("game_master") + "/faces/12_face_baxter_win_a.png";   // Read the file
                break;       // and exits the switch
-      case 13 : face = imread(ros::package::getPath("game_master") + "/faces/13_face_baxter_win_b.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 13 : path = ros::package::getPath("game_master") + "/faces/13_face_baxter_win_b.png";   // Read the file
                break;       // and exits the switch
-      case 14 : face = imread(ros::package::getPath("game_master") + "/faces/14_face_draw_a.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 14 : path = ros::package::getPath("game_master") + "/faces/14_face_draw_a.png";   // Read the file
                break;       // and exits the switch
-      case 15 : face = imread(ros::package::getPath("game_master") + "/faces/15_face_draw_b.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 15 : path = ros::package::getPath("game_master") + "/faces/15_face_draw_b.png";   // Read the file
                break;       // and exits the switch
-      case 16 : face = imread(ros::package::getPath("game_master") + "/faces/16_face_baxter_loose_a.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 16 : path = ros::package::getPath("game_master") + "/faces/16_face_baxter_loose_a.png";   // Read the file
                break;       // and exits the switch
-      case 17 : face = imread(ros::package::getPath("game_master") + "/faces/17_face_baxter_loose_b.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 17 : path = ros::package::getPath("game_master") + "/faces/17_face_baxter_loose_b.png";   // Read the file
                break;       // and exits the switch
-      case 20 : face = imread(ros::package::getPath("game_master") + "/faces/20_face_baxter_mean.png", CV_LOAD_IMAGE_COLOR);   // Read the file
-               break;       // and exits the switch
-      
-      case 100 : face = imread(ros::package::getPath("game_master") + "/faces/fieldnums/" + ss_num.str() + "_face_missed_move_" + ss_move.str()  +"0.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 20 : path = ros::package::getPath("game_master") + "/faces/20_face_baxter_mean.png";   // Read the file
                break;       // and exits the switch
       
-      case 200 : face = imread(ros::package::getPath("game_master") + "/faces/200_face_baxter_countdown_0.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 100 : path = ros::package::getPath("game_master") + "/faces/fieldnums/" + ss_num.str() + "_face_missed_move_" + ss_move.str()  +".png";   // Read the file
                break;       // and exits the switch
-      case 201 : face = imread(ros::package::getPath("game_master") + "/faces/201_face_baxter_countdown_1.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      
+      case 200 : path = ros::package::getPath("game_master") + "/faces/200_face_baxter_countdown_0.png";   // Read the file
                break;       // and exits the switch
-      case 202 : face = imread(ros::package::getPath("game_master") + "/faces/202_face_baxter_countdown_2.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 201 : path = ros::package::getPath("game_master") + "/faces/201_face_baxter_countdown_1.png";   // Read the file
                break;       // and exits the switch
-      case 203 : face = imread(ros::package::getPath("game_master") + "/faces/203_face_baxter_countdown_3.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 202 : path = ros::package::getPath("game_master") + "/faces/202_face_baxter_countdown_2.png";   // Read the file
                break;       // and exits the switch
-      case 204 : face = imread(ros::package::getPath("game_master") + "/faces/204_face_baxter_countdown_4.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 203 : path = ros::package::getPath("game_master") + "/faces/203_face_baxter_countdown_3.png";   // Read the file
                break;       // and exits the switch
-      case 205 : face = imread(ros::package::getPath("game_master") + "/faces/205_face_baxter_countdown_5.png", CV_LOAD_IMAGE_COLOR);   // Read the file
+      case 204 : path = ros::package::getPath("game_master") + "/faces/204_face_baxter_countdown_4.png";   // Read the file
+               break;       // and exits the switch
+      case 205 : path = ros::package::getPath("game_master") + "/faces/205_face_baxter_countdown_5.png";   // Read the file
                break;       // and exits the switch
       
                
       
     }
+    //read in face
+    face = imread(path, CV_LOAD_IMAGE_COLOR);   // Read the file
+    
     //check if image is ok
     if(! face.data ){                              // Check for invalid input
       ROS_ERROR_NAMED("game_master", "Could not open or find the face at: ");
-      cout << ros::package::getPath("game_master") << endl;
+      cout << path << endl;
       return ;
     }
     //displaz face 
@@ -363,7 +371,7 @@ void request_update_camera(int next_player)
     ac_grasping_baxter.sendGoal(goal,
                 boost::bind(&game_master_boss::received_grasping_done, this, _1, _2),
                 actionlib::SimpleActionClient<game_master::grasping_baxter_game_masterAction>::SimpleActiveCallback(),
-                actionlib::SimpleActionClient<game_master::grasping_baxter_game_masterAction>::SimpleFeedbackCallback());
+                boost::bind(&game_master_boss::received_grasping_feedback, this, _1));
 
   }
 
@@ -375,12 +383,30 @@ void request_update_camera(int next_player)
     //ROS_INFO("got move: ");
   }
 
+  void received_grasping_feedback(const game_master::grasping_baxter_game_masterFeedbackConstPtr& feedback)
+  {
+    if(feedback->progress==77){
+      ROS_DEBUG_NAMED("game_master","Recieved correct feedback");
+      feedback_grasping=true;
+    }
+    else{
+      ROS_ERROR_NAMED("game_master","Recieved wrong feedback.");
+
+    }
+    
+    //ROS_INFO("Finished in state [%s]", state.toString().c_str());
+    //ROS_INFO("Answer: %i", result->sequence.back());
+    //ROS_INFO("got move: ");
+  }
+
   bool wait_for_result_grasping(){
     if(ac_grasping_baxter.waitForResult(ros::Duration(30.0)))
       return true;
     else
       return false;
   }
+
+  
   //check if the move done by baxeter is performet correctly
   bool baxter_move_correct(){
     //TODO: check entire gameboard
@@ -394,32 +420,26 @@ void request_update_camera(int next_player)
 
   void gui_start_command(const game_master::gui_game_masterGoalConstPtr &goal)
   {
-    // helper variables
-    ros::Rate r(1);
-    bool success = true;
-
-    // push_back the seeds for the fibonacci sequence
-    feedback_gui.progress=20; // progress in %
-
     // publish info to the console for the user
-    ROS_INFO("%s: start received", action_name_.c_str());
-	//ROS_INFO("%s: Executing, creating fibonacci sequence of order %i with seeds %i, %i", action_name_.c_str(), goal->order, feedback_.sequence[0], feedback_.sequence[1]);	
-    
-    //fedback that everything is ok
-    as_gui.publishFeedback(feedback_gui);
-
-    //check if start or stop
-    if(goal->start_game==1){
+    ROS_DEBUG_NAMED("game_master", "%s: start received", action_name_.c_str());
+	
+    //check if what button was pressed
+    if(goal->command==1){
       stop_game=false;
       gui_start_flag=true;
     }
       
-    if(goal->start_game==2){
+    if(goal->command==2){
       gui_start_flag=false;
       stop_game=true;
     }
+    if(goal->command==100){
+      gui_ground_state_flag=true;
+    }
       
-    
+    if(goal->command==200){
+      gui_check_reach_flag=true;
+    }
   
   ROS_INFO("First player: %i", goal->first_player);
     //check first player
@@ -429,14 +449,10 @@ void request_update_camera(int next_player)
       baxter_starts=false;
     
 
-    if(success)
-    {
-      result_gui.game_started = 1;
-      ROS_INFO("%s: Done", action_name_.c_str());
-      // set the action state to succeeded
-      as_gui.setSucceeded(result_gui);
-      gui_start_flag=true;
-    }
+    result_gui.game_started = 1;
+    ROS_DEBUG_NAMED("game_master", "%s: Done", action_name_.c_str());
+    // set the action state to succeeded
+    as_gui.setSucceeded(result_gui);    
   }
 
 
@@ -488,13 +504,22 @@ int main(int argc, char** argv)
     gmb.game_pieces_baxter=18;
     
     while(ros::ok() && !gmb.gui_start_flag){
-      gmb.send_gui_status("Waiting for start.","What's up man! When do we play?");
-      ROS_INFO_THROTTLE(5, "Waiting for GUI");
+      gmb.send_gui_status("Waiting for command.","What's up man! When do we play?");
+      ROS_INFO_THROTTLE(5, "Waiting for GUI-command");
       ros::spinOnce();
       ros::Duration(1.0).sleep();
       gmb.show_face(1);
+      if(gmb.gui_ground_state_flag){
+        //order special grasping move ground state
+        gmb.request_grasping_baxter(100,100);
+        gmb.gui_ground_state_flag=false;
+      }
+      if(gmb.gui_check_reach_flag){
+        //order special grasping move check reach
+        gmb.request_grasping_baxter(200,200);
+        gmb.gui_check_reach_flag=false;
+      }
     }
-
     //select player and prepare board
     //init gameboard 
     gmb.gameboard.clear();
@@ -593,6 +618,15 @@ int main(int argc, char** argv)
         }
         */
 
+        //wait for the place feedback
+        while(ros::ok() && !gmb.feedback_grasping){
+          ROS_INFO_THROTTLE(5,"Waiting for feedback");
+          ros::spinOnce();
+          ros::Duration(0.1).sleep();
+        }
+        gmb.feedback_grasping=false;
+        
+
         //we check if baxter succesfully placed the piece
         gmb.send_gui_status("Baxter checking move","Did I manage to do it?");
         gmb.show_face(6);
@@ -621,7 +655,7 @@ int main(int argc, char** argv)
           baxter_needs_help_counter++;
 
           // Baxter missed to place piece -> asks human to place it
-          if(baxter_needs_help_counter>5){
+          if(baxter_needs_help_counter>30){
             std::ostringstream baxy;
             baxy << "It seems I missed it ... can you move my red piece to field num: " << gmb.ai_move;
             gmb.send_gui_status("Baxter move failed", baxy.str());
@@ -629,7 +663,7 @@ int main(int argc, char** argv)
             ROS_WARN("Baxter missed the target. Set piece to: %i",gmb.ai_move);        
           }
             }
-        if(baxter_needs_help_counter>5)
+        if(baxter_needs_help_counter>30)
         {
           gmb.send_gui_status("Baxter move success","Thanks a lot!!");
           gmb.show_face(8);    
@@ -688,32 +722,32 @@ int main(int argc, char** argv)
         else{
           ROS_ERROR("Failed to performe camera update n time");
         }
-        ros::Duration(1.0).sleep();
+        ros::Duration(1.1).sleep();
 
         //count down from 5
-        if(human_too_slow_counter=5){
+        if(human_too_slow_counter==5){
           ROS_INFO("Only 5 sec left for human!");
           gmb.send_gui_status("Human move ... still waiting","Only 5 sec left for human!");
           gmb.show_face(205);  
         }
-        if(human_too_slow_counter=4){
+        if(human_too_slow_counter==4){
           ROS_INFO("Only 4 sec left for human!");
           gmb.send_gui_status("Human move ... still waiting","Only 4 sec left for human!");
           gmb.show_face(204);  
         }
-        if(human_too_slow_counter=3){
+        if(human_too_slow_counter==3){
           ROS_INFO("Only 3 sec left for human!");
           gmb.send_gui_status("Human move ... still waiting","Only 3 sec left for human!");
           gmb.show_face(203); 
           //make noise 
         }
-        if(human_too_slow_counter=2){
+        if(human_too_slow_counter==2){
           ROS_INFO("Only 2 sec left for human!");
           gmb.send_gui_status("Human move ... still waiting","Only 2 sec left for human!");
           gmb.show_face(202);  
           //make noise 
         }
-        if(human_too_slow_counter=1){
+        if(human_too_slow_counter==1){
           ROS_INFO("Only 1 sec left for human!");
           gmb.send_gui_status("Human move ... still waiting","Only 2 sec left for human!");
           gmb.show_face(201);  
@@ -722,7 +756,7 @@ int main(int argc, char** argv)
         if(human_too_slow_counter<=0){
           ROS_INFO("Human to Slow!!");
           gmb.send_gui_status("Human move ... still waiting","Human to Slow!!");
-          gmb.show_face(200);  
+          gmb.show_face(20);  
           //make noise 
         }
 
