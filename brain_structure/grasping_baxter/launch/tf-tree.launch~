@@ -1,5 +1,5 @@
 <!-- -*- xml -*-
-     THis launches the ros/visp/auto/tracker node
+     THis launches launches the tf tree between the kinect and baxter ... if the pointcloud is in the wrong place change the tf here.
   -->
 <launch>
 <!--
@@ -9,19 +9,10 @@ At time 1504529131.762
             in RPY (radian) [0.043, 0.649, 0.131]
             in RPY (degree) [2.469, 37.213, 7.490] -->
 
-<!-- Tf transform Z-Y-X-->
-
-<!-- Tf transform X,y,z, yaw,pitch,roll-->
-<node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.1 -0.115 0.923 0.131 0.649 0.043 /world /kinect2_help 10" />
-
-<!--node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.07 -0.07 0.92 0.07 0.628 0.0055 /world /kinect2_help 10" /-->
-
-
-<node pkg="tf" type="static_transform_publisher" name="kinectTransformer2" args="0.0 -0.0 0.0 -1.5707963 0.0 -1.5707963 /kinect2_help /kinect2_rgb_optical_frame 10" />
-
-<node pkg="tf" type="static_transform_publisher" name="kinectTransformer2ir" args="0.0 -0.0 0.0 -1.5707963 0.0 -1.5707963 /kinect2_help /kinect2_ir_optical_frame 10" />
-
-
-
+  <!-- Tf transform X,y,z, yaw,pitch,roll-->
+  <node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.07 -0.07 0.92 0.07 0.628 0.0055 /world /kinect2_help 10" />
+  <!-- point cloud is flipped (reason unkonwn) -->	
+  <node pkg="tf" type="static_transform_publisher" name="kinectTransformer2" args="0.0 -0.0 0.0 -1.5707963 0.0 -1.5707963 /kinect2_help /kinect2_rgb_optical_frame 10" />
+  <node pkg="tf" type="static_transform_publisher" name="kinectTransformer2ir" args="0.0 -0.0 0.0 -1.5707963 0.0 -1.5707963 /kinect2_help /kinect2_ir_optical_frame 10" />
 
 </launch>

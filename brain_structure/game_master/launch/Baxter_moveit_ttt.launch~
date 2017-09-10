@@ -1,0 +1,19 @@
+<!-- -*- xml -*-
+     This launches the baxter moveit part of the HLUST baxter TTT game. (rviz will not open as it waits for the game prep)
+  -->
+<launch>
+
+  <!-- starte enable baxter-->
+  <node pkg="baxter_tools" type="enable_robot.py" name="enable_robot" args=" -e"/>
+
+  <!-- starte joint_trajectory_action_server-->
+  <node pkg="baxter_interface" type="joint_trajectory_action_server.py" name="joint_trajectory_action_server"/>
+
+  <!-- starte joint_trajectory_action_server-->
+  <include file="$(find baxter_moveit_config)/launch/baxter_grippers.launch">
+    <arg name="kinect2" value="true" />
+    <arg name="load_robot_description" value="true"/>
+    <arg name="rviz_config" value="$(find game_master)/launch/baxter_TTT.rviz" />
+  </include>
+
+</launch>

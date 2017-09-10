@@ -1,43 +1,40 @@
 <!-- -*- xml -*-
-     THis launches the ros/visp/auto/tracker node
+     THis launches the ar-track alvar nodes to detect the ar-tags
   -->
 
 <launch>
-	<arg name="marker_size" default="4.4" />
-	<arg name="max_new_marker_error" default="0.05" />
-	<arg name="max_track_error" default="0.05" />
 
-	<arg name="cam_image_topic" default="/kinect2/hd/points" />
-	<arg name="cam_info_topic" default="/kinect2/hd/camera_info" />
-	<arg name="output_frame" default="/world" />
+  <arg name="marker_size" default="6.0" />
+  <arg name="max_new_marker_error" default="0.05" />
+  <arg name="max_track_error" default="0.05" />
+  <arg name="cam_image_topic" default="/kinect2/hd/points" />
+  <arg name="cam_info_topic" default="/kinect2/hd/camera_info" />
+  <arg name="output_frame" default="/world" />
 
+  <node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkers" respawn="false" output="screen">
+    <param name="marker_size"           type="double" value="$(arg marker_size)" />
+    <param name="max_new_marker_error"  type="double" value="$(arg max_new_marker_error)" />
+    <param name="max_track_error"       type="double" value="$(arg max_track_error)" />
+    <param name="output_frame"          type="string" value="$(arg output_frame)" />
 
-        <!--arg name="med_filt_size" default="10" /-->
-	<!--arg name="bundle_files" default="$(find grasping_baxter)/bundles/ttt4markers.xml" /-->
-
-	<!--node name="ar_track_alvar" pkg="ar_track_alvar" type="findMarkerBundles" respawn="false" output="screen" args="$(arg marker_size) $(arg max_new_marker_error) $(arg max_track_error) $(arg cam_image_topic) $(arg cam_info_topic) $(arg output_frame) $(arg med_filt_size) $(arg bundle_files)" >
-
-<remap from="camera_image"  to="$(arg cam_image_topic)" />
-		<remap from="camera_info"   to="$(arg cam_info_topic)" />
-		<remap from="/ar_pose_marker" to="/TTTgame/ar_tag/ar_pose"/>
-		<remap from="/visualization_marker" to="/TTTgame/ar_tag/visualization_marker"/>
-
-</node-->
-
-
-	<node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkers" respawn="false" output="screen">
-		<param name="marker_size"           type="double" value="$(arg marker_size)" />
-		<param name="max_new_marker_error"  type="double" value="$(arg max_new_marker_error)" />
-		<param name="max_track_error"       type="double" value="$(arg max_track_error)" />
-		<param name="output_frame"          type="string" value="$(arg output_frame)" />
-
-		<remap from="camera_image"  to="$(arg cam_image_topic)" />
-		<remap from="camera_info"   to="$(arg cam_info_topic)" />
-		<remap from="/ar_pose_marker" to="/TTTgame/ar_tag/ar_pose"/>
-		<remap from="/visualization_marker" to="/TTTgame/ar_tag/visualization_marker"/>
-
-	</node>
+    <remap from="camera_image"  to="$(arg cam_image_topic)" />
+    <remap from="camera_info"   to="$(arg cam_info_topic)" />
+    <remap from="/ar_pose_marker" to="/TTTgame/ar_tag/ar_pose"/>
+    <remap from="/visualization_marker" to="/TTTgame/ar_tag/visualization_marker"/>
+  </node>
 
 
+  <!-- detect a bundel of tags speciefied in ttt4markers ... currently does not give improvment-->
+  <!--arg name="med_filt_size" default="10" /-->
+  <!--arg name="bundle_files" default="$(find grasping_baxter)/bundles/ttt4markers.xml" /-->
+
+    <!--node name="ar_track_alvar" pkg="ar_track_alvar" type="findMarkerBundles" respawn="false" output="screen" args="$(arg marker_size) $(arg max_new_marker_error) $(arg max_track_error) $(arg cam_image_topic) $(arg cam_info_topic) $(arg output_frame) $(arg med_filt_size) $(arg bundle_files)" >
+
+    <remap from="camera_image"  to="$(arg cam_image_topic)" />
+    <remap from="camera_info"   to="$(arg cam_info_topic)" />
+    <remap from="/ar_pose_marker" to="/TTTgame/ar_tag/ar_pose"/>
+    <remap from="/visualization_marker" to="/TTTgame/ar_tag/visualization_marker"/>
+
+  </node-->
 
 </launch>

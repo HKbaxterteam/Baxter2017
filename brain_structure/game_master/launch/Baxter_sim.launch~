@@ -1,5 +1,5 @@
 <!-- -*- xml -*-
-     THis launches the ros/visp/auto/tracker node
+     THis launches the baxter gazebo simulator
   -->
 <launch>
   
@@ -7,19 +7,6 @@
 <!-- starte baxter sim-->
 <include file="$(find baxter_gazebo)/launch/baxter_world.launch"/>
 <param name="right_electric_gripper" value="false"/>
-
-until rostopic list ; do sleep 10; done
-
-<!-- starte enable baxter-->
-<node pkg="baxter_tools" type="enable_robot.py" name="enable_robot" args=" -e"/>
-
-<!-- starte joint_trajectory_action_server-->
-<node pkg="baxter_interface" type="joint_trajectory_action_server.py" name="joint_trajectory_action_server"/>
-
-<!-- starte joint_trajectory_action_server-->
-<include file="$(find baxter_moveit_config)/launch/baxter_grippers.launch"/>
-<param name="right_electric_gripper" value="false"/>
-
 
 
 </launch>
