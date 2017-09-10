@@ -1,8 +1,0 @@
-#goal definition
-int32[] gameboard
----
-#result definition
-int32 best_move
----
-#feedback
-int32 ai_progress

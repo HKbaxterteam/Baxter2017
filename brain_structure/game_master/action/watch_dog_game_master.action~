@@ -1,8 +1,0 @@
-#goal definition
-int32 start_watch_dog		
----
-#result definition
-int32	watch_dog_done
----
-#feedback
-int32   progress
