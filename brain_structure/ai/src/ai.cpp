@@ -74,9 +74,25 @@ public:
     //helpvars
     vector<int> posMoves;
     std::vector<int> bestmove;
-    scoresafe.clear();
+
+
     //alpha-beta search
-    int score = alphabeta(gameboard,maxdepth,std::numeric_limits<int>::min(),numeric_limits<int>::max(), true);
+    int depth=maxdepth;
+    bool found_move=false;
+   	while(ros::ok() && !found_move && depth>0){
+   	  scoresafe.clear();
+   	  int score = alphabeta(gameboard,depth,std::numeric_limits<int>::min(),numeric_limits<int>::max(), true);
+   	  // check if game score for all possible moves is different
+   	  for(int i=0; i<scoresafe.size(); i++)
+   	  {
+   	  	if(scoresafe[0]!=scoresafe[i])
+   	  	{
+   	  		found_move=true;
+   	  	}
+   	  }
+   	  depth--;
+   	}
+    
     //get the next possible boards
     vector<vector<int> > nextgameboards =findposMoves(gameboard);
     //find the max score
