@@ -123,7 +123,7 @@ public:
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
     action_name_(name),group("right_arm"),offset_p0_pose_x(-0.101),offset_p0_pose_y(+0.16),
-    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.32),offset_pick_up_pose_y(-0.275),offset_pick_up_pose_z(0.06),art_vec_count(0),
+    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.32),offset_pick_up_pose_y(-0.275),offset_pick_up_pose_z(0.0575),art_vec_count(0),
     art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),
     doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0),current_stack(0),num_baxtertrys(3)
   {
@@ -143,6 +143,8 @@ public:
     //update enviroment
     grasping_baxter_environment_fixed();
     grasping_baxter_environment_dynamic();
+    //FIXED z because KINECT SUCKS!!!!!!
+    ar_code_pose.pose.position.z=-0.161;
   }
 
   //deconstructor
@@ -212,13 +214,14 @@ public:
   //move with joint stuff to ground pos
     ROS_DEBUG_NAMED("grasping_baxter", "Moving to ground state.");
     std::string joint_names="'right_e0', 'right_e1', 'right_s0', 'right_s1', 'right_w0', 'right_w1', 'right_w2'";
-    group.setJointValueTarget("right_e0",-0.08590292412158317);
-    group.setJointValueTarget("right_e1",1.9987769666146942);
-    group.setJointValueTarget("right_s0",-0.6212622190935926);
-    group.setJointValueTarget("right_s1",-1.0841409218380162);
-    group.setJointValueTarget("right_w0",0.11236409271260656);
-    group.setJointValueTarget("right_w1",0.8053399136398423);
-    group.setJointValueTarget("right_w2",-0.3896311201228951);
+    
+    group.setJointValueTarget("right_e0",0.4249126782442596);
+    group.setJointValueTarget("right_e1",2.1360682471304386);
+    group.setJointValueTarget("right_s0",-0.7677573843366495);
+    group.setJointValueTarget("right_s1",-0.8989127417008524);
+    group.setJointValueTarget("right_w0",-0.5798447378206864);
+    group.setJointValueTarget("right_w1",0.4333495725776294);
+    group.setJointValueTarget("right_w2",0.8923933233523395);
     group.plan(my_plan);
     bool success = group.execute(my_plan);
     if(success)
@@ -685,22 +688,22 @@ public:
     if(num_game_pieces_left % 6==0)
     {
      pieces_in_stack=6;
-     if(num_game_pieces_left<18)
-       new_stack=true; 
+     //if(num_game_pieces_left<18)
+       //new_stack=true; 
     }
 
     // it is one less
     pieces_in_stack--;
-    if(pieces_in_stack<=0)
-      new_stack=true; 
+    /*if(pieces_in_stack<=0)
+      new_stack=true; */
     num_game_pieces_left--;
 
     //move to pick up pose    
     target_pose=pick_up_pose;
     target_pose.pose.position.z +=0.05; 
     //temp update the stack?
-    if(new_stack){
-      new_stack=false;
+    if(num_game_pieces_left==6 || num_game_pieces_left ==12){
+      //new_stack=false;
       double theta=tf::getYaw(ar_code_pose.pose.orientation);
       Mat r = (Mat_<double>(2,2) <<
                       cos(theta), -sin(theta),
@@ -713,12 +716,12 @@ public:
       offset_ss_x =  t.at<double>(0,0);
       offset_ss_y =  t.at<double>(1,0);
       //second stack
-      if(num_game_pieces_left<13 && current_stack==0){
+      if(num_game_pieces_left==12){
         pick_up_pose.pose.position.x+=offset_ss_x;
         pick_up_pose.pose.position.y+=offset_ss_y;
       }
       //third stack
-      if(num_game_pieces_left<7 && current_stack==1){
+      if(num_game_pieces_left==6){
         pick_up_pose.pose.position.x+=offset_ss_x;
         pick_up_pose.pose.position.y+=offset_ss_y;
       }
@@ -919,9 +922,9 @@ public:
     co_table.header.frame_id = group.getPlanningFrame();
     co_table.id = "Table";
     cube.dimensions.resize(3);
-    cube.dimensions[0] = 1.0;
+    cube.dimensions[0] = 1.2;
     cube.dimensions[1] = 1.2;
-    cube.dimensions[2] = 0.74;
+    cube.dimensions[2] = 0.76;
     geometry_msgs::Pose table_pose;
     table_pose.orientation.w = 1.0;
     table_pose.position.x =  0.75;//0.825;

@@ -45,6 +45,7 @@ protected:
 public:
   //vars
   int maxdepth;
+  int maxdepthab;
   std::vector<int> scoresafe;
 
   //constructor
@@ -77,11 +78,11 @@ public:
 
 
     //alpha-beta search
-    int depth=maxdepth;
+    maxdepthab=maxdepth;
     bool found_move=false;
-   	while(ros::ok() && !found_move && depth>0){
+   	while(ros::ok() && !found_move && maxdepthab>0){
    	  scoresafe.clear();
-   	  int score = alphabeta(gameboard,depth,std::numeric_limits<int>::min(),numeric_limits<int>::max(), true);
+   	  int score = alphabeta(gameboard,maxdepthab,std::numeric_limits<int>::min(),numeric_limits<int>::max(), true);
    	  // check if game score for all possible moves is different
    	  for(int i=0; i<scoresafe.size(); i++)
    	  {
@@ -90,7 +91,8 @@ public:
    	  		found_move=true;
    	  	}
    	  }
-   	  depth--;
+   	  maxdepthab--;
+      
    	}
     
     //get the next possible boards
@@ -207,7 +209,7 @@ public:
       {
           v=alphabeta(nextgameboards[i],depth-1,alpha,beta,false);
           //save the best move to play it later
-          if(depth==maxdepth){
+          if(depth==maxdepthab){
             scoresafe.push_back(std::numeric_limits<int>::min());
             scoresafe[i]=v;
           }
