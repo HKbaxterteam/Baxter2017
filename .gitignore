@@ -1,6 +1,6 @@
 #ignor stuff from qt creator
 build-baxter_gui-Desktop-Default
-
+*~
 
 #Octocat
 # Compiled source #
