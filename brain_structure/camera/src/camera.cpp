@@ -50,8 +50,7 @@ protected:
   camera::camera_game_masterFeedback feedback_camera; // create messages that are used to published feedback
   camera::camera_game_masterResult result_camera;    // create messages that are used to published result
   image_transport::Publisher image_pub_gameboard_;
-  image_transport::Publisher image_pub_contour_;
-
+  
 public:
   //debug
   bool debug_flag;
@@ -68,7 +67,7 @@ public:
   //opencv images
   Mat org, subImage, input_grey;
   Mat filter_image_red, filter_image_blue;
-  Mat canny_output, drawing, countourtest;
+  Mat canny_output, drawing, countourlargest;
   //debug output for rviz
   Mat tl_cut_board, tr_contours, bl_only_gameboard;
  
@@ -84,7 +83,6 @@ public:
     // Subscribe and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &camera_boss::imageCb, this);
     image_pub_gameboard_ = it_.advertise("/TTTgame/camera_views", 1);
-    image_pub_contour_=it_.advertise("/TTTgame/camera_contour", 1);
     
     //debug
         if(debug_flag){
@@ -149,6 +147,9 @@ public:
       ROS_WARN("Cutout of board is wrong.");
       feedback_camera.progress=-1;      
       as_camera.publishFeedback(feedback_camera);
+
+      as_camera.setAborted();
+
       return;
     }
 
@@ -186,30 +187,14 @@ public:
     findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
     //for rviz
     tr_contours = Mat::zeros( canny_output.size(), CV_8UC3 );
+    countourlargest = Mat::zeros( canny_output.size(), CV_8UC3 );
     for( int i = 0; i< contours.size(); i++ )
     {
       Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
       drawContours( tr_contours, contours, i, color, 2, 8, hierarchy, 0, Point() );
     }
     resize(tr_contours,tr_contours,rviz_sub_size);//resize image
-  
-    if(debug_flag){
-      // Draw contours
-      drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
-      countourtest;
-      drawing.copyTo(countourtest);
-        
-      for( int i = 0; i< contours.size(); i++ )
-      {
-        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-        drawContours( drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
-      }
-      // Show in a window
-      waitKey(1);
-      imshow( "Contours", drawing );
-      waitKey(1);
-    }
-
+    
     //find largest contour (game board bounding box)
     int largest_area=0;
     int largest_contour_index=0;
@@ -225,21 +210,24 @@ public:
         }
       }
 
+      //draw largest countour
+      Scalar color2 = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+        
+      drawContours( countourlargest, contours, largest_contour_index, color2);
+      resize(countourlargest,countourlargest,rviz_sub_size);//resize image
+    
+    //stich to one rviz output file
+    Mat rviz_out_error(rviz_sub_size*2, CV_8UC3);
+    tr_contours.copyTo(rviz_out_error(Rect(0,0,rviz_sub_size.width,rviz_sub_size.height)));
+    countourlargest.copyTo(rviz_out_error(Rect(rviz_sub_size.width,0,rviz_sub_size.width,rviz_sub_size.height)));
+        
     //output for slicing up the thing
     Mat warpedCard(rviz_sub_size, CV_8UC3);
     //check that the largest area is at least half of the image
-    if(largest_area>org.rows*org.cols/2.5)
+    if(largest_area>org.rows*org.cols/3.5)
     {
       ROS_DEBUG_NAMED("camera","Found area.");
-      if(debug_flag)
-      {
-        //draw only biggest contour
-        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-        drawContours( countourtest, contours, largest_contour_index, color);
-        waitKey(1);
-        imshow( "gameboard contour", countourtest );
-        waitKey(1);
-      }
+      
       //find 4 corner points
       vector<Point> corners;
       double d=0;
@@ -396,6 +384,15 @@ public:
         result_camera.gameboard = gameboard;
         result_camera.status =2;
         as_camera.setSucceeded(result_camera);
+        //publish the image in ros
+        cv_bridge::CvImage out_msg;
+        out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
+        out_msg.header.stamp =ros::Time::now(); // new timestamp
+        out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
+        out_msg.image    = rviz_out_error; 
+        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message 
+        
+        return;
       }
 
   	  if(success)
@@ -435,9 +432,9 @@ public:
         out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
         out_msg.header.stamp =ros::Time::now(); // new timestamp
         out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
-        out_msg.image    = tr_contours; 
+        out_msg.image    = rviz_out_error; 
         image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message 
-      
+        
       }
 
       /*

@@ -462,7 +462,7 @@ int main(int argc, char** argv)
     gmb.gameboard.clear();
     for (int i = 0; i < 36; ++i)
     {
-      gmb.gameboard.push_back(0);
+      gmb.gameboard.push_back(3);
     }
     //player 2 starts (baxtre)
     if(gmb.baxter_starts)
@@ -502,6 +502,7 @@ int main(int argc, char** argv)
       ros::Duration(3.0).sleep();
       goto start_place;
     }
+    
 
     //The game can finnaly start
     //print the gameboard

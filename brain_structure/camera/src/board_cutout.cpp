@@ -44,7 +44,7 @@ class board_cutout
     Mat org, grey, game; 
     Mat M, rotated, cropped;
     //constructor
-    board_cutout() : it_(n_),debug_flag(false),cutout_x(50),cutout_y(80),cutout_width(450),cutout_height(350) 
+    board_cutout() : it_(n_),debug_flag(false),cutout_x(70),cutout_y(110),cutout_width(550),cutout_height(370) 
     {
       // Subscriber and publisher
       image_sub_raw_ = it_.subscribe("/TTTgame/webcam/input_image_raw", 1, &board_cutout::imageCb, this);
