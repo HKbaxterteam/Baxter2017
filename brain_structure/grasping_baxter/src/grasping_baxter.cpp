@@ -13,6 +13,7 @@
 
 //ros
 #include <ros/ros.h>
+#include <ros/console.h>
 //action
 #include <actionlib/server/simple_action_server.h>
 #include <grasping_baxter/grasping_baxter_game_masterAction.h>
@@ -106,11 +107,17 @@ public:
   std::vector<geometry_msgs::PoseStamped> ar_tag_pose_vector;
 
   //constructor
+  /* as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
+    action_name_(name),group("right_arm"),offset_p0_pose_x(-0.091),offset_p0_pose_y(+0.1625),
+    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.316),offset_pick_up_pose_y(-0.2675-0.01),offset_pick_up_pose_z(0.065),art_vec_count(0),
+    art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),
+    doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0)
+  {*/
   //NOTE: this is where the hardware constant need to be entered
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name),group("right_arm"),offset_p0_pose_x(-0.091),offset_p0_pose_y(+0.1625),
-    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.316),offset_pick_up_pose_y(-0.2675-0.01),offset_pick_up_pose_z(0.065),art_vec_count(0),
+    action_name_(name),group("right_arm"),offset_p0_pose_x(-0.08),offset_p0_pose_y(+0.16),
+    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.30),offset_pick_up_pose_y(-0.28),offset_pick_up_pose_z(0.065),art_vec_count(0),
     art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),
     doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0)
   {
@@ -126,6 +133,7 @@ public:
     rightGripperPub = nh_.advertise<baxter_core_msgs::EndEffectorCommand>("/robot/end_effector/right_gripper/command",10, true);
     //calibrate gripper
     calibraterightGripper();
+    configurerightGripper();
     //update enviroment
     grasping_baxter_environment();
   }
@@ -133,6 +141,20 @@ public:
   //deconstructor
   ~grasping_baxter_boss(void)
   {
+  }
+  //configure gripper
+  bool configurerightGripper()
+  {
+    ROS_DEBUG_NAMED("grasping_baxter", "Calibrate right arm gripper");
+    baxter_core_msgs::EndEffectorCommand command;
+    command.command = baxter_core_msgs::EndEffectorCommand::CMD_CONFIGURE;
+    command.args = "{\"vacuum_sensor_threshold\":7.0}";
+    command.id = 65537;
+    command.sender = "grasping_baxter";
+    command.sequence = gripperSeq++;   
+    rightGripperPub.publish(command);        
+    ros::Duration(0.2).sleep();
+    return true;
   }
 
   //calibrate right gripper
@@ -158,6 +180,8 @@ public:
     command.id = 65537;
     command.sequence = gripperSeq++;
     command.sender = "grasping_baxter";
+    command.args = "{\"grip_attempt_seconds\": 3.0}";
+    //set_vacuum_threshold
     rightGripperPub.publish(command);    
     ros::Duration(0.2).sleep();
     return true;
@@ -350,24 +374,7 @@ public:
     //set oriantion
     //NOTE: not sure why baxter need this orientation to grasp from the top ...
     pick_up_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
-    //adjust pick up pose depending on which tower we are picking from
-    //calc tower offsets
-    t = (Mat_<double>(2,1)  <<
-                    0.0625,
-                    0.0);
-    t = r*t;
-    offset_ss_x =  t.at<double>(0,0);
-    offset_ss_y =  t.at<double>(1,0);
-    //second stack
-    if(num_game_pieces_left<13){
-      pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
-      pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
-    }
-    //third stack
-    if(num_game_pieces_left<7){
-      pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
-      pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
-    }   
+     
   }
   
   //publishing poses
@@ -393,6 +400,7 @@ public:
     target_pose.pose.position.z +=0.05;    
     bool success=false;
     int moveitcounter=0;
+    group.setStartStateToCurrentState();
     while(!success && moveitcounter <5){
       group.setPoseTarget(target_pose);
       group.plan(my_plan);
@@ -439,12 +447,13 @@ public:
     
     success=false;
     moveitcounter=0;
+    group.setStartStateToCurrentState();
     while(!success && moveitcounter <5){
       my_plan.trajectory_ = trajectory;
       success = group.execute(my_plan);
       sleep(0.1);
       if(success)
-        ROS_INFO_NAMED("grasping_baxter", "Reached Pick up pose for piece.");
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached Pick up pose for piece.");
       else
         ROS_ERROR_NAMED("grasping_baxter", "Failed to reach Pick up pose for piece.");
       ros::spinOnce();
@@ -462,7 +471,7 @@ public:
     sleep(2.0);  
 
     //decrese num of game pieces
-    num_game_pieces_left--;
+    //num_game_pieces_left--;
     ROS_DEBUG_NAMED("grasping_baxter", "Pieces left in game: %i",num_game_pieces_left);  
     
     //move up again 
@@ -484,12 +493,13 @@ public:
     
     success=false;
     moveitcounter=0;
+    group.setStartStateToCurrentState();
     while(!success && moveitcounter <5){
       my_plan.trajectory_ = trajectory;
       success = group.execute(my_plan);
       sleep(0.1);
       if(success)
-        ROS_INFO_NAMED("grasping_baxter", "Reached pick_up_pose + some margin with a piece");
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached pick_up_pose + some margin with a piece");
       else
         ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick_up_pose + some margin with a piece");
       ros::spinOnce();
@@ -512,13 +522,14 @@ public:
     ROS_DEBUG_NAMED("grasping_baxter","Move to field num: %i",target_field);
     success=false;
     moveitcounter=0;
+    group.setStartStateToCurrentState();
     while(!success && moveitcounter <5){
       group.setPoseTarget(target_pose);
       group.plan(my_plan);
       success = group.execute(my_plan);
       sleep(0.1);
       if(success)
-        ROS_INFO_NAMED("grasping_baxter", "Reached place pose + some z margin.");
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached place pose + some z margin.");
       else
         ROS_ERROR_NAMED("grasping_baxter", "Failed to reach place pose + some z margin.");
       ros::spinOnce();
@@ -535,13 +546,14 @@ public:
     target_pose.pose.position.z = p0_pose.pose.position.z;
     success=false;
     moveitcounter=0;
+    group.setStartStateToCurrentState();
     while(!success && moveitcounter <5){
       group.setPoseTarget(target_pose);
       group.plan(my_plan);
       success = group.execute(my_plan);
       sleep(0.1);
       if(success)
-        ROS_INFO_NAMED("grasping_baxter", "Reached place pose.");
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached place pose.");
       else
         ROS_ERROR_NAMED("grasping_baxter", "Failed to reach place pose.");
       ros::spinOnce();
@@ -561,13 +573,14 @@ public:
     target_pose.pose.position.z=pick_up_pose.pose.position.z+0.05;
     success=false;
     moveitcounter=0;
+    group.setStartStateToCurrentState();
     while(!success && moveitcounter <5){
       group.setPoseTarget(target_pose);
       group.plan(my_plan);
       success = group.execute(my_plan);
       sleep(0.1);
       if(success)
-        ROS_INFO_NAMED("grasping_baxter", "Reached place pose + some margin after dropping piece");
+        ROS_DEBUG_NAMED("grasping_baxter", "Reached place pose + some margin after dropping piece");
       else
         ROS_ERROR_NAMED("grasping_baxter", "Failed to reach place pose + some margin after dropping piece");
       ros::spinOnce();
@@ -577,7 +590,7 @@ public:
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach place pose + some margin after dropping piece 5x");
     }
     
-    sleep(1.1);
+    sleep(0.3);
 
     //move to pick up pose    
     target_pose=pick_up_pose;
@@ -590,7 +603,7 @@ public:
       success = group.execute(my_plan);
       sleep(0.1);
     if(success)
-      ROS_INFO_NAMED("grasping_baxter", "reached pick and place pose again");
+      ROS_DEBUG_NAMED("grasping_baxter", "reached pick and place pose again");
     else
       ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick and place pose again");
     ros::spinOnce();
@@ -602,17 +615,18 @@ public:
     sleep(0.1);
 
     //move to pick up pose + some y maggin   
-    target_pose=pick_up_pose; 
+    //target_pose=pick_up_pose; 
     target_pose.pose.position.y -=0.15;
     success=false;
     moveitcounter=0;
+    group.setStartStateToCurrentState();
     while(!success && moveitcounter <5){
       group.setPoseTarget(target_pose);
       group.plan(my_plan);
       success = group.execute(my_plan);
       sleep(0.1);
       if(success)
-        ROS_INFO_NAMED("grasping_baxter", "reached pick and place pose again");
+        ROS_DEBUG_NAMED("grasping_baxter", "reached pick and place pose again");
       else
         ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick and place pose again");
       ros::spinOnce();
@@ -626,7 +640,7 @@ public:
     //enable ar-tag updates again
     doarupdate=true;
   }
-
+  
 
 //NOTE: This is only for debug purposes 
   /*
@@ -988,9 +1002,37 @@ public:
     ROS_DEBUG_NAMED("grasping_baxter", "%s: start received", action_name_.c_str());
     //where do we want to go?
     target_field =goal->move;
+    num_game_pieces_left =goal->pieces;
     //use RRT 
     group.setPlannerId("RRTConnectkConfigDefault");
     ros::Duration(0.5).sleep();
+
+    //adjust pick up pose depending on which tower we are picking from
+    //calc tower offsets    
+    // rotate around theta
+    double theta=tf::getYaw(ar_code_pose.pose.orientation);
+    Mat r = (Mat_<double>(2,2) <<
+                    cos(theta), -sin(theta),
+                    sin(theta), cos(theta));
+    
+    //translate to get true pose
+    Mat t = (Mat_<double>(2,1)  <<
+                    0.0625,
+                    0.0);
+    
+    t = r*t;
+    offset_ss_x =  t.at<double>(0,0);
+    offset_ss_y =  t.at<double>(1,0);
+    //second stack
+    if(num_game_pieces_left<13){
+      pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
+      pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
+    }
+    //third stack
+    if(num_game_pieces_left<7){
+      pick_up_pose.pose.position.x=pick_up_pose.pose.position.x+offset_ss_x;
+      pick_up_pose.pose.position.y=pick_up_pose.pose.position.y+offset_ss_y;
+    }  
 
     //tolerances
     group.setGoalOrientationTolerance(0.0005);
@@ -1001,6 +1043,7 @@ public:
     group.setStartStateToCurrentState();
     
     //do a thing
+    //target_field=30;
     place_piece();
     //picking_test();
     //tf_frame_test();

@@ -15,6 +15,7 @@
 
 //ros
 #include <ros/ros.h>
+#include <ros/console.h>
 //action
 #include <actionlib/server/simple_action_server.h>
 #include <ai/ai_game_masterAction.h>

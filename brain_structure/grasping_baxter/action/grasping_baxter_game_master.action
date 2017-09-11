@@ -1,5 +1,6 @@
 #goal definition
 int32 move
+int32 pieces
 ---
 #result definition
 int32 done_grasping

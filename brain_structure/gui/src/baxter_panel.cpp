@@ -21,6 +21,8 @@
 #include <QSpinBox>
 #include <QString>
 //ros
+#include <ros/ros.h>
+#include <ros/console.h>
 #include <std_msgs/Int8.h>
 #include <stdio.h>
 #include <std_msgs/String.h>

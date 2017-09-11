@@ -9,7 +9,6 @@ Panels:
         - /MotionPlanning1/Planning Request1
         - /MotionPlanning1/Planning Metrics1
         - /MotionPlanning1/Planned Path1
-        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.74256
     Tree Height: 156
@@ -653,13 +652,14 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/Marker
-      Enabled: false
+      Enabled: true
       Marker Topic: /ARmarker_points
       Name: Ar-tags
       Namespaces:
-        {}
+        3dpts: true
+        arrow: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
@@ -686,7 +686,6 @@ Visualization Manager:
       Unreliable: false
       Value: false
       Visibility:
-        "": true
         Ar-tag pose: true
         Ar-tags: true
         Grid: true
@@ -719,14 +718,14 @@ Visualization Manager:
           Value: false
         ar_marker_10:
           Value: false
+        ar_marker_12:
+          Value: true
         ar_marker_13:
           Value: false
+        ar_marker_255:
+          Value: true
         ar_marker_7:
           Value: false
-        ar_marker_8:
-          Value: true
-        ar_marker_9:
-          Value: true
         base:
           Value: true
         camera_link:
@@ -744,11 +743,11 @@ Visualization Manager:
         head_camera:
           Value: false
         kinect2_help:
-          Value: true
+          Value: false
         kinect2_ir_optical_frame:
           Value: false
         kinect2_rgb_optical_frame:
-          Value: false
+          Value: true
         l_gripper_l_finger:
           Value: false
         l_gripper_l_finger_tip:
@@ -978,8 +977,6 @@ Visualization Manager:
             collision_head_link_2:
               {}
             torso:
-              camera_link:
-                {}
               head:
                 dummyhead1:
                   {}
@@ -1068,13 +1065,13 @@ Visualization Manager:
                 {}
               ar_marker_10:
                 {}
+              ar_marker_12:
+                {}
               ar_marker_13:
                 {}
+              ar_marker_255:
+                {}
               ar_marker_7:
-                {}
-              ar_marker_8:
-                {}
-              ar_marker_9:
                 {}
           reference/base:
             reference/collision_head_link_1:
@@ -1182,7 +1179,7 @@ Visualization Manager:
       Max Intensity: 4096
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: PointCloud2
+      Name: kinect2_cloud
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
@@ -1194,18 +1191,6 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Class: rviz/Image
-      Enabled: false
-      Image Topic: /TTTgame/cut_board
-      Max Value: 1
-      Median window: 5
-      Min Value: 0
-      Name: Image
-      Normalize Range: true
-      Queue Size: 2
-      Transport Hint: raw
-      Unreliable: false
-      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1221,7 +1206,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 7.19538
+      Distance: 3.87988
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -1233,10 +1218,10 @@ Visualization Manager:
         Z: 2.87737e-05
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.809795
+      Pitch: 0.724795
       Target Frame: base_link
       Value: XYOrbit (rviz)
-      Yaw: 4.70492
+      Yaw: 5.15992
     Saved: ~
 Window Geometry:
   BaxterDashboard:
@@ -1250,13 +1235,11 @@ Window Geometry:
     collapsed: false
   Hide Left Dock: false
   Hide Right Dock: false
-  Image:
-    collapsed: false
   MotionPlanning:
     collapsed: false
   MotionPlanning - Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b1000003dafc020000000dfb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000001600fffffffb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e0067010000022b000001d70000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000010b000001d7000001cc00fffffffb0000001e00420061007800740065007200440061007300680062006f006100720064010000010b000000b0000000b000fffffffb0000000a0049006d006100670065000000039e000000640000000000000000fb0000000e006b0069006e006500630074003201000001c10000005b0000001600fffffffb0000000c00430061006d0065007200610000000350000000b20000000000000000fb0000000c00630061006d0065007200610100000222000001e00000001600fffffffb0000000a0049006d0061006700650000000350000000b20000001600ffffff00000488000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000003a3000003dafc020000000efb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000001600fffffffb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e0067010000022b000001d70000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000010b000001d7000001cc00fffffffb0000001e00420061007800740065007200440061007300680062006f006100720064010000010b000000b0000000b000fffffffb0000000a0049006d006100670065000000039e000000640000000000000000fb0000000e006b0069006e006500630074003201000001c10000009a0000001600fffffffb0000000c00430061006d0065007200610000000350000000b20000000000000000fb0000000c00630061006d0065007200610100000261000001a10000001600fffffffb0000000a0049006d0061006700650000000350000000b20000000000000000fb0000000a0049006d0061006700650000000350000000b2000000000000000000000396000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1855

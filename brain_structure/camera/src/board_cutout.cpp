@@ -12,6 +12,7 @@
 
 //ros
 #include <ros/ros.h>
+#include <ros/console.h>
 //opencv
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>

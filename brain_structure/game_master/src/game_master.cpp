@@ -62,6 +62,7 @@ public:
   int baxter_piece;
   int human_piece;
   int camera_status;
+  int game_pieces_baxter;
   std::vector<int> gameboard;
 
  // define action server=as and action client =ac
@@ -69,7 +70,7 @@ public:
     as_gui(nh_, name, boost::bind(&game_master_boss::gui_start_command, this, _1), false),
     action_name_(name),it_(nh_), ac_ai("ai_game_master", true), ac_grasping_baxter("grasping_baxter_game_master", true),
     ac_camera("camera_game_master", true), ac_guistatus("game_master_gui", true), baxter_piece(2),human_piece(1),baxter_starts(true),
-    camera_status(0),gui_start_flag(false),stop_game(false)
+    camera_status(0),gui_start_flag(false),stop_game(false),game_pieces_baxter(18)
   {
     as_gui.start(); //start server that waits for gui
 
@@ -316,11 +317,12 @@ void request_update_camera(int next_player)
 
 
 
-  void request_grasping_baxter(int move)
+  void request_grasping_baxter(int move,int pieces)
   {
     //Send which move should be executed
     game_master::grasping_baxter_game_masterGoal goal;
     goal.move = move;
+    goal.pieces = pieces;
 
     // Need boost::bind to pass in the 'this' pointer
     ac_grasping_baxter.sendGoal(goal,
@@ -448,6 +450,7 @@ int main(int argc, char** argv)
     gmb.gui_start_flag=false;
     //wait for start from GUI 
     //send first words
+    gmb.game_pieces_baxter=18;
     
     while(ros::ok() && !gmb.gui_start_flag){
       gmb.send_gui_status("Waiting for start.","What's up man! When do we play?");
@@ -541,7 +544,7 @@ int main(int argc, char** argv)
         gmb.show_face(5);
     
         // send the move to the baxter_grasping
-        gmb.request_grasping_baxter(gmb.ai_move);
+        gmb.request_grasping_baxter(gmb.ai_move,gmb.game_pieces_baxter);
         
         //wait for the grasping node to performe the pick place taask
         if(gmb.wait_for_result_grasping()){
@@ -579,19 +582,20 @@ int main(int argc, char** argv)
           baxter_needs_help_counter++;
 
           // Baxter missed to place piece -> asks human to place it
-          if(baxter_needs_help_counter>10){
+          if(baxter_needs_help_counter>5){
             std::ostringstream baxy;
             baxy << "It seems I missed it ... can you move my red piece to field num: " << gmb.ai_move;
             gmb.send_gui_status("Baxter move failed", baxy.str());
-            gmb.show_face(7);
+            gmb.show_face(7+93+gmb.ai_move);
             ROS_WARN("Baxter missed the target. Set piece to: %i",gmb.ai_move);        
           }
             }
-        if(baxter_needs_help_counter>10)
+        if(baxter_needs_help_counter>5)
         {
           gmb.send_gui_status("Baxter move success","Thanks a lot!!");
           gmb.show_face(8);    
         }
+        gmb.game_pieces_baxter--;
           
 
         //print the game board

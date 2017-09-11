@@ -15,6 +15,7 @@
 
 //Includes
 #include <ros/ros.h>
+#include <ros/console.h>
 //actionlib
 #include <actionlib/server/simple_action_server.h>
 #include <camera/camera_game_masterAction.h>
@@ -176,7 +177,7 @@ public:
     //convert to gray scale
     cvtColor(org, input_grey, CV_BGR2GRAY);
     // find contour in the image  
-    int thresh = 100;
+    int thresh = 80;//100;
     int max_thresh = 255;
     RNG rng(12345);
     // blur the image with gaussian
