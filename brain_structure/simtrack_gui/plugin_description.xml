@@ -1,0 +1,11 @@
+<library path="lib/libsimtrack_gui">
+  <class name="simtrack_gui/SimtrackDashboard"
+         type="simtrack_gui::SimtrackPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      A panel widget showing a shooping cart in rviz while using simtrack
+    </description>
+  </class>
+
+
+</library>
