@@ -35,7 +35,12 @@
 //namespace
 namespace simtrack_gui
 {
-SimtrackPanel::SimtrackPanel(QWidget* parent) : rviz::Panel(parent),consec_needed(5),size_of_fields(0.077),new_object_time(5.0),fuerte_name("Fuerte turtel"),fuerte_cost(8.77),milk_name("Skimmed milk"),milk_cost(29.85)
+SimtrackPanel::SimtrackPanel(QWidget* parent) : rviz::Panel(parent),consec_needed(5),size_of_fields(0.077),new_object_time(5.0),
+fuerte_name("Fuerte turtel"),fuerte_cost(8.77),milk_name("Skimmed milk"),milk_cost(26.15),tiger_name("Kellogs's super suger"),tiger_cost(29.85),
+instant_green_name("Damae Iccho Tonkoitsu noodle"),instant_green_cost(6.45),instant_blue_name("Cup noodles mini"),instant_blue_cost(4.20),
+chips_brown_name("Pringles Hot & Spicy"),chips_brown_cost(19.78),chips_green_name("Pringles Sour cream & Onion"),chips_green_cost(19.78),
+coke_can_name("Coka Cola can"),coke_can_cost(6.69),m_dew_name("Mountam Dew"),m_dew_cost(7.77),can_corn_name("Cream Style Corn"),can_corn_cost(3.25),
+can_borsch_name("Campbells Borsch"),can_borsch_cost(4.89),cornflaks_name("Kelloggs Cornflaks"),cornflaks_cost(45.30)
 {
   // Create a push button
   btn_clear_cart_ = new QPushButton(this);
@@ -145,6 +150,26 @@ SimtrackPanel::SimtrackPanel(QWidget* parent) : rviz::Panel(parent),consec_neede
   fuerte_off_screen_time=ros::Time::now();
   milk_pose_sub = nh_.subscribe("/simtrack/milk", 1, &SimtrackPanel::milk_code_pose_cb, this);
   milk_off_screen_time=ros::Time::now();
+  tiger_pose_sub = nh_.subscribe("/simtrack/tiger", 1, &SimtrackPanel::tiger_code_pose_cb, this);
+  tiger_off_screen_time=ros::Time::now();
+  instant_green_pose_sub = nh_.subscribe("/simtrack/instant_green", 1, &SimtrackPanel::instant_green_code_pose_cb, this);
+  instant_green_off_screen_time=ros::Time::now();
+  instant_blue_pose_sub = nh_.subscribe("/simtrack/instant_blue", 1, &SimtrackPanel::instant_blue_code_pose_cb, this);
+  instant_blue_off_screen_time=ros::Time::now();
+  chips_brown_pose_sub = nh_.subscribe("/simtrack/chips_brown", 1, &SimtrackPanel::chips_brown_code_pose_cb, this);
+  chips_brown_off_screen_time=ros::Time::now();
+  chips_green_pose_sub = nh_.subscribe("/simtrack/chips_green", 1, &SimtrackPanel::chips_green_code_pose_cb, this);
+  chips_green_off_screen_time=ros::Time::now();
+  coke_can_pose_sub = nh_.subscribe("/simtrack/coke_can", 1, &SimtrackPanel::coke_can_code_pose_cb, this);
+  coke_can_off_screen_time=ros::Time::now();
+  m_dew_pose_sub = nh_.subscribe("/simtrack/m_dew", 1, &SimtrackPanel::m_dew_code_pose_cb, this);
+  m_dew_off_screen_time=ros::Time::now();
+  can_corn_pose_sub = nh_.subscribe("/simtrack/can_corn", 1, &SimtrackPanel::can_corn_code_pose_cb, this);
+  can_corn_off_screen_time=ros::Time::now();
+  can_borsch_pose_sub = nh_.subscribe("/simtrack/can_borsch", 1, &SimtrackPanel::can_borsch_code_pose_cb, this);
+  can_borsch_off_screen_time=ros::Time::now();
+  cornflaks_pose_sub = nh_.subscribe("/simtrack/cornflaks", 1, &SimtrackPanel::cornflaks_code_pose_cb, this);
+  cornflaks_off_screen_time=ros::Time::now();
 
   
 }
@@ -256,7 +281,7 @@ void SimtrackPanel::fuerte_code_pose_cb(const geometry_msgs::PoseStamped::ConstP
     if(ros::Time::now()>=milk_off_screen_time+new_object_time){
       //it was gone to long
       milk_pos_history.clear();
-      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: fuerte");
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: milk");
     }
     //update time
     milk_off_screen_time=ros::Time::now();
@@ -273,7 +298,7 @@ void SimtrackPanel::fuerte_code_pose_cb(const geometry_msgs::PoseStamped::ConstP
     //new pose
     if(milk_pos_history[milk_pos_history.size()-1]!=pos_num){
       milk_pos_history.push_back(pos_num);
-      ROS_DEBUG_NAMED("simtrack_gui", "new move fuerte %i",pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move milk %i",pos_num);
     }
     int temp=milk_pos_history.size();
     //check if we have a movement
@@ -338,6 +363,969 @@ void SimtrackPanel::fuerte_code_pose_cb(const geometry_msgs::PoseStamped::ConstP
       }         
     }
   }
+
+   void SimtrackPanel::tiger_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=tiger_off_screen_time+new_object_time){
+      //it was gone to long
+      tiger_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: tiger");
+    }
+    //update time
+    tiger_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(tiger_pos_history.size()==0){
+      tiger_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(tiger_pos_history[tiger_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(tiger_pos_history[tiger_pos_history.size()-1]!=pos_num){
+      tiger_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move tiger %i",pos_num);
+    }
+    int temp=tiger_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(tiger_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<tiger_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(tiger_pos_history[i+j]+1==tiger_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(tiger_name);
+        cart_costs.push_back(tiger_cost);
+        fill_cart();
+        //delete history as we have the object
+        tiger_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<tiger_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(tiger_pos_history[i+j]-1==tiger_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==tiger_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          tiger_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          tiger_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+   void SimtrackPanel::instant_blue_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=instant_blue_off_screen_time+new_object_time){
+      //it was gone to long
+      instant_blue_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: instant_blue");
+    }
+    //update time
+    instant_blue_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(instant_blue_pos_history.size()==0){
+      instant_blue_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(instant_blue_pos_history[instant_blue_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(instant_blue_pos_history[instant_blue_pos_history.size()-1]!=pos_num){
+      instant_blue_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move instant_blue %i",pos_num);
+    }
+    int temp=instant_blue_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(instant_blue_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<instant_blue_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(instant_blue_pos_history[i+j]+1==instant_blue_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(instant_blue_name);
+        cart_costs.push_back(instant_blue_cost);
+        fill_cart();
+        //delete history as we have the object
+        instant_blue_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<instant_blue_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(instant_blue_pos_history[i+j]-1==instant_blue_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==instant_blue_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          instant_blue_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          instant_blue_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+
+   void SimtrackPanel::instant_green_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=instant_green_off_screen_time+new_object_time){
+      //it was gone to long
+      instant_green_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: instant_green");
+    }
+    //update time
+    instant_green_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(instant_green_pos_history.size()==0){
+      instant_green_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(instant_green_pos_history[instant_green_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(instant_green_pos_history[instant_green_pos_history.size()-1]!=pos_num){
+      instant_green_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move instant_green %i",pos_num);
+    }
+    int temp=instant_green_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(instant_green_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<instant_green_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(instant_green_pos_history[i+j]+1==instant_green_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(instant_green_name);
+        cart_costs.push_back(instant_green_cost);
+        fill_cart();
+        //delete history as we have the object
+        instant_green_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<instant_green_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(instant_green_pos_history[i+j]-1==instant_green_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==instant_green_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          instant_green_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          instant_green_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+
+   void SimtrackPanel::chips_brown_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=chips_brown_off_screen_time+new_object_time){
+      //it was gone to long
+      chips_brown_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: chips_brown");
+    }
+    //update time
+    chips_brown_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(chips_brown_pos_history.size()==0){
+      chips_brown_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(chips_brown_pos_history[chips_brown_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(chips_brown_pos_history[chips_brown_pos_history.size()-1]!=pos_num){
+      chips_brown_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move chips_brown %i",pos_num);
+    }
+    int temp=chips_brown_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(chips_brown_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<chips_brown_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(chips_brown_pos_history[i+j]+1==chips_brown_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(chips_brown_name);
+        cart_costs.push_back(chips_brown_cost);
+        fill_cart();
+        //delete history as we have the object
+        chips_brown_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<chips_brown_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(chips_brown_pos_history[i+j]-1==chips_brown_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==chips_brown_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          chips_brown_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          chips_brown_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+
+
+   void SimtrackPanel::chips_green_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=chips_green_off_screen_time+new_object_time){
+      //it was gone to long
+      chips_green_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: chips_green");
+    }
+    //update time
+    chips_green_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(chips_green_pos_history.size()==0){
+      chips_green_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(chips_green_pos_history[chips_green_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(chips_green_pos_history[chips_green_pos_history.size()-1]!=pos_num){
+      chips_green_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move chips_green %i",pos_num);
+    }
+    int temp=chips_green_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(chips_green_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<chips_green_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(chips_green_pos_history[i+j]+1==chips_green_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(chips_green_name);
+        cart_costs.push_back(chips_green_cost);
+        fill_cart();
+        //delete history as we have the object
+        chips_green_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<chips_green_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(chips_green_pos_history[i+j]-1==chips_green_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==chips_green_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          chips_green_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          chips_green_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+
+   void SimtrackPanel::coke_can_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=coke_can_off_screen_time+new_object_time){
+      //it was gone to long
+      coke_can_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: coke_can_");
+    }
+    //update time
+    coke_can_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(coke_can_pos_history.size()==0){
+      coke_can_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(coke_can_pos_history[coke_can_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(coke_can_pos_history[coke_can_pos_history.size()-1]!=pos_num){
+      coke_can_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move coke_can_ %i",pos_num);
+    }
+    int temp=coke_can_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(coke_can_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<coke_can_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(coke_can_pos_history[i+j]+1==coke_can_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(coke_can_name);
+        cart_costs.push_back(coke_can_cost);
+        fill_cart();
+        //delete history as we have the object
+        coke_can_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<coke_can_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(coke_can_pos_history[i+j]-1==coke_can_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==coke_can_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          coke_can_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          coke_can_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+
+   void SimtrackPanel::m_dew_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=m_dew_off_screen_time+new_object_time){
+      //it was gone to long
+      m_dew_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: m_dew");
+    }
+    //update time
+    m_dew_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(m_dew_pos_history.size()==0){
+      m_dew_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(m_dew_pos_history[m_dew_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(m_dew_pos_history[m_dew_pos_history.size()-1]!=pos_num){
+      m_dew_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move m_dew %i",pos_num);
+    }
+    int temp=m_dew_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(m_dew_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<m_dew_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(m_dew_pos_history[i+j]+1==m_dew_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(m_dew_name);
+        cart_costs.push_back(m_dew_cost);
+        fill_cart();
+        //delete history as we have the object
+        m_dew_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<m_dew_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(m_dew_pos_history[i+j]-1==m_dew_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==m_dew_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          m_dew_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          m_dew_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+
+
+   void SimtrackPanel::can_corn_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=can_corn_off_screen_time+new_object_time){
+      //it was gone to long
+      can_corn_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: can_corn");
+    }
+    //update time
+    can_corn_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(can_corn_pos_history.size()==0){
+      can_corn_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(can_corn_pos_history[can_corn_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(can_corn_pos_history[can_corn_pos_history.size()-1]!=pos_num){
+      can_corn_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move can_corn %i",pos_num);
+    }
+    int temp=can_corn_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(can_corn_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<can_corn_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(can_corn_pos_history[i+j]+1==can_corn_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(can_corn_name);
+        cart_costs.push_back(can_corn_cost);
+        fill_cart();
+        //delete history as we have the object
+        can_corn_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<can_corn_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(can_corn_pos_history[i+j]-1==can_corn_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==can_corn_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          can_corn_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          can_corn_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+
+   void SimtrackPanel::can_borsch_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=can_borsch_off_screen_time+new_object_time){
+      //it was gone to long
+      can_borsch_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: can_borsch");
+    }
+    //update time
+    can_borsch_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(can_borsch_pos_history.size()==0){
+      can_borsch_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(can_borsch_pos_history[can_borsch_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(can_borsch_pos_history[can_borsch_pos_history.size()-1]!=pos_num){
+      can_borsch_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move can_borsch %i",pos_num);
+    }
+    int temp=can_borsch_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(can_borsch_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<can_borsch_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(can_borsch_pos_history[i+j]+1==can_borsch_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(can_borsch_name);
+        cart_costs.push_back(can_borsch_cost);
+        fill_cart();
+        //delete history as we have the object
+        can_borsch_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<can_borsch_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(can_borsch_pos_history[i+j]-1==can_borsch_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==can_borsch_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          can_borsch_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          can_borsch_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+
+   void SimtrackPanel::cornflaks_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
+  {
+    ROS_DEBUG_THROTTLE(5,"Pose Callback");
+    //abourt if to close
+    if(msg->pose.position.z<0.3)
+      return;
+    //we get callback when we track the thing ... hopefully ... 
+    //=> initilize object when callback comes and reset if no callback in t secs
+    //check if the thing is on screen
+    if(ros::Time::now()>=cornflaks_off_screen_time+new_object_time){
+      //it was gone to long
+      cornflaks_pos_history.clear();
+      ROS_DEBUG_NAMED("simtrack_gui", "New object detected: cornflaks");
+    }
+    //update time
+    cornflaks_off_screen_time=ros::Time::now();
+    //get the movenumber
+    int pos_num = get_pos_num(msg->pose.position.x);
+    //first entry
+    if(cornflaks_pos_history.size()==0){
+      cornflaks_pos_history.push_back(pos_num);
+    }
+    //if we have the same pos
+    if(cornflaks_pos_history[cornflaks_pos_history.size()-1]==pos_num){
+      //ROS_INFO("same");
+    }
+    //new pose
+    if(cornflaks_pos_history[cornflaks_pos_history.size()-1]!=pos_num){
+      cornflaks_pos_history.push_back(pos_num);
+      ROS_DEBUG_NAMED("simtrack_gui", "new move cornflaks %i",pos_num);
+    }
+    int temp=cornflaks_pos_history.size();
+    //check if we have a movement
+    //check if there is enough data to do movment check
+    if(cornflaks_pos_history.size()<consec_needed+1){
+      //ROS_INFO("to fee pos");
+      return;
+    }
+    //look for movement to the right
+    int count=0;
+    for(int i=0;i<cornflaks_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(cornflaks_pos_history[i+j]+1==cornflaks_pos_history[i+j+1]){
+          count++;
+        }
+      }
+        //do we move to the right?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to the right detected");
+        cart_content.push_back(cornflaks_name);
+        cart_costs.push_back(cornflaks_cost);
+        fill_cart();
+        //delete history as we have the object
+        cornflaks_pos_history.clear();
+        return;
+      }
+      count=0;
+    }
+    
+    //look for movement to the left
+    count=0;
+    for(int i=0;i<cornflaks_pos_history.size()-consec_needed-1;i++){
+      for(int j=0;j<consec_needed;j++){
+        if(cornflaks_pos_history[i+j]-1==cornflaks_pos_history[i+j+1]){
+          count++;
+        }
+      }
+      //do we move to the left?
+      if(count>=consec_needed){
+        ROS_DEBUG_NAMED("simtrack_gui", "move to left detected");
+        //find pos of entry
+        int del_pos=-1;
+        for(int i=0;i<cart_content.size();i++){
+          if(cart_content[i]==cornflaks_name)
+            del_pos=i;
+        }
+        if(del_pos==-1){
+          cornflaks_pos_history.clear();
+          return;
+        }
+        else{
+
+          
+          cart_content.erase(cart_content.begin() + del_pos);
+          cart_costs.erase(cart_costs.begin() + del_pos);
+          fill_cart();
+          //delete history as we have the object
+          cornflaks_pos_history.clear();
+          return;
+        } 
+        count=0;
+      }         
+    }
+  }
+
+
+
 
   int SimtrackPanel::get_pos_num(double pos){
     int result =pos/size_of_fields;

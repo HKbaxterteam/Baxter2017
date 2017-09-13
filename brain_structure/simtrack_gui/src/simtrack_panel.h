@@ -68,6 +68,16 @@ public:
   //callbacks
   void fuerte_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
   void milk_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void tiger_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void instant_green_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void instant_blue_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void chips_brown_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void chips_green_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void coke_can_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void m_dew_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void can_corn_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void can_borsch_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void cornflaks_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
 
 
   // Next come a couple of public Qt slots.
@@ -114,6 +124,17 @@ protected:
   //subscriber to pose from simtrack
   ros::Subscriber fuerte_pose_sub;
   ros::Subscriber milk_pose_sub;
+  ros::Subscriber tiger_pose_sub;
+  ros::Subscriber instant_green_pose_sub;
+  ros::Subscriber instant_blue_pose_sub;
+  ros::Subscriber chips_brown_pose_sub;
+  ros::Subscriber chips_green_pose_sub;
+  ros::Subscriber coke_can_pose_sub;
+  ros::Subscriber m_dew_pose_sub;
+  ros::Subscriber can_corn_pose_sub;
+  ros::Subscriber can_borsch_pose_sub;
+  ros::Subscriber cornflaks_pose_sub;
+
 
   //
   int consec_needed;
@@ -132,6 +153,56 @@ protected:
   ros::Time milk_off_screen_time;
   QString milk_name;
   double milk_cost;
+  //tiger
+  std::vector<int> tiger_pos_history;
+  ros::Time tiger_off_screen_time;
+  QString tiger_name;
+  double tiger_cost;
+  //instant_green
+  std::vector<int> instant_green_pos_history;
+  ros::Time instant_green_off_screen_time;
+  QString instant_green_name;
+  double instant_green_cost;
+  //instant_blue
+  std::vector<int> instant_blue_pos_history;
+  ros::Time instant_blue_off_screen_time;
+  QString instant_blue_name;
+  double instant_blue_cost;
+  //chips_brown
+  std::vector<int> chips_brown_pos_history;
+  ros::Time chips_brown_off_screen_time;
+  QString chips_brown_name;
+  double chips_brown_cost;
+  //chips_green
+  std::vector<int> chips_green_pos_history;
+  ros::Time chips_green_off_screen_time;
+  QString chips_green_name;
+  double chips_green_cost;
+  //coke_can
+  std::vector<int> coke_can_pos_history;
+  ros::Time coke_can_off_screen_time;
+  QString coke_can_name;
+  double coke_can_cost;
+  //m_dew
+  std::vector<int> m_dew_pos_history;
+  ros::Time m_dew_off_screen_time;
+  QString m_dew_name;
+  double m_dew_cost;
+  //can_corn
+  std::vector<int> can_corn_pos_history;
+  ros::Time can_corn_off_screen_time;
+  QString can_corn_name;
+  double can_corn_cost;
+  //can_borsch
+  std::vector<int> can_borsch_pos_history;
+  ros::Time can_borsch_off_screen_time;
+  QString can_borsch_name;
+  double can_borsch_cost;
+  //cornflaks
+  std::vector<int> cornflaks_pos_history;
+  ros::Time cornflaks_off_screen_time;
+  QString cornflaks_name;
+  double cornflaks_cost;
 
   
 
