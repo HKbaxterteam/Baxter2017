@@ -123,7 +123,7 @@ public:
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
     action_name_(name),group("right_arm"),offset_p0_pose_x(-0.101),offset_p0_pose_y(+0.16),
-    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.32),offset_pick_up_pose_y(-0.275),offset_pick_up_pose_z(0.0575),art_vec_count(0),
+    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.315),offset_pick_up_pose_y(-0.28),offset_pick_up_pose_z(0.0575),art_vec_count(0),
     art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),
     doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0),current_stack(0),num_baxtertrys(3)
   {
@@ -138,11 +138,20 @@ public:
     ar_pose_sub = nh_.subscribe("/TTTgame/ar_tag/ar_pose", 1, &grasping_baxter_boss::ar_code_pose_callback, this);
     rightGripperPub = nh_.advertise<baxter_core_msgs::EndEffectorCommand>("/robot/end_effector/right_gripper/command",10, true);
     //calibrate gripper
-    calibraterightGripper();
-    configurerightGripper();
-    //update enviroment
-    grasping_baxter_environment_fixed();
-    grasping_baxter_environment_dynamic();
+    //check stuff
+    ROS_INFO_NAMED("grasping_baxter", "Reference frame: %s", group.getPlanningFrame().c_str());
+    ROS_INFO_NAMED("grasping_baxter", "End Effector name: %s", group.getEndEffectorLink().c_str());
+    /*
+    //init moveit by moving a litle    
+    group.setStartStateToCurrentState();
+    std::vector<double> group_variable_values;
+    group.getCurrentState()->copyJointGroupPositions(group.getCurrentState()->getRobotModel()->getJointModelGroup(group.getName()), group_variable_values);
+    //group_variable_values[0]+=0.1;
+    group.setJointValueTarget(group_variable_values);
+    group.plan(my_plan);
+    */
+    //group.setStartState(*group.getCurrentState());
+    
     //FIXED z because KINECT SUCKS!!!!!!
     ar_code_pose.pose.position.z=-0.161;
   }
@@ -211,6 +220,7 @@ public:
   }
 
   void move_to_ground_pose(){
+    group.setStartStateToCurrentState();
   //move with joint stuff to ground pos
     ROS_DEBUG_NAMED("grasping_baxter", "Moving to ground state.");
     std::string joint_names="'right_e0', 'right_e1', 'right_s0', 'right_s1', 'right_w0', 'right_w1', 'right_w2'";
@@ -228,6 +238,8 @@ public:
       ROS_DEBUG_NAMED("grasping_baxter", "Performed ground state move");
     else
       ROS_ERROR_NAMED("grasping_baxter", "Failed to reach ground state");
+    //make sure the joiont dont have any targets left
+    group.clearPoseTargets();
   }
 
   void check_reach(){
@@ -923,7 +935,7 @@ public:
     co_table.id = "Table";
     cube.dimensions.resize(3);
     cube.dimensions[0] = 1.2;
-    cube.dimensions[1] = 1.2;
+    cube.dimensions[1] = 1.0;
     cube.dimensions[2] = 0.76;
     geometry_msgs::Pose table_pose;
     table_pose.orientation.w = 1.0;
@@ -1117,6 +1129,22 @@ public:
     //stop updating the ar-pose when we move around
     doarupdate=false;
 
+    //use RRT 
+    group.setPlannerId("RRTConnectkConfigDefault");
+    //tolerances
+    group.setGoalOrientationTolerance(0.0005);
+    group.setGoalPositionTolerance(0.0005);
+    group.setGoalTolerance(0.0005);
+    group.setNumPlanningAttempts(2);
+    group.setPlanningTime(5);
+    group.setStartStateToCurrentState();
+    //move_to_ground_pose();
+    calibraterightGripper();
+    configurerightGripper();
+    //update enviroment
+    grasping_baxter_environment_fixed();
+    //grasping_baxter_environment_dynamic();
+
     //is it a special request?
     if(goal->move==100 && goal->pieces==100){
       //performe special move
@@ -1141,8 +1169,7 @@ public:
     //where do we want to go?
     target_field =goal->move;
     num_game_pieces_left =goal->pieces;
-    //use RRT 
-    group.setPlannerId("RRTConnectkConfigDefault");
+    
     ros::Duration(0.5).sleep();
 
     //adjust pick up pose depending on which tower we are picking from
@@ -1175,13 +1202,7 @@ public:
     //account for the current stack
     pick_up_pose.pose.position.x+=offset_ss_x*current_stack;
     pick_up_pose.pose.position.y+=offset_ss_y*current_stack;
-    //tolerances
-    group.setGoalOrientationTolerance(0.0005);
-    group.setGoalPositionTolerance(0.0005);
-    group.setGoalTolerance(0.0005);
-    group.setNumPlanningAttempts(2);
-    group.setPlanningTime(5);
-    group.setStartStateToCurrentState();
+    
     
     //do a thing
     //target_field=0;

@@ -126,9 +126,9 @@ can_borsch_name("Campbells Borsch"),can_borsch_cost(4.89),cornflaks_name("Kellog
 
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addLayout(hlayout0);
-  layout->addWidget(new QLabel(QString("_______________________________________________")));
+  layout->addWidget(new QLabel(QString("_____________________________________________________________________________")));
   layout->addLayout(hlayout0a);
-  layout->addWidget(new QLabel(QString("-----------------------------------------------")));
+  layout->addWidget(new QLabel(QString("------------------------------------------------------------------------------------------------------------------------------")));
   layout->addLayout(hlayout1);
   layout->addLayout(hlayout2);
   layout->addLayout(hlayout3);
@@ -139,7 +139,7 @@ can_borsch_name("Campbells Borsch"),can_borsch_cost(4.89),cornflaks_name("Kellog
   layout->addLayout(hlayout8);
   layout->addLayout(hlayout9);
   layout->addLayout(hlayout10);
-  layout->addWidget(new QLabel(QString("_______________________________________________")));
+  layout->addWidget(new QLabel(QString("_____________________________________________________________________________")));
   layout->addLayout(hlayout11);
 
   // layout->addLayout( hlayout3 );

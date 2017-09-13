@@ -21,6 +21,10 @@ Panels:
     Splitter Ratio: 0.5
   - Class: gui/BaxterDashboard
     Name: BaxterDashboard
+  - Class: simtrack_gui/SimtrackDashboard
+    Name: SimtrackDashboard
+  - Class: simtrack_gui/SimtrackDashboard
+    Name: SimtrackDashboard
 Visualization Manager:
   Class: ""
   Displays:
@@ -640,7 +644,7 @@ Visualization Manager:
       Value: false
       Visual Enabled: true
     - Class: rviz/Image
-      Enabled: true
+      Enabled: false
       Image Topic: /TTTgame/camera_views
       Max Value: 1
       Median window: 5
@@ -650,14 +654,13 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /ARmarker_points
       Name: Ar-tags
       Namespaces:
-        3dpts: true
-        arrow: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -686,16 +689,17 @@ Visualization Manager:
       Unreliable: false
       Value: false
       Visibility:
+        "": true
         Ar-tag pose: true
         Ar-tags: true
         Grid: true
         MotionPlanning: true
-        PointCloud2: true
         RobotModel: true
         TF: true
         Value: true
         camera: true
         kinect2: true
+        kinect2_cloud: true
       Zoom Factor: 1
     - Class: rviz/Image
       Enabled: true
@@ -714,18 +718,6 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        ar_marker_0:
-          Value: false
-        ar_marker_10:
-          Value: false
-        ar_marker_12:
-          Value: true
-        ar_marker_13:
-          Value: false
-        ar_marker_255:
-          Value: true
-        ar_marker_7:
-          Value: false
         base:
           Value: true
         camera_link:
@@ -734,6 +726,8 @@ Visualization Manager:
           Value: false
         collision_head_link_2:
           Value: false
+        cornflaks:
+          Value: true
         display:
           Value: false
         dummyhead1:
@@ -798,6 +792,8 @@ Visualization Manager:
           Value: false
         left_wrist:
           Value: false
+        milk:
+          Value: true
         pedestal:
           Value: false
         reference/base:
@@ -956,6 +952,8 @@ Visualization Manager:
           Value: false
         right_wrist:
           Value: false
+        ros_hydro:
+          Value: true
         screen:
           Value: false
         sonar_ring:
@@ -1061,17 +1059,11 @@ Visualization Manager:
             kinect2_ir_optical_frame:
               {}
             kinect2_rgb_optical_frame:
-              ar_marker_0:
+              cornflaks:
                 {}
-              ar_marker_10:
+              milk:
                 {}
-              ar_marker_12:
-                {}
-              ar_marker_13:
-                {}
-              ar_marker_255:
-                {}
-              ar_marker_7:
+              ros_hydro:
                 {}
           reference/base:
             reference/collision_head_link_1:
@@ -1191,6 +1183,18 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Class: rviz/Image
+      Enabled: false
+      Image Topic: /simtrack/image
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Image
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1218,7 +1222,7 @@ Visualization Manager:
         Z: 2.87737e-05
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.724795
+      Pitch: 0.734795
       Target Frame: base_link
       Value: XYOrbit (rviz)
       Yaw: 5.15992
@@ -1235,11 +1239,15 @@ Window Geometry:
     collapsed: false
   Hide Left Dock: false
   Hide Right Dock: false
+  Image:
+    collapsed: false
   MotionPlanning:
     collapsed: false
   MotionPlanning - Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000003a3000003dafc020000000efb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000001600fffffffb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e0067010000022b000001d70000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000010b000001d7000001cc00fffffffb0000001e00420061007800740065007200440061007300680062006f006100720064010000010b000000b0000000b000fffffffb0000000a0049006d006100670065000000039e000000640000000000000000fb0000000e006b0069006e006500630074003201000001c10000009a0000001600fffffffb0000000c00430061006d0065007200610000000350000000b20000000000000000fb0000000c00630061006d0065007200610100000261000001a10000001600fffffffb0000000a0049006d0061006700650000000350000000b20000000000000000fb0000000a0049006d0061006700650000000350000000b2000000000000000000000396000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000010000000000000446000003dafc0200000010fb000000100044006900730070006c0061007900730000000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000001600fffffffb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e0067010000022b000001d70000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000010b000001d7000001cc00fffffffc00000028000000ba000000ba00fffffffa000000010100000002fb0000002200530069006d0074007200610063006b00440061007300680062006f0061007200640000000000ffffffff0000016700fffffffb0000001e00420061007800740065007200440061007300680062006f0061007200640100000000000003a3000001be00fffffffb0000000a0049006d006100670065000000039e000000640000000000000000fb0000000e006b0069006e006500630074003201000000e8000001190000001600fffffffb0000000c00430061006d0065007200610000000350000000b20000000000000000fb0000000c00630061006d0065007200610000000148000000590000001600fffffffb0000000a0049006d0061006700650000000350000000b20000000000000000fb0000000a0049006d0061006700650000000350000000b20000000000000000fb0000000a0049006d0061006700650000000166000000400000001600fffffffb0000002200530069006d0074007200610063006b00440061007300680062006f0061007200640100000207000001fb0000019c00ffffff000002f3000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  SimtrackDashboard:
+    collapsed: false
   Views:
     collapsed: false
   Width: 1855

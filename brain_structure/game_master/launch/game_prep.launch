@@ -17,4 +17,7 @@
    <arg name="video_device" value="/dev/video0" />
   </include>
 
+  <!-- start rqt gui for everything -->
+  <node pkg="rqt_gui" type="rqt_gui" name="rqt_gui" args="--perspective-file $(find game_master)/launch/demo.perspective"  />
+
 </launch>

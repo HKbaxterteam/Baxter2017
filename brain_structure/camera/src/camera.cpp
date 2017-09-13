@@ -218,9 +218,11 @@ public:
       resize(countourlargest,countourlargest,rviz_sub_size);//resize image
     
     //stich to one rviz output file
-    Mat rviz_out_error(rviz_sub_size*2, CV_8UC3);
-    tr_contours.copyTo(rviz_out_error(Rect(0,0,rviz_sub_size.width,rviz_sub_size.height)));
-    countourlargest.copyTo(rviz_out_error(Rect(rviz_sub_size.width,0,rviz_sub_size.width,rviz_sub_size.height)));
+    Size rviz_sub_size_error(rviz_sub_size.width*3,rviz_sub_size.height);
+    Mat rviz_out_error(rviz_sub_size_error, CV_8UC3);
+    tl_cut_board.copyTo(rviz_out_error(Rect(0,0,rviz_sub_size.width,rviz_sub_size.height)));
+    tr_contours.copyTo(rviz_out_error(Rect(rviz_sub_size.width,0,rviz_sub_size.width,rviz_sub_size.height)));
+    countourlargest.copyTo(rviz_out_error(Rect(rviz_sub_size.width*2,0,rviz_sub_size.width,rviz_sub_size.height)));
         
     //output for slicing up the thing
     Mat warpedCard(rviz_sub_size, CV_8UC3);
@@ -405,12 +407,19 @@ public:
         // set the action state to succeeded
         as_camera.setSucceeded(result_camera);
 
-        //rviz stitch it
-        Mat rviz_out(rviz_sub_size*2, CV_8UC3);
+        //rviz stitch it 4 next to each other 
+        /*Mat rviz_out(rviz_sub_size*2, CV_8UC3);
         tl_cut_board.copyTo(rviz_out(Rect(0,0,rviz_sub_size.width,rviz_sub_size.height)));
         tr_contours.copyTo(rviz_out(Rect(rviz_sub_size.width,0,rviz_sub_size.width,rviz_sub_size.height)));
         bl_only_gameboard.copyTo(rviz_out(Rect(0,rviz_sub_size.height,rviz_sub_size.width,rviz_sub_size.height)));
         br_detected_board.copyTo(rviz_out(Rect(rviz_sub_size.width,rviz_sub_size.height,rviz_sub_size.width,rviz_sub_size.height)));
+        */
+        Size rviz_sub_size_all(rviz_sub_size.width*4,rviz_sub_size.height);
+        Mat rviz_out(rviz_sub_size_all, CV_8UC3);
+        tl_cut_board.copyTo(rviz_out(Rect(0,0,rviz_sub_size.width,rviz_sub_size.height)));
+        tr_contours.copyTo(rviz_out(Rect(rviz_sub_size.width,0,rviz_sub_size.width,rviz_sub_size.height)));
+        bl_only_gameboard.copyTo(rviz_out(Rect(rviz_sub_size.width*2,0,rviz_sub_size.width,rviz_sub_size.height)));
+        br_detected_board.copyTo(rviz_out(Rect(rviz_sub_size.width*3,0,rviz_sub_size.width,rviz_sub_size.height)));
         
         //publish the image in ros
         cv_bridge::CvImage out_msg;
