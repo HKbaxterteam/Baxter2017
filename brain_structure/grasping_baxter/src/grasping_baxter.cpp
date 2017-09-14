@@ -85,8 +85,7 @@ public:
   geometry_msgs::PoseStamped ar_code_pose;
   geometry_msgs::PoseStamped target_pose;
   geometry_msgs::PoseStamped p0_pose;
-  geometry_msgs::PoseStamped pick_up_pose;
-  
+  geometry_msgs::PoseStamped pick_up_pose;  
   // offset from ar to p0 (field(0)) 
   double offset_p0_pose_x;
   double offset_p0_pose_y;
@@ -107,7 +106,6 @@ public:
   double offset_bc_z;
   //ar-tag var
   std::vector<geometry_msgs::PoseStamped> ar_tag_pose_vector;
-
   
   //NOTE: this is where the hardware constant need to be entered
   //bord layout:
@@ -125,7 +123,7 @@ public:
     action_name_(name),group("right_arm"),offset_p0_pose_x(-0.101),offset_p0_pose_y(+0.16),
     offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.315),offset_pick_up_pose_y(-0.28),offset_pick_up_pose_z(0.0575),art_vec_count(0),
     art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),
-    doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0),current_stack(0),num_baxtertrys(3)
+    doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0),current_stack(0),num_baxtertrys(2)
   {
     ROS_DEBUG_NAMED("grasping_baxter","Initilzing Grasping baxter boss");
     // start action server
@@ -141,16 +139,6 @@ public:
     //check stuff
     ROS_INFO_NAMED("grasping_baxter", "Reference frame: %s", group.getPlanningFrame().c_str());
     ROS_INFO_NAMED("grasping_baxter", "End Effector name: %s", group.getEndEffectorLink().c_str());
-    /*
-    //init moveit by moving a litle    
-    group.setStartStateToCurrentState();
-    std::vector<double> group_variable_values;
-    group.getCurrentState()->copyJointGroupPositions(group.getCurrentState()->getRobotModel()->getJointModelGroup(group.getName()), group_variable_values);
-    //group_variable_values[0]+=0.1;
-    group.setJointValueTarget(group_variable_values);
-    group.plan(my_plan);
-    */
-    //group.setStartState(*group.getCurrentState());
     
     //FIXED z because KINECT SUCKS!!!!!!
     ar_code_pose.pose.position.z=-0.161;
@@ -277,10 +265,8 @@ public:
       if(success)
         ROS_DEBUG_NAMED("grasping_baxter", "Reached place pose + some z margin.");
       else
-        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach place pose + some z margin.");
-      
+        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach place pose + some z margin.");      
       sleep(1.1);
-
       // move down to p0 z pose
       target_pose.pose.position.z = p0_pose.pose.position.z;
       success=false;
@@ -308,7 +294,6 @@ public:
         ROS_ERROR_NAMED("grasping_baxter", "Failed to reach place pose up.");
       sleep(1.2);
     }
-
     //move to pick up pose    
       target_pose=pick_up_pose;
       target_pose.pose.position.z +=0.05; 
@@ -320,9 +305,7 @@ public:
       if(success)
         ROS_DEBUG_NAMED("grasping_baxter", "reached pick and place pose again");
       else
-        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick and place pose again");
-
-    
+        ROS_ERROR_NAMED("grasping_baxter", "Failed to reach pick and place pose again");    
   }
 
   //Callback from ar-tag, takes the avarage of 10 poses (in sliding avarage mode) 
@@ -395,20 +378,16 @@ public:
     }
     if(ar_code_7_pose.pose.position.x=ar_code_0_pose.pose.position.x){
       theta = 0.0;
-    }
-    
+    }    
     ar_code_pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
-
     //sliding average calculation for ar-tag pose
     ar_tag_pose_vector[art_vec_position]=ar_code_pose;
     art_vec_position++;
     if(art_vec_position>=10)
       art_vec_position=0;
-
     geometry_msgs::PoseStamped art_pose_temp=ar_tag_pose_vector[0];
     if(art_vec_count<10)
       art_vec_count++;
-
     for(int i=1;i<art_vec_count;i++){
       art_pose_temp.pose.position.x+=ar_tag_pose_vector[i].pose.position.x;
       art_pose_temp.pose.position.y+=ar_tag_pose_vector[i].pose.position.y;
@@ -418,7 +397,6 @@ public:
       art_pose_temp.pose.orientation.z+=ar_tag_pose_vector[i].pose.orientation.z;
       art_pose_temp.pose.orientation.w+=ar_tag_pose_vector[i].pose.orientation.w;      
     }
-
     ar_code_pose.pose.position.x=art_pose_temp.pose.position.x/art_vec_count;
     ar_code_pose.pose.position.y=art_pose_temp.pose.position.y/art_vec_count;
     ar_code_pose.pose.position.z=art_pose_temp.pose.position.z/art_vec_count;
@@ -487,8 +465,7 @@ public:
     pick_up_pose.pose.position.z=ar_code_pose.pose.position.z+offset_pick_up_pose_z;
     //set oriantion
     //NOTE: not sure why baxter need this orientation to grasp from the top ...
-    pick_up_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);
-     
+    pick_up_pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(3.14,0,1.57);     
   }
   
   //publishing poses
@@ -504,7 +481,6 @@ public:
     target_pose.header.stamp=ros::Time::now();
     target_pose.header.frame_id="/world";
     target_pose=pick_up_pose;
-
     //move to pick up pose + some z margin
     target_pose.pose.position.z +=0.05;    
     bool success=false;
@@ -524,8 +500,7 @@ public:
     }
     if(moveitcounter>=num_baxtertrys){
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach pick_up_pose + some margin 5x");
-    }
-       
+    }      
     //move down following a cartesian path
     geometry_msgs::Pose car_target_pose;
     //translate into pose
@@ -543,8 +518,7 @@ public:
     double fraction = group.computeCartesianPath(waypoints,
                                              0.002,  // eef_step
                                              0.0,   // jump_threshold
-                                             trajectory);
-      
+                                             trajectory);     
     
     success=false;
     moveitcounter=0;
@@ -562,15 +536,12 @@ public:
     }
     if(moveitcounter>=num_baxtertrys){
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach Pick up pose for piece. 5x");
-    }
-    
+    }    
     sleep(0.5);
     //suck up the piece
     closerightGripper();
     sleep(0.8);
-
-    ROS_DEBUG_NAMED("grasping_baxter", "Pieces left in game: %i",num_game_pieces_left);  
-    
+    ROS_DEBUG_NAMED("grasping_baxter", "Pieces left in game: %i",num_game_pieces_left);
     //move up again 
     //move up following a cartesian path
     waypoints.clear();
@@ -581,8 +552,7 @@ public:
     fraction = group.computeCartesianPath(waypoints,
                                              0.002,  // eef_step
                                              0.0,   // jump_threshold
-                                             trajectory);
-    
+                                             trajectory);    
     
     success=false;
     moveitcounter=0;
@@ -602,7 +572,6 @@ public:
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach pick_up_pose + some margin with a piece. 5x");
     }
     sleep(0.1);
-
   }
 
   //function to pick up a piece and place it where the Ai wants it
@@ -612,12 +581,10 @@ public:
     target_pose.header.stamp=ros::Time::now();
     target_pose.header.frame_id="/world";
     target_pose=pick_up_pose;
-
     //move to place pos with the pick up z  
     //calculate the field possition
     int row=target_field/6;
     int col=target_field%6;
-
     target_pose.pose.position.x=p0_pose.pose.position.x+row*offset_ff_x;
     target_pose.pose.position.y=p0_pose.pose.position.y+col*offset_ff_y;
     target_pose.pose.position.z=pick_up_pose.pose.position.z;
@@ -639,10 +606,8 @@ public:
     }
     if(moveitcounter>=num_baxtertrys){
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach pick_up_pose + some margin with a piece. 5x");
-    }
-    
+    }    
     sleep(0.1);
-
     // move down to p0 z pose
     target_pose.pose.position.z = p0_pose.pose.position.z;
     success=false;
@@ -662,8 +627,7 @@ public:
     }
     if(moveitcounter>=num_baxtertrys){
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach place pose. 5x");
-    }
-    
+    }    
     sleep(0.1);
     //release the piece
     openrightGripper();
@@ -671,7 +635,6 @@ public:
     //send feedback that we placed the piece
     feedback_grasping_baxter.progress=77;
     as_grasping_baxter.publishFeedback(feedback_grasping_baxter);
-
     //move up again
     target_pose.pose.position.z=pick_up_pose.pose.position.z+0.05;
     success=false;
@@ -693,23 +656,16 @@ public:
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach place pose + some margin after dropping piece 5x");
     }    
     sleep(0.1);
-
     //check how many pieces
     int pieces_in_stack=num_game_pieces_left % 6;
     bool new_stack=false;
     if(num_game_pieces_left % 6==0)
     {
      pieces_in_stack=6;
-     //if(num_game_pieces_left<18)
-       //new_stack=true; 
     }
-
     // it is one less
     pieces_in_stack--;
-    /*if(pieces_in_stack<=0)
-      new_stack=true; */
     num_game_pieces_left--;
-
     //move to pick up pose    
     target_pose=pick_up_pose;
     target_pose.pose.position.z +=0.05; 
@@ -779,8 +735,7 @@ public:
     double fraction = group.computeCartesianPath(waypoints,
                                              0.002,  // eef_step
                                              0.0,   // jump_threshold
-                                             trajectory);
-      
+                                             trajectory);      
     
     success=false;
     moveitcounter=0;
@@ -798,14 +753,12 @@ public:
     }
     if(moveitcounter>=num_baxtertrys){
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach Pick up pose for piece. 5x");
-    }
-  
+    }  
     sleep(0.5);
     //suck up the piece
     closerightGripper();
     sleep(1.5);  
-    ROS_DEBUG_NAMED("grasping_baxter", "Pieces left in game: %i",num_game_pieces_left);  
-    
+    ROS_DEBUG_NAMED("grasping_baxter", "Pieces left in game: %i",num_game_pieces_left); 
     //move up again 
     //move up following a cartesian path
     waypoints.clear();
@@ -839,12 +792,10 @@ public:
     if(moveitcounter>=num_baxtertrys){
       ROS_ERROR_NAMED("grasping_baxter", "FATAL ERROR: Failed to reach pick_up_pose + some margin with a piece. 5x");
     }
-
     sleep(0.1);
-
   }
   
-
+  //This function is for debug porpusses
   void tf_frame_test(){
     target_pose.header.stamp=ros::Time::now();
     target_pose.header.frame_id="/world";
@@ -862,10 +813,8 @@ public:
       ROS_INFO("WE DID IT!!!!!!!!!!");
     else
       ROS_INFO("Fail");
-
     // wait
-    ros::Duration(10.5).sleep();
-    
+    ros::Duration(10.5).sleep();    
     //move back
     group.setPoseTarget(pick_up_pose);
     success = group.plan(my_plan);
@@ -878,11 +827,11 @@ public:
       ROS_INFO("Fail");
   }
 
+  //define the planning scene enviroment
   void grasping_baxter_environment_fixed(){
     ROS_DEBUG_NAMED("grasping_baxter","building grasping enviroment fixed");
     //store all collision objects in this vector
     std::vector<moveit_msgs::CollisionObject> all_collision_objects;
-
     //------kinect--------
     moveit_msgs::CollisionObject co_kinect;
     co_kinect.header.frame_id = group.getPlanningFrame();
@@ -905,7 +854,6 @@ public:
     co_kinect.primitive_poses.push_back(kinect_pose);
     co_kinect.operation = co_kinect.ADD;
     all_collision_objects.push_back(co_kinect);
-
     //------webcam--------
     moveit_msgs::CollisionObject co_webcam;
     co_webcam.header.frame_id = group.getPlanningFrame();
@@ -928,7 +876,6 @@ public:
     co_webcam.primitive_poses.push_back(webcam_pose);
     co_webcam.operation = co_webcam.ADD;
     all_collision_objects.push_back(co_webcam);
-
     ////------Table model--------
     moveit_msgs::CollisionObject co_table;
     co_table.header.frame_id = group.getPlanningFrame();
@@ -946,11 +893,8 @@ public:
     co_table.primitive_poses.push_back(table_pose);
     co_table.operation = co_table.ADD;
     all_collision_objects.push_back(co_table);
-
     //add all the object to the world
     planning_scene_interface.addCollisionObjects(all_collision_objects);
-
-
   }
 
   //enviroment that changes 
@@ -961,7 +905,6 @@ public:
      double gameboard_l=0.405;  //length game board
      double gameboard_w=0.405;  // width game board
      double gameboard_h=0.01; // thickness
-
     //depends on the ar code
     // calculate p0 pose using x and y ofsset (known)
     double theta=tf::getYaw(ar_code_pose.pose.orientation);
@@ -1115,12 +1058,7 @@ public:
     
     //add all the object to the world
     planning_scene_interface.addCollisionObjects(all_collision_objects);
-
-
   }
-
-
-  
 
   //grasping baxter command function
   void grasping_baxter_start_command(const grasping_baxter::grasping_baxter_game_masterGoalConstPtr &goal)
@@ -1128,7 +1066,6 @@ public:
     ROS_DEBUG_NAMED("grasping_baxter", "%s: start received", action_name_.c_str());
     //stop updating the ar-pose when we move around
     doarupdate=false;
-
     //use RRT 
     group.setPlannerId("RRTConnectkConfigDefault");
     //tolerances
@@ -1177,13 +1114,11 @@ public:
     double theta=tf::getYaw(ar_code_pose.pose.orientation);
     Mat r = (Mat_<double>(2,2) <<
                     cos(theta), -sin(theta),
-                    sin(theta), cos(theta));
-    
+                    sin(theta), cos(theta));    
     //translate to get true pose
     Mat t = (Mat_<double>(2,1)  <<
                     0.0625,
-                    0.0);
-    
+                    0.0);    
     t = r*t;
     offset_ss_x =  t.at<double>(0,0);
     offset_ss_y =  t.at<double>(1,0);
@@ -1201,10 +1136,8 @@ public:
 
     //account for the current stack
     pick_up_pose.pose.position.x+=offset_ss_x*current_stack;
-    pick_up_pose.pose.position.y+=offset_ss_y*current_stack;
+    pick_up_pose.pose.position.y+=offset_ss_y*current_stack;    
     
-    
-    //do a thing
     //target_field=0;
     if(num_game_pieces_left==18)
     {
@@ -1221,14 +1154,13 @@ public:
   }
 };
 
-
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "grasping_baxter_game_master");
   ROS_INFO("Start grasping node");
   //start action server
   grasping_baxter_boss gbb("grasping_baxter_game_master");
-
+  
   while(ros::ok()){
   	gbb.publish_poses();
   	ros::spinOnce();

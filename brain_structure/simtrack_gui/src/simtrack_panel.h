@@ -36,10 +36,6 @@ namespace simtrack_gui
 // Here we declare our new subclass of rviz::Panel.  Every panel which
 // can be added via the Panels/Add_New_Panel menu is a subclass of
 // rviz::Panel.
-//
-// MoveItPanel will show a text-entry field to set the output topic
-// and a 2D control area.  The 2D control area is implemented by the
-// DriveWidget class, and is described there.
 class SimtrackPanel : public rviz::Panel
 {
   // This class uses Qt slots and is a subclass of QObject, so it needs
@@ -67,18 +63,17 @@ public:
 
   //callbacks
   void fuerte_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void groovy_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void hydro_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
   void milk_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void milk_red_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
   void tiger_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
-  void instant_green_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
-  void instant_blue_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
   void chips_brown_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
   void chips_green_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
-  void coke_can_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
-  void m_dew_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
-  void can_corn_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
-  void can_borsch_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
   void cornflaks_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
-
+  void kleenex_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void kleenex_yellow_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void orange_code_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg);
 
   // Next come a couple of public Qt slots.
 public Q_SLOTS:
@@ -87,10 +82,6 @@ public Q_SLOTS:
 protected Q_SLOTS:
 
   void clear_cart();
-
-
-  
-
 
   // Then we finish up with protected member variables.
 protected:
@@ -123,20 +114,19 @@ protected:
 
   //subscriber to pose from simtrack
   ros::Subscriber fuerte_pose_sub;
+  ros::Subscriber groovy_pose_sub;
+  ros::Subscriber hydro_pose_sub;
   ros::Subscriber milk_pose_sub;
+  ros::Subscriber milk_red_pose_sub;
   ros::Subscriber tiger_pose_sub;
-  ros::Subscriber instant_green_pose_sub;
-  ros::Subscriber instant_blue_pose_sub;
   ros::Subscriber chips_brown_pose_sub;
   ros::Subscriber chips_green_pose_sub;
-  ros::Subscriber coke_can_pose_sub;
-  ros::Subscriber m_dew_pose_sub;
-  ros::Subscriber can_corn_pose_sub;
-  ros::Subscriber can_borsch_pose_sub;
   ros::Subscriber cornflaks_pose_sub;
+  ros::Subscriber kleenex_pose_sub;
+  ros::Subscriber kleenex_yellow_pose_sub;
+  ros::Subscriber orange_pose_sub;
 
-
-  //
+  //vars for all
   int consec_needed;
   double size_of_fields;
   std::vector<QString> cart_content;
@@ -148,26 +138,31 @@ protected:
   ros::Time fuerte_off_screen_time;
   QString fuerte_name;
   double fuerte_cost;
+  //groovy turtel
+  std::vector<int> groovy_pos_history;
+  ros::Time groovy_off_screen_time;
+  QString groovy_name;
+  double groovy_cost;
+  //hydro turtel
+  std::vector<int> hydro_pos_history;
+  ros::Time hydro_off_screen_time;
+  QString hydro_name;
+  double hydro_cost;
   //milk
   std::vector<int> milk_pos_history;
   ros::Time milk_off_screen_time;
   QString milk_name;
   double milk_cost;
+  //milk_red
+  std::vector<int> milk_red_pos_history;
+  ros::Time milk_red_off_screen_time;
+  QString milk_red_name;
+  double milk_red_cost;
   //tiger
   std::vector<int> tiger_pos_history;
   ros::Time tiger_off_screen_time;
   QString tiger_name;
   double tiger_cost;
-  //instant_green
-  std::vector<int> instant_green_pos_history;
-  ros::Time instant_green_off_screen_time;
-  QString instant_green_name;
-  double instant_green_cost;
-  //instant_blue
-  std::vector<int> instant_blue_pos_history;
-  ros::Time instant_blue_off_screen_time;
-  QString instant_blue_name;
-  double instant_blue_cost;
   //chips_brown
   std::vector<int> chips_brown_pos_history;
   ros::Time chips_brown_off_screen_time;
@@ -178,37 +173,27 @@ protected:
   ros::Time chips_green_off_screen_time;
   QString chips_green_name;
   double chips_green_cost;
-  //coke_can
-  std::vector<int> coke_can_pos_history;
-  ros::Time coke_can_off_screen_time;
-  QString coke_can_name;
-  double coke_can_cost;
-  //m_dew
-  std::vector<int> m_dew_pos_history;
-  ros::Time m_dew_off_screen_time;
-  QString m_dew_name;
-  double m_dew_cost;
-  //can_corn
-  std::vector<int> can_corn_pos_history;
-  ros::Time can_corn_off_screen_time;
-  QString can_corn_name;
-  double can_corn_cost;
-  //can_borsch
-  std::vector<int> can_borsch_pos_history;
-  ros::Time can_borsch_off_screen_time;
-  QString can_borsch_name;
-  double can_borsch_cost;
   //cornflaks
   std::vector<int> cornflaks_pos_history;
   ros::Time cornflaks_off_screen_time;
   QString cornflaks_name;
   double cornflaks_cost;
-
-  
-
-  
+  //kleenex
+  std::vector<int> kleenex_pos_history;
+  ros::Time kleenex_off_screen_time;
+  QString kleenex_name;
+  double kleenex_cost;
+  //kleenex_yellow
+  std::vector<int> kleenex_yellow_pos_history;
+  ros::Time kleenex_yellow_off_screen_time;
+  QString kleenex_yellow_name;
+  double kleenex_yellow_cost;
+  //orange
+  std::vector<int> orange_pos_history;
+  ros::Time orange_off_screen_time;
+  QString orange_name;
+  double orange_cost;  
 };
 
 }  // end namespace gui
-
 #endif  // simtrack_gui__Baxter_PANEL_H

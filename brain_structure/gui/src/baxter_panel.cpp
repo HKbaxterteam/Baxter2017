@@ -154,14 +154,14 @@ void BaxterPanel::gameStart()
               actionlib::SimpleActionClient<gui_game_masterAction>::SimpleFeedbackCallback());
 }
 
+//game stop
 void BaxterPanel::gameStop()
 {
   ROS_DEBUG_NAMED("gui", "Stopping the game ...");
   //send stop to game_master
   gui_game_masterGoal goal;
   goal.command = 2;
-  goal.first_player = 0;
-  
+  goal.first_player = 0;  
   // Need boost::bind to pass in the 'this' pointer
   ac_gui.sendGoal(goal,
                 boost::bind(&BaxterPanel::received_game_started, this, _1, _2),

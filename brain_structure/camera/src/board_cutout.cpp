@@ -49,8 +49,7 @@ class board_cutout
     {
       // Subscriber and publisher
       image_sub_raw_ = it_.subscribe("/TTTgame/webcam/input_image_raw", 1, &board_cutout::imageCb, this);
-      image_pub_cut_ = it_.advertise("/TTTgame/cut_board", 1);
-      
+      image_pub_cut_ = it_.advertise("/TTTgame/cut_board", 1);      
       //debug
       if(debug_flag){
         namedWindow("Input", CV_WINDOW_AUTOSIZE);
@@ -81,7 +80,6 @@ class board_cutout
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
       }
-
       // process the image
       org = cv_ptr->image;
       //debug output
@@ -93,7 +91,6 @@ class board_cutout
       // we cut out a smaller portion of the image
       Rect Rec(cutout_x, cutout_y, cutout_width, cutout_height);
       Mat cutorg  = org(Rec).clone();
-
       //publish the image in ros
       cv_bridge::CvImage out_msg;
       out_msg.header   = cv_ptr->header; // Same timestamp and tf frame as input image
@@ -101,7 +98,7 @@ class board_cutout
       out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
       out_msg.image    = cutorg; 
       image_pub_cut_.publish(out_msg.toImageMsg()); //transfer to ros image message  
-
+      
       //debug output
       if(debug_flag){
         waitKey(1);

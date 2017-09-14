@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ai)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -20,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 ## System dependencies are found with CMake's conventions
- find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
 find_package(game_master REQUIRED)
 
@@ -56,10 +53,6 @@ find_package(game_master REQUIRED)
 ## catkin specific configuration ##
 ###################################
 
-#catkin_package(
-#)
-
-
 include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${game_master_INCLUDE_DIRS} )
 
 add_executable(ai src/ai.cpp)
@@ -84,15 +77,6 @@ catkin_package(
 ###########
 ## Build ##
 ###########
-
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-#include_directories(
-# include
-#  ${catkin_INCLUDE_DIRS}
-#)
-
-
 
 #
 #############

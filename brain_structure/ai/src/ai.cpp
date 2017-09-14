@@ -55,8 +55,7 @@ public:
   {
     ROS_DEBUG_NAMED("ai_node", "Initilizing ai boss");
     //start the ai server
-    as_ai.start();
-    
+    as_ai.start();    
   }
   
   //deconstructor
@@ -76,7 +75,6 @@ public:
     vector<int> posMoves;
     std::vector<int> bestmove;
 
-
     //alpha-beta search
     maxdepthab=maxdepth;
     bool found_move=false;
@@ -91,8 +89,7 @@ public:
    	  		found_move=true;
    	  	}
    	  }
-   	  maxdepthab--;
-      
+   	  maxdepthab--;      
    	}
     
     //get the next possible boards
@@ -132,7 +129,6 @@ public:
     // set the action state to succeeded
     as_ai.setSucceeded(result_ai);
   }
-
   //function to find next gameboards
   vector<vector<int> > findposMoves(vector<int> gameboard)
   { 
@@ -155,7 +151,6 @@ public:
         }
         nextgameboards.push_back(gameboardtemp);
       }
-
     }
     return nextgameboards;
   } 
@@ -240,10 +235,7 @@ public:
       return bestValue;
     }
   }
-
-
 };
-
 
 //main
 int main(int argc, char** argv)
@@ -251,13 +243,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "ai_game_master");
   ROS_INFO("Start AI node");
   //start action server
-  ai_boss ab("ai_game_master");
-
-  while(ros::ok()){
-  ros::spinOnce();
-  ros::Duration(0.2).sleep();
- }
-   
-
+  ai_boss ab("ai_game_master");  
+  ros::spin();
   return 0;
 }

@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(game_master)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -100,7 +97,7 @@ add_dependencies(
   game_master
   ${game_master_EXPORTED_TARGETS}
 )
- add_dependencies(game_master ${catkin_EXPORTED_TARGETS})
+add_dependencies(game_master ${catkin_EXPORTED_TARGETS})
 
 #include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 #############

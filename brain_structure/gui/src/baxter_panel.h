@@ -37,10 +37,6 @@ namespace gui
 // Here we declare our new subclass of rviz::Panel.  Every panel which
 // can be added via the Panels/Add_New_Panel menu is a subclass of
 // rviz::Panel.
-//
-// MoveItPanel will show a text-entry field to set the output topic
-// and a 2D control area.  The 2D control area is implemented by the
-// DriveWidget class, and is described there.
 class BaxterPanel : public rviz::Panel
 {
   // This class uses Qt slots and is a subclass of QObject, so it needs
@@ -55,7 +51,6 @@ public:
   // someone using the class for something else to pass in a parent
   // widget as they normally would with Qt.
   BaxterPanel(QWidget *parent = 0);
-
   // Now we declare overrides of rviz::Panel functions for saving and
   // loading data from the config file.  Here the data is the
   // topic name.
@@ -64,7 +59,6 @@ public:
 
   // Next come a couple of public Qt slots.
 public Q_SLOTS:
-
   // Here we declare some internal slots.
 protected Q_SLOTS:
 
@@ -72,8 +66,8 @@ protected Q_SLOTS:
 
   void gameStop();
 
-  void groundState();
-  
+  void groundState();  
+
   void checkReach();
 
   void received_game_started(const actionlib::SimpleClientGoalState& state,
@@ -93,7 +87,6 @@ protected:
   QRadioButton *rb_human_start_;
   // The ROS node handle.
   ros::NodeHandle nh_;
-
   //action client
   actionlib::SimpleActionClient<gui_game_masterAction> ac_gui;
   //action  
@@ -102,7 +95,5 @@ protected:
   gui::game_master_guiResult result_game_master_gui;    // create messages that are used to published result
   std::string action_name_;
 };
-
 }  // end namespace gui
-
 #endif  // gui__Baxter_PANEL_H

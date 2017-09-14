@@ -83,8 +83,7 @@ public:
     as_camera.start();
     // Subscribe and publisher
     image_sub_cutout_ = it_.subscribe("/TTTgame/cut_board", 1, &camera_boss::imageCb, this);
-    image_pub_gameboard_ = it_.advertise("/TTTgame/camera_views", 1);
-    
+    image_pub_gameboard_ = it_.advertise("/TTTgame/camera_views", 1);    
     //debug
         if(debug_flag){
       namedWindow("Input_cutout", CV_WINDOW_AUTOSIZE);
@@ -116,7 +115,6 @@ public:
       }
       // process the image
       org = cv_ptr->image;
-
       //debug
       if(debug_flag){
         waitKey(1);
@@ -153,7 +151,6 @@ public:
 
       return;
     }
-
     /*
     // this breaks the node after one run ...
     if(debug_flag){
@@ -166,14 +163,13 @@ public:
       
     }
     */
-
     //for rviz visualization
     Size rviz_sub_size(400,400);
     org.copyTo(tl_cut_board);
     resize(tl_cut_board,tl_cut_board,rviz_sub_size);//resize image
     Mat br_detected_board(rviz_sub_size, CV_8UC3);
-  
-    // process the cut out board and detect the pieces***
+
+    // process the cut out board and detect the pieces
     //convert to gray scale
     cvtColor(org, input_grey, CV_BGR2GRAY);
     // find contour in the image  
@@ -202,20 +198,19 @@ public:
 
     // get biggest contour
     for( size_t i = 0; i< contours.size(); i++ ) // iterate through each contour.
+    {
+      double area = contourArea( contours[i] );  //  Find the area of contour
+      if( area > largest_area )
       {
-        double area = contourArea( contours[i] );  //  Find the area of contour
-        if( area > largest_area )
-        {
-          largest_area = area;
-          largest_contour_index = i;               //Store the index of largest contour
-        }
+        largest_area = area;
+        largest_contour_index = i;               //Store the index of largest contour
       }
-
-      //draw largest countour
-      Scalar color2 = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+    }
+    //draw largest countour
+    Scalar color2 = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
         
-      drawContours( countourlargest, contours, largest_contour_index, color2);
-      resize(countourlargest,countourlargest,rviz_sub_size);//resize image
+    drawContours( countourlargest, contours, largest_contour_index, color2);
+    resize(countourlargest,countourlargest,rviz_sub_size);//resize image
     
     //stich to one rviz output file
     Size rviz_sub_size_error(rviz_sub_size.width*3,rviz_sub_size.height);
@@ -229,8 +224,7 @@ public:
     //check that the largest area is at least half of the image
     if(largest_area>org.rows*org.cols/3.5)
     {
-      ROS_DEBUG_NAMED("camera","Found area.");
-      
+      ROS_DEBUG_NAMED("camera","Found area.");      
       //find 4 corner points
       vector<Point> corners;
       double d=0;
@@ -242,7 +236,6 @@ public:
       while (corners.size()>4);
         
       contours.push_back(corners);
-
       //target points for homogenous tranform
       vector<Point2f> dest;
       dest.push_back(Point2f(0,0)); 
@@ -289,14 +282,12 @@ public:
           as_camera.setSucceeded(result_camera);
           ROS_DEBUG_NAMED("camera", "Not 4 corners");
           return;
-        }   
-          
+        } 
         if(debug_flag){
           waitKey(1);
           imshow("Gameboard", warpedCard);
           waitKey(1);
         }
-
         //for rviz
         warpedCard.copyTo(bl_only_gameboard);
         resize(bl_only_gameboard,bl_only_gameboard,rviz_sub_size);//resize image
@@ -310,7 +301,6 @@ public:
         Rect Rec(0, 0, 10, 10);
         //clear the game board
         gameboard.clear();
-
         //Loop through all ROI and check if its red or blue
         for(int i=0;i<cols*rows;i++){
           //ROI
@@ -365,8 +355,7 @@ public:
         //rviz
         resize(br_detected_board,br_detected_board,rviz_sub_size);//resize image
         //Camera did it
-        success=true;
-        
+        success=true;        
         if(debug_flag){
           //Print game board
           cout << "*********************************" << endl;
@@ -379,8 +368,6 @@ public:
           }
           cout << "*********************************" << endl;
         }
-        
-
       }
       else{
         ROS_WARN_NAMED("camera","Detected area is to small");
@@ -393,8 +380,7 @@ public:
         out_msg.header.stamp =ros::Time::now(); // new timestamp
         out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
         out_msg.image    = rviz_out_error; 
-        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message 
-        
+        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message         
         return;
       }
 
@@ -407,13 +393,6 @@ public:
         // set the action state to succeeded
         as_camera.setSucceeded(result_camera);
 
-        //rviz stitch it 4 next to each other 
-        /*Mat rviz_out(rviz_sub_size*2, CV_8UC3);
-        tl_cut_board.copyTo(rviz_out(Rect(0,0,rviz_sub_size.width,rviz_sub_size.height)));
-        tr_contours.copyTo(rviz_out(Rect(rviz_sub_size.width,0,rviz_sub_size.width,rviz_sub_size.height)));
-        bl_only_gameboard.copyTo(rviz_out(Rect(0,rviz_sub_size.height,rviz_sub_size.width,rviz_sub_size.height)));
-        br_detected_board.copyTo(rviz_out(Rect(rviz_sub_size.width,rviz_sub_size.height,rviz_sub_size.width,rviz_sub_size.height)));
-        */
         Size rviz_sub_size_all(rviz_sub_size.width*4,rviz_sub_size.height);
         Mat rviz_out(rviz_sub_size_all, CV_8UC3);
         tl_cut_board.copyTo(rviz_out(Rect(0,0,rviz_sub_size.width,rviz_sub_size.height)));
@@ -427,8 +406,7 @@ public:
         out_msg.header.stamp =ros::Time::now(); // new timestamp
         out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
         out_msg.image    = rviz_out; 
-        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message 
-      
+        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message       
       }
       else{
         ROS_WARN_NAMED("camera", "No sucess in doing the camera update.");
@@ -443,10 +421,8 @@ public:
         out_msg.header.stamp =ros::Time::now(); // new timestamp
         out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
         out_msg.image    = rviz_out_error; 
-        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message 
-        
+        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message         
       }
-
       /*
       // doesent work ...
      if(debug_flag){
@@ -460,15 +436,12 @@ public:
       } 
       */ 
     }
-
 };
-
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "camera_game_master");
   ROS_INFO("Start camera node");
-  //start action server
   camera_boss ab("camera_game_master");
   ros::spin();
 
