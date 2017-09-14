@@ -244,8 +244,8 @@ public:
 
   void check_reach(){
     ROS_DEBUG_NAMED("grasping_baxter", "performing reach check");
-    int outerbound [21] = {0,1,2,3,4,5,11,17,23,29,35,34,33,32,31,30,24,18,12,6};
-    for(int i=0;i<21;i++){
+    int outerbound [4] = {0,5,35,30};
+    for(int i=0;i<4;i++){
       //move to pick up pose    
       target_pose=pick_up_pose;
       target_pose.pose.position.z +=0.05; 
