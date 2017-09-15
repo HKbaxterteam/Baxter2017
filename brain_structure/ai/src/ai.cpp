@@ -244,6 +244,10 @@ int main(int argc, char** argv)
   ROS_INFO("Start AI node");
   //start action server
   ai_boss ab("ai_game_master");  
-  ros::spin();
+  
+  while(ros::ok()){
+    ros::spinOnce();
+    ros::Duration(0.2).sleep(); 
+  }
   return 0;
 }

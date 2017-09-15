@@ -16,6 +16,7 @@
 //Includes
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <ros/package.h>
 //actionlib
 #include <actionlib/server/simple_action_server.h>
 #include <camera/camera_game_masterAction.h>
@@ -32,6 +33,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string> 
 
 //namespace
 using namespace cv;
@@ -53,6 +55,8 @@ protected:
   image_transport::Publisher image_pub_gameboard_;
   
 public:
+  //image_transport::Publisher image_pub_gameboard_;
+  cv_bridge::CvImage out_msg;
   //debug
   bool debug_flag;
   //gamboard
@@ -71,6 +75,7 @@ public:
   Mat canny_output, drawing, countourlargest;
   //debug output for rviz
   Mat tl_cut_board, tr_contours, bl_only_gameboard;
+  Mat rviz_error;
  
   //NOTE:Debug camera only works if the debug imshow windows are closed before the next request ... it crashes otherwise
 
@@ -88,6 +93,28 @@ public:
         if(debug_flag){
       namedWindow("Input_cutout", CV_WINDOW_AUTOSIZE);
     }
+
+    //set up the rviz publihser
+    Mat camera_intro;
+    
+    string path = ros::package::getPath("camera") + "/other/camera_intro.png";
+    //read in camera_intro
+    camera_intro = imread(path, 65);   // Read the file 
+    if(! camera_intro.data ){                              // Check for invalid input
+      ROS_ERROR_NAMED("camera", "Could not open or find the camera intro at: ");
+      cout << path << endl;
+    }
+    path = ros::package::getPath("camera") + "/other/rviz_error.png";
+    //read in camera_intro
+    rviz_error = imread(path, 65);   // Read the file 
+    if(! rviz_error.data ){                              // Check for invalid input
+      ROS_ERROR_NAMED("camera", "Could not open or find the rviz_error at: ");
+      cout << path << endl;
+    }
+    out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
+    out_msg.header.stamp =ros::Time::now(); // new timestamp
+    out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
+    out_msg.image    = camera_intro; 
   }
 
   //deconstructor
@@ -130,6 +157,10 @@ public:
       }     
     }
 
+  void rviz_publish(){
+    image_pub_gameboard_.publish(out_msg.toImageMsg()); //publish
+  }
+
   //callback start game from actionlib (send from game_master)
   void camera_start_command(const camera::camera_game_masterGoalConstPtr &goal)
   {
@@ -137,7 +168,7 @@ public:
     //extracting player
     player=goal->next_player;
 
-    cv_bridge::CvImage out_msgc;
+    //cv_bridge::CvImage out_msgc;
     // helper variables
     bool success = false;
 
@@ -213,12 +244,13 @@ public:
     resize(countourlargest,countourlargest,rviz_sub_size);//resize image
     
     //stich to one rviz output file
-    Size rviz_sub_size_error(rviz_sub_size.width*3,rviz_sub_size.height);
+    Size rviz_sub_size_error(rviz_sub_size.width*4,rviz_sub_size.height);
     Mat rviz_out_error(rviz_sub_size_error, CV_8UC3);
     tl_cut_board.copyTo(rviz_out_error(Rect(0,0,rviz_sub_size.width,rviz_sub_size.height)));
     tr_contours.copyTo(rviz_out_error(Rect(rviz_sub_size.width,0,rviz_sub_size.width,rviz_sub_size.height)));
     countourlargest.copyTo(rviz_out_error(Rect(rviz_sub_size.width*2,0,rviz_sub_size.width,rviz_sub_size.height)));
-        
+    rviz_error.copyTo(rviz_out_error(Rect(rviz_sub_size.width*3,0,rviz_sub_size.width,rviz_sub_size.height)));
+    
     //output for slicing up the thing
     Mat warpedCard(rviz_sub_size, CV_8UC3);
     //check that the largest area is at least half of the image
@@ -375,12 +407,10 @@ public:
         result_camera.status =2;
         as_camera.setSucceeded(result_camera);
         //publish the image in ros
-        cv_bridge::CvImage out_msg;
         out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
         out_msg.header.stamp =ros::Time::now(); // new timestamp
         out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
         out_msg.image    = rviz_out_error; 
-        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message         
         return;
       }
 
@@ -401,12 +431,10 @@ public:
         br_detected_board.copyTo(rviz_out(Rect(rviz_sub_size.width*3,0,rviz_sub_size.width,rviz_sub_size.height)));
         
         //publish the image in ros
-        cv_bridge::CvImage out_msg;
         out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
         out_msg.header.stamp =ros::Time::now(); // new timestamp
         out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
         out_msg.image    = rviz_out; 
-        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message       
       }
       else{
         ROS_WARN_NAMED("camera", "No sucess in doing the camera update.");
@@ -416,12 +444,10 @@ public:
 
         //publish the contour
         //publish the image in ros
-        cv_bridge::CvImage out_msg;
         out_msg.header.frame_id   = "/world";//cv_ptr->header; // Same timestamp and tf frame as input image
         out_msg.header.stamp =ros::Time::now(); // new timestamp
         out_msg.encoding = sensor_msgs::image_encodings::BGR8; // encoding, might need to try some diffrent ones
-        out_msg.image    = rviz_out_error; 
-        image_pub_gameboard_.publish(out_msg.toImageMsg()); //transfer to Ros image message         
+        out_msg.image    = rviz_out_error;          
       }
       /*
       // doesent work ...
@@ -442,8 +468,14 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "camera_game_master");
   ROS_INFO("Start camera node");
-  camera_boss ab("camera_game_master");
-  ros::spin();
+  camera_boss cb("camera_game_master");
+
+  
+  while(ros::ok()){
+    cb.rviz_publish();
+    ros::spinOnce();
+    ros::Duration(0.2).sleep(); 
+  }
 
   return 0;
 }

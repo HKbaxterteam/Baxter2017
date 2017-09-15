@@ -27,11 +27,14 @@ https://github.com/code-iai/iai_kinect2
 https://gist.github.com/bigsnarfdude/7305c8d8335c7cfc91888485a33d9bd9
 
 ##QT
+#install if necessary
+
+##Simtrack
+https://github.com/karlpauwels/simtrack
 
 
-
-##Git repo Baxter2017
-repo:git@github.com:HKbaxterteam/Baxter2017.git
-apt-get install ros-indigo-zbar-ros 
+##Git repo HKbaxterteam
+https://github.com/HKbaxterteam
+#pull all the forked repos and replace the previos ones
 
 
