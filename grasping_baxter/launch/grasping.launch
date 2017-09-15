@@ -1,0 +1,16 @@
+<!-- -*- xml -*-
+     THis launches the grasping node and needed stuff
+  -->
+
+<launch>
+
+  <!-- tf-tree -->
+  <include file="$(find grasping_baxter)/launch/tf-tree.launch"/>
+
+  <!-- ar-code-tracker -->
+  <include file="$(find grasping_baxter)/launch/ar-code-tracker.launch"/>
+
+  <!-- starte grasping node-->
+  <node pkg="grasping_baxter" type="grasping_baxter" name="grasping_baxter" output="screen" />
+
+</launch>
