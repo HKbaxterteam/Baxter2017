@@ -1,9 +1,0 @@
-#goal definition
-int32 command
-int32 first_player
----
-#result definition
-int32 game_started
----
-#feedback
-int32 progress

@@ -1,9 +1,0 @@
-#goal definition
-string status
-string baxter_says
----
-#result definition
-int32 got_it
----
-#feedback
-int32 progress
