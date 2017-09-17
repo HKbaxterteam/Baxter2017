@@ -11,9 +11,9 @@
   </include>
 
   <!-- starte board cut out node-->
-  <node pkg="camera" type="board_cutout" name="board_cutout" output="screen" />
+  <node pkg="camera" type="board_cutout" name="board_cutout" output="screen" respawn="true" />
 
   <!-- starte camera node-->
-  <node pkg="camera" type="camera" name="camera" output="screen" />
+  <node pkg="camera" type="camera" name="camera" output="screen" respawn="true" />
 
 </launch>

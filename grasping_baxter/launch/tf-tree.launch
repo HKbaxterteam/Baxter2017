@@ -10,9 +10,9 @@ At time 1504529131.762
             in RPY (degree) [2.469, 37.213, 7.490] -->
 
   <!-- Tf transform X,y,z, yaw,pitch,roll-->
-  <node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.07 -0.07 0.92 0.07 0.628 0.0055 /world /kinect2_help 10" />
+  <node pkg="tf" type="static_transform_publisher" name="kinectTransformer" args="0.08 -0.073 0.92 0.07 0.628 0.0055 /world /kinect2_help 10" respawn="true"/>
   <!-- point cloud is flipped (reason unkonwn) -->	
-  <node pkg="tf" type="static_transform_publisher" name="kinectTransformer2" args="0.0 -0.0 0.0 -1.5707963 0.0 -1.5707963 /kinect2_help /kinect2_rgb_optical_frame 10" />
-  <node pkg="tf" type="static_transform_publisher" name="kinectTransformer2ir" args="0.0 -0.0 0.0 -1.5707963 0.0 -1.5707963 /kinect2_help /kinect2_ir_optical_frame 10" />
+  <node pkg="tf" type="static_transform_publisher" name="kinectTransformer2" args="0.0 -0.0 0.0 -1.5707963 0.0 -1.5707963 /kinect2_help /kinect2_rgb_optical_frame 10" respawn="true"/>
+  <node pkg="tf" type="static_transform_publisher" name="kinectTransformer2ir" args="0.0 -0.0 0.0 -1.5707963 0.0 -1.5707963 /kinect2_help /kinect2_ir_optical_frame 10" respawn="true"/>
 
 </launch>

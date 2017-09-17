@@ -11,6 +11,6 @@
   <include file="$(find grasping_baxter)/launch/ar-code-tracker.launch"/>
 
   <!-- starte grasping node-->
-  <node pkg="grasping_baxter" type="grasping_baxter" name="grasping_baxter" output="screen" />
+  <node pkg="grasping_baxter" type="grasping_baxter" name="grasping_baxter" output="screen" respawn="true" />
 
 </launch>
