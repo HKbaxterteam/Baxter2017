@@ -167,7 +167,7 @@ kleenex_yellow_name("Kleenex soft"),kleenex_yellow_cost(13.25),orange_name("Oran
   kleenex_yellow_off_screen_time=ros::Time::now();
   orange_pose_sub = nh_.subscribe("/simtrack/orange", 1, &SimtrackPanel::orange_code_pose_cb, this);
   orange_off_screen_time=ros::Time::now();
-  cornflaks_pose_sub = nh_.subscribe("/simtrack/cornflaks", 1, &SimtrackPanel::cornflaks_code_pose_cb, this);
+  cornflaks_pose_sub = nh_.subscribe("/simtrack/conflakes", 1, &SimtrackPanel::cornflaks_code_pose_cb, this);
   cornflaks_off_screen_time=ros::Time::now();
 
   
