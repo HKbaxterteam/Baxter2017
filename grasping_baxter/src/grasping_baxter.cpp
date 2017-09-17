@@ -120,8 +120,8 @@ public:
   //
   grasping_baxter_boss(std::string name) :
     as_grasping_baxter(nh_, name, boost::bind(&grasping_baxter_boss::grasping_baxter_start_command, this, _1), false),
-    action_name_(name),group("right_arm"),offset_p0_pose_x(-0.101),offset_p0_pose_y(+0.16),
-    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.315),offset_pick_up_pose_y(-0.28),offset_pick_up_pose_z(0.0575),art_vec_count(0),
+    action_name_(name),group("right_arm"),offset_p0_pose_x(-0.110),offset_p0_pose_y(+0.1615),
+    offset_p0_pose_z(0.015),offset_pick_up_pose_x(-0.335),offset_pick_up_pose_y(-0.2635),offset_pick_up_pose_z(0.0575),art_vec_count(0),
     art_vec_position(0),ar_tag_pose_vector(10),debug_flag(false),num_game_pieces_left(18),
     doarupdate(true), offset_bc_x(-0.24), offset_bc_y(0),offset_bc_z(0),current_stack(0),num_baxtertrys(2)
   {
