@@ -35,7 +35,7 @@
 //namespace
 namespace simtrack_gui
 {
-SimtrackPanel::SimtrackPanel(QWidget* parent) : rviz::Panel(parent),consec_needed(5),size_of_fields(0.077),new_object_time(5.0),
+SimtrackPanel::SimtrackPanel(QWidget* parent) : rviz::Panel(parent),consec_needed(3),size_of_fields(0.1),new_object_time(5.0),
 fuerte_name("Fuerte turtel"),fuerte_cost(13.37),milk_name("Skimmed milk"),milk_cost(26.15),tiger_name("Kellogs's super suger"),tiger_cost(29.85),
 groovy_name("Groovy Turtel"),groovy_cost(13.37),hydro_name("Hydro Turtel"),hydro_cost(13.37),chips_brown_name("Pringles Hot & Spicy"),chips_brown_cost(19.78),
 chips_green_name("Pringles Sour-cream & Onion"),chips_green_cost(19.78),milk_red_name("100 milk"),milk_red_cost(35.98),kleenex_name("Kleenex "),kleenex_cost(7.77),
