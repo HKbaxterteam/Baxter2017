@@ -40,9 +40,9 @@ For how to play and control the game see the documentation.
 
 An example videos can be seen below:
 
-Link 
-link 
-link 
+* [Baxter plays Tic-Tac-Toe while shopping with Simtrack 1](https://youtu.be/jGrWu8gPSQo)
+* [Baxter plays Tic-Tac-Toe while shopping with Simtrack 2](https://youtu.be/fuvyZqVXoGA). 
+* [Baxter plays Tic-Tac-Toe while shopping with Simtrack 3](https://youtu.be/2fPbQojZGME). 
 
 This project was generated at HKUST in Summer 2017 by Michael C. Welle and Nadine Drollinger, Supervised by Prof. Michael Wang and Prof. Hang Kaiyu
 
